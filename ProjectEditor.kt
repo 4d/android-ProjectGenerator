@@ -2,6 +2,7 @@ import DefaultValues.DEFAULT_REMOTE_URL
 import ExitCodes.PROJECT_EDITOR_JSON_EMPTY
 import ProjectEditorConstants.AUTHENTICATION_KEY
 import ProjectEditorConstants.BOOLEAN_TYPE
+import ProjectEditorConstants.DATASOURCE_KEY
 import ProjectEditorConstants.DATE_TYPE
 import ProjectEditorConstants.DEVELOPER_KEY
 import ProjectEditorConstants.EMAIL_KEY
@@ -17,6 +18,7 @@ import ProjectEditorConstants.PRODUCT_KEY
 import ProjectEditorConstants.PROJECT_KEY
 import ProjectEditorConstants.SDK_KEY
 import ProjectEditorConstants.SERVER_KEY
+import ProjectEditorConstants.SOURCE_KEY
 import ProjectEditorConstants.STRING_TYPE
 import ProjectEditorConstants.TEAMID_KEY
 import ProjectEditorConstants.TEXT_TYPE
@@ -67,6 +69,7 @@ class ProjectEditor(projectEditorFile: File) {
             "appNameWithCaps" -> jsonObj.getSafeObject(PROJECT_KEY)?.getSafeObject(PRODUCT_KEY)?.getSafeString(NAME_KEY)
             "remoteUrl" -> jsonObj.getSafeObject(PROJECT_KEY)?.getSafeObject(SERVER_KEY)?.getSafeObject(URLS_KEY)?.getSafeString(PRODUCTION_KEY)
             "teamId" -> jsonObj.getSafeObject(PROJECT_KEY)?.getSafeObject(ORGANIZATION_KEY)?.getSafeString(TEAMID_KEY)
+            "embeddedData" ->jsonObj.getSafeObject(PROJECT_KEY)?.getSafeObject(DATASOURCE_KEY)?.getSafeString(SOURCE_KEY)
             else -> return null
         }
     }
@@ -84,12 +87,13 @@ class ProjectEditor(projectEditorFile: File) {
         if (remoteUrl.isNullOrEmpty())
             remoteUrl = DEFAULT_REMOTE_URL
         val teamId = findJsonString("teamId") ?: ""
-        val embeddedData = findJsonBoolean("embeddedData") ?: false
+        val embeddedData = findJsonString("embeddedData") == "local"
         return AppInfo(
                 team = Team(TeamID = teamId, TeamName = ""),
                 guestLogin = mailAuth.not(),
                 remoteUrl = remoteUrl,
-                embeddedData = embeddedData
+                embeddedData = embeddedData,
+                initialGlobalStamp = 0
         )
     }
 }
