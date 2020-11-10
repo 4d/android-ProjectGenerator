@@ -66,7 +66,7 @@ fun JSONObject.getDataModelList(): List<DataModel> {
 
                             // Check if there is a slave table to add
                             newFieldJSONObject.getSafeString(RELATEDDATACLASS_KEY)?.let { relatedDataClass ->
-                                if (dataModelList.find { dataModel ->  dataModel.name == relatedDataClass} == null) { // in case we didn't add this dataModel already
+                                if ((dataModelList.find { dataModel ->  dataModel.name == relatedDataClass} == null) && (relatedDataClass != dataModelName)) { // in case we didn't add this dataModel already, or it's not current dataModel behind parsed
                                     val slaveDataModel = DataModel(name = relatedDataClass, isSlave = true)
                                     newFieldJSONObject.getSafeInt(RELATEDTABLENUMBER_KEY)?.let { relatedTableNumber ->
                                         slaveDataModel.id = relatedTableNumber.toString()

@@ -25,6 +25,7 @@ object MustacheConstants {
     const val ENTITY_CLASSES = "entity_classes"
     const val RELATION_SOURCE = "relation_source"
     const val RELATION_TARGET = "relation_target"
+    const val RELATION_SAME_TYPE = "relation_same_type"
     const val RELATION_NAME = "relation_name"
     const val RELATIONS = "relations"
     const val RELATIONS_IMPORT = "relations_import"

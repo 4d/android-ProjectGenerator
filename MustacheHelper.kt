@@ -24,6 +24,7 @@ import MustacheConstants.PREFIX
 import MustacheConstants.RELATIONS
 import MustacheConstants.RELATIONS_IMPORT
 import MustacheConstants.RELATION_NAME
+import MustacheConstants.RELATION_SAME_TYPE
 import MustacheConstants.RELATION_SOURCE
 import MustacheConstants.RELATION_TARGET
 import MustacheConstants.TABLENAME
@@ -229,6 +230,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                             data[RELATION_SOURCE] = relation.source
                             data[RELATION_TARGET] = relation.target
                             data[RELATION_NAME] = relation.name
+                            data[RELATION_SAME_TYPE] = relation.source == relation.target
 
                             val replacedPath = newFilePath.replace(TEMPLATE_RELATION_ENTITY_PLACEHOLDER, "${relation.source}And${relation.target}")
 
@@ -238,6 +240,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                             data.remove(RELATION_NAME)
                             data.remove(RELATION_SOURCE)
                             data.remove(RELATION_TARGET)
+                            data.remove(RELATION_SAME_TYPE)
                         }
                     }
 
