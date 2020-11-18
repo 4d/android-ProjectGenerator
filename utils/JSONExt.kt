@@ -52,4 +52,10 @@ fun JSONArray?.getStringList(): List<String> {
     return list
 }
 
-fun retrieveJSONObject(jsonString: String): JSONObject = JSONObject(jsonString.substring(jsonString.indexOf("{"), jsonString.lastIndexOf("}") + 1))
+fun retrieveJSONObject(jsonString: String): JSONObject? {
+    return try {
+        JSONObject(jsonString.substring(jsonString.indexOf("{"), jsonString.lastIndexOf("}") + 1))
+    } catch (e: StringIndexOutOfBoundsException) {
+        null
+    }
+}

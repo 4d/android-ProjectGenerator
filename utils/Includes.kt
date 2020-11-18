@@ -21,6 +21,7 @@
 //INCLUDE models/projecteditor/DataModel.kt
 //INCLUDE models/projecteditor/Field.kt
 //INCLUDE models/projecteditor/Form.kt
+//INCLUDE models/projecteditor/FormType.kt
 //INCLUDE models/projecteditor/Relation.kt
 //INCLUDE models/projecteditor/RelationType.kt
 //INCLUDE models/projecteditor/VariableType.kt

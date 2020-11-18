@@ -31,6 +31,9 @@ import MustacheConstants.TABLENAME
 import MustacheConstants.TABLENAMES
 import MustacheConstants.TABLENAMES_LOWERCASE
 import MustacheConstants.TABLENAMES_NAVIGATION
+import MustacheConstants.TABLENAMES_RELATIONS
+import MustacheConstants.TABLENAMES_RELATIONS_DISTINCT
+import MustacheConstants.TABLENAMES_WITHOUT_RELATIONS
 import MustacheConstants.TABLENAME_LOWERCASE
 import MustacheConstants.TYPES_AND_TABLES
 import PathHelperConstants.TEMPLATE_PLACEHOLDER
@@ -79,21 +82,32 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
         var entityClassesString = ""
 
+        val dataModelRelationList = mutableListOf<TemplateRelationFiller>()
+
         projectEditor.dataModelList.filter { it.isSlave == false }.forEach { dataModel ->
 
-            val dataModelRelationList = mutableListOf<TemplateRelationFiller>()
             dataModel.relationList?.filter { it.relationType == RelationType.MANY_TO_ONE }?.forEach { relation ->
                 dataModelRelationList.add(TemplateRelationFiller(relation_source = relation.source, relation_target = relation.target, relation_name = relation.name))
             }
 
-            tableNames.add(TemplateTableFiller(name = dataModel.name, relations_kk = dataModelRelationList))
+            tableNames.add(TemplateTableFiller(name = dataModel.name))
             tableNames_lowercase.add(TemplateLayoutFiller(name = dataModel.name, nameLowerCase = dataModel.name.toLowerCase(), hasIcon = dataModel.iconPath != null, icon = dataModel.iconPath
                     ?: ""))
             entityClassesString += "${dataModel.name}::class, "
         }
 
+        val tableNames_without_relations = mutableListOf<TemplateTableFiller>()
+
+        tableNames.forEach { tableName ->
+            if (!dataModelRelationList.map { it.relation_source }.contains(tableName.name))
+                tableNames_without_relations.add(tableName)
+        }
+
         data[TABLENAMES] = tableNames
         data[TABLENAMES_LOWERCASE] = tableNames_lowercase
+        data[TABLENAMES_RELATIONS] = dataModelRelationList
+        data[TABLENAMES_WITHOUT_RELATIONS] = tableNames_without_relations
+        data[TABLENAMES_RELATIONS_DISTINCT] = dataModelRelationList.distinctBy { it.relation_source }.distinctBy { it.relation_target }
         data[ENTITY_CLASSES] = entityClassesString.dropLast(2)
 
         val typesAndTables = mutableListOf<TemplateTableFiller>()
@@ -161,7 +175,14 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
                                 field.fieldTypeString?.let { fieldTypeString ->
 
-                                    fieldList.add(TemplateFieldFiller(name = field.name, fieldTypeString = fieldTypeString, variableType = field.variableType))
+                                    fieldList.add(
+                                            TemplateFieldFiller(
+                                                    name = field.name.condensePropertyName(),
+                                                    fieldTypeString = fieldTypeString,
+                                                    variableType = field.variableType,
+                                                    name_original = field.name
+                                            )
+                                    )
 
                                 } ?: kotlin.run {
                                     println("An error occurred while parsing the fieldType of field : $field")
@@ -271,7 +292,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
             listForm.fields?.forEach { field ->
                 i++
                 data["field_${i}_defined"] = true
-                data["field_${i}_name"] = field.name
+                data["field_${i}_name"] = field.name.condensePropertyName()
             }
 
             val newFilePath = fileHelper.pathHelper.getRecyclerViewItemPath(listForm.dataModel.name)
@@ -325,7 +346,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
                             if (fieldList[i].name != NULL_FIELD_SEPARATOR) {
                                 data["field_${i + 1}_defined"] = true
-                                data["field_${i + 1}_name"] = fieldList[i].name
+                                data["field_${i + 1}_name"] = fieldList[i].name.condensePropertyName()
                             }
                         }
 

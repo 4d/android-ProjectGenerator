@@ -30,12 +30,12 @@ import kotlin.system.exitProcess
 
 class ProjectEditor(projectEditorFile: File) {
 
-    var dataModelList: List<DataModel>
-    var listFormList: List<Form>
-    var detailFormList: List<Form>
-    var navigationTableList: List<String>
+    lateinit var dataModelList: List<DataModel>
+    lateinit var listFormList: List<Form>
+    lateinit var detailFormList: List<Form>
+    lateinit var navigationTableList: List<String>
 
-    private var jsonObj: JSONObject
+    private lateinit var jsonObj: JSONObject
 
     init {
         val jsonString = projectEditorFile.readFile()
@@ -45,19 +45,24 @@ class ProjectEditor(projectEditorFile: File) {
             exitProcess(PROJECT_EDITOR_JSON_EMPTY)
         }
 
-        jsonObj = retrieveJSONObject(jsonString)
+        retrieveJSONObject(jsonString)?.let {
+            jsonObj = it
 
-        dataModelList = jsonObj.getDataModelList()
-        println("> DataModels list successfully read.")
+            dataModelList = jsonObj.getDataModelList()
+            println("> DataModels list successfully read.")
 
-        listFormList = jsonObj.getListFormList(dataModelList)
-        println("> List forms list successfully read.")
+            listFormList = jsonObj.getFormList(dataModelList, FormType.LIST)
+            println("> List forms list successfully read.")
 
-        detailFormList = jsonObj.getDetailFormList(dataModelList)
-        println("> Detail forms list successfully read.")
+            detailFormList = jsonObj.getFormList(dataModelList, FormType.DETAIL)
+            println("> Detail forms list successfully read.")
 
-        navigationTableList = jsonObj.getNavigationTableList()
-        println("> Navigation tables list successfully read.")
+            navigationTableList = jsonObj.getNavigationTableList()
+            println("> Navigation tables list successfully read.")
+
+        } ?: kotlin.run {
+            println("Could not read global json object from file ${projectEditorFile.name}")
+        }
     }
 
     fun findJsonString(key: String): String? {
@@ -101,7 +106,7 @@ class ProjectEditor(projectEditorFile: File) {
 fun typeStringFromTypeInt(type: Int?): String = when (type) {
     0 -> STRING_TYPE
     1 -> FLOAT_TYPE
-    2 -> TEXT_TYPE
+    2 -> STRING_TYPE
     3 -> PHOTO_TYPE
     4 -> DATE_TYPE
     5 -> EMPTY_TYPE
