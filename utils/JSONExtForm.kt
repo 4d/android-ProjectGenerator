@@ -27,10 +27,26 @@ fun JSONObject.getFormList(dataModelList: List<DataModel>, formType: FormType): 
     }
     // Check for missing detailForms
     dataModelList.forEach { dataModel ->
-        if (!formList.map { it.dataModel.name }.contains(dataModel.name)) { // no form was given for this dataModel
+        val dataModelHasAnAssociatedForm = formList.find { it.dataModel.name == dataModel.name }
+
+        if (dataModelHasAnAssociatedForm == null) { // no form was given for this dataModel
             val form = Form(dataModel = dataModel)
-            form.fields = dataModel.fields
+            val fields = mutableListOf<Field>()
+            dataModel.fields?.forEach {
+                if (!isPrivateRelationField(it.name)) {
+                    fields.add(it)
+                }
+            }
+            form.fields = fields
             formList.add(form)
+        } else if (dataModelHasAnAssociatedForm.fields.isNullOrEmpty()) { // no field was given in the form
+            val fields = mutableListOf<Field>()
+            dataModel.fields?.forEach {
+                if (!isPrivateRelationField(it.name)) {
+                    fields.add(it)
+                }
+            }
+            dataModelHasAnAssociatedForm.fields = fields
         }
     }
     return formList

@@ -18,6 +18,7 @@ object ProjectEditorConstants {
     const val RELATEDDATACLASS_KEY = "relatedDataClass"
     const val RELATEDTABLENUMBER_KEY = "relatedTableNumber"
     const val INVERSENAME_KEY = "inverseName"
+    const val ISTOMANY_KEY = "isToMany"
     const val RELATEDENTITIES_KEY = "relatedEntities"
     const val LIST_KEY = "list"
     const val FORM_KEY = "form"

@@ -87,7 +87,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         projectEditor.dataModelList.filter { it.isSlave == false }.forEach { dataModel ->
 
             dataModel.relationList?.filter { it.relationType == RelationType.MANY_TO_ONE }?.forEach { relation ->
-                dataModelRelationList.add(TemplateRelationFiller(relation_source = relation.source, relation_target = relation.target, relation_name = relation.name))
+                dataModelRelationList.add(TemplateRelationFiller(relation_source = relation.source, relation_target = relation.target, relation_name = relation.name.condensePropertyName()))
             }
 
             tableNames.add(TemplateTableFiller(name = dataModel.name))
@@ -151,7 +151,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
                 projectEditor.dataModelList.forEach { dataModel ->
                     dataModel.relationList?.filter { it.relationType == RelationType.MANY_TO_ONE }?.forEach { relation ->
-                        relations.add(TemplateRelationFiller(relation_source = relation.source, relation_target = relation.target, relation_name = relation.name))
+                        relations.add(TemplateRelationFiller(relation_source = relation.source, relation_target = relation.target, relation_name = relation.name.condensePropertyName()))
                     }
                 }
                 data[RELATIONS] = relations
@@ -197,7 +197,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
                         projectEditor.dataModelList.find { it.name == tableName.name }?.relationList?.filter { it.relationType == RelationType.MANY_TO_ONE }?.forEach { relation ->
 
-                            relations.add(TemplateRelationFiller(relation_source = relation.source, relation_target = relation.target, relation_name = relation.name))
+                            relations.add(TemplateRelationFiller(relation_source = relation.source, relation_target = relation.target, relation_name = relation.name.condensePropertyName()))
 
                             var isAlreadyImported = false
                             for (relationImport in relationsImport) {
@@ -205,7 +205,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                     isAlreadyImported = true
                             }
                             if (!isAlreadyImported)
-                                relationsImport.add(TemplateRelationFiller(relation_source = relation.source, relation_target = relation.target, relation_name = relation.name)) // name is unused
+                                relationsImport.add(TemplateRelationFiller(relation_source = relation.source, relation_target = relation.target, relation_name = relation.name.condensePropertyName())) // name is unused
                         }
 
                         data[RELATIONS] = relations
@@ -250,7 +250,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
                             data[RELATION_SOURCE] = relation.source
                             data[RELATION_TARGET] = relation.target
-                            data[RELATION_NAME] = relation.name
+                            data[RELATION_NAME] = relation.name.condensePropertyName()
                             data[RELATION_SAME_TYPE] = relation.source == relation.target
 
                             val replacedPath = newFilePath.replace(TEMPLATE_RELATION_ENTITY_PLACEHOLDER, "${relation.source}And${relation.target}")
@@ -365,12 +365,13 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                     detailForm.dataModel.fields?.let { dataModelFields ->
                         var i = 0
                         dataModelFields.forEach { field ->
-                            i++
-                            formFieldList.add(createFormField(field, i))
+                            if (!isPrivateRelationField(field.name)) {
+                                i++
+                                formFieldList.add(createFormField(field, i))
+                            }
                         }
                     }
                 }
-
                 data[FORM_FIELDS] = formFieldList
             }
 

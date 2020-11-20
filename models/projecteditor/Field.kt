@@ -9,5 +9,8 @@ data class Field(
         var relatedTableNumber: Int? = null,
         var inverseName: String? = null,
         var relatedDataClass: String? = null,
-        var variableType: String = VariableType.VAL.string
+        var variableType: String = VariableType.VAL.string,
+        var isToMany: Boolean? = null
 )
+
+fun isPrivateRelationField(fieldName: String): Boolean = fieldName.startsWith("__") && fieldName.endsWith("Key")
