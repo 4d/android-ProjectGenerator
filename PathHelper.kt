@@ -35,11 +35,13 @@ class PathHelper(
         return targetDirPath + replacePath(currentPath)
     }
 
-    fun replaceDirectoriesPath(path: String): String =
-            path.replace(PREFIX_PH, prefix).replace(COMPANY_PH, companyCondensed).replace(PACKAGE_PH, appNameCondensed)
+    fun replaceDirectoriesPath(path: String): String {
+        return path.replace(PREFIX_PH, prefix).replace(COMPANY_PH, companyCondensed).replace(PACKAGE_PH, appNameCondensed)
+    }
 
     private fun replacePath(currentPath: String): String {
         val paths = currentPath.split(Regex(templateFilesPath))
+
         if (paths.size < 2) {
             println("Couldn't find target directory with path : $currentPath")
             exitProcess(MISSING_TARGET_DIR)

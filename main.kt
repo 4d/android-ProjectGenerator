@@ -34,17 +34,17 @@ class Main : CliktCommand() {
     val filesToCopy: String by option(help = Clikt.filesToCopyText).prompt(Clikt.filesToCopyText).validate {
         val filesToCopyDir = File(it)
         require(filesToCopyDir.exists() && filesToCopyDir.isDirectory) { "Can't find files to copy directory $it" }
-        FILES_TO_COPY = filesToCopy
+        FILES_TO_COPY = filesToCopy.removeSuffix("/")
     }
     val templateFiles: String by option(help = Clikt.templateFilesText).prompt(Clikt.templateFilesText).validate {
         val templateFilesDir = File(it)
         require(templateFilesDir.exists() && templateFilesDir.isDirectory) { "Can't find template files directory $it" }
-        TEMPLATE_FILES = templateFiles
+        TEMPLATE_FILES = templateFiles.removeSuffix("/")
     }
     val templateForms: String by option(help = Clikt.templateFormsText).prompt(Clikt.templateFormsText).validate {
         val templateFormsDir = File(it)
         require(templateFormsDir.exists() && templateFormsDir.isDirectory) { "Can't find template forms directory $it" }
-        TEMPLATE_FORMS = templateForms
+        TEMPLATE_FORMS = templateForms.removeSuffix("/")
     }
 
     override fun run() {
