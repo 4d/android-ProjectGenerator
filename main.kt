@@ -1,7 +1,7 @@
-//DEPS com.github.ajalt:clikt:2.8.0
 //DEPS com.samskivert:jmustache:1.15
 //DEPS com.squareup.retrofit2:converter-gson:2.9.0
 
+@file:DependsOnMaven("com.github.ajalt.clikt:clikt-jvm:3.0.1")
 @file:DependsOnMaven("org.json:json:20180813")
 @file:DependsOnMaven("com.google.android:android:4.1.1.4")
 
