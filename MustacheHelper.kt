@@ -84,7 +84,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
         val dataModelRelationList = mutableListOf<TemplateRelationFiller>()
 
-        projectEditor.dataModelList.filter { it.isSlave == false }.forEach { dataModel ->
+        projectEditor.dataModelList.forEach { dataModel ->
 
             dataModel.relationList?.filter { it.relationType == RelationType.MANY_TO_ONE }?.forEach { relation ->
                 dataModelRelationList.add(TemplateRelationFiller(relation_source = relation.source, relation_target = relation.target, relation_name = relation.name.condensePropertyName()))
@@ -112,9 +112,6 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
         val typesAndTables = mutableListOf<TemplateTableFiller>()
         typesAndTables.addAll(tableNames)
-        projectEditor.dataModelList.filter { it.isSlave == true }.forEach { dataModel ->
-            typesAndTables.add(TemplateTableFiller(name = dataModel.name))
-        }
         typesAndTables.add(TemplateTableFiller(name = "Photo"))
         typesAndTables.add(TemplateTableFiller(name = "Date"))
         typesAndTables.add(TemplateTableFiller(name = "Time"))
@@ -149,6 +146,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
                 val newFilePath = fileHelper.pathHelper.getPath(currentFile.absolutePath)
 
+                relations.clear()
                 projectEditor.dataModelList.forEach { dataModel ->
                     dataModel.relationList?.filter { it.relationType == RelationType.MANY_TO_ONE }?.forEach { relation ->
                         relations.add(TemplateRelationFiller(relation_source = relation.source, relation_target = relation.target, relation_name = relation.name.condensePropertyName()))
@@ -172,9 +170,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                         projectEditor.dataModelList.find { it.name == tableName.name }?.fields?.let { fields ->
                             val fieldList = mutableListOf<TemplateFieldFiller>()
                             for (field in fields) {
-
                                 field.fieldTypeString?.let { fieldTypeString ->
-
                                     fieldList.add(
                                             TemplateFieldFiller(
                                                     name = field.name.condensePropertyName(),
@@ -224,8 +220,6 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                     }
 
                 } else if (currentFile.isWithRelationDaoTemplateName()) {
-
-                    //
 
                     projectEditor.dataModelList.forEach { dataModel ->
                         dataModel.relationList?.filter { it.relationType == RelationType.MANY_TO_ONE }?.forEach { relation ->

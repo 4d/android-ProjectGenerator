@@ -82,11 +82,11 @@ fun JSONObject.getDataModelList(): List<DataModel> {
                                     val slaveFieldList = mutableListOf<Field>()
                                     val slaveRelationList = mutableListOf<Relation>()
 
-                                    val inverseField = Field(name = "")
-                                    newFieldJSONObject.getSafeString(INVERSENAME_KEY)?.let { inverseName -> inverseField.name = inverseName }
-                                    inverseField.relatedEntities = dataModelName
-                                    inverseField.fieldTypeString = "Entities<$dataModelName>"
-                                    slaveFieldList.add(inverseField)
+//                                    val inverseField = Field(name = "")
+//                                    newFieldJSONObject.getSafeString(INVERSENAME_KEY)?.let { inverseName -> inverseField.name = inverseName }
+//                                    inverseField.relatedEntities = dataModelName
+//                                    inverseField.fieldTypeString = "Entities<$dataModelName>"
+//                                    slaveFieldList.add(inverseField)
 
                                     for (k in 0 until newFieldJSONObject.names().length()) {
                                         val slaveKeyField = newFieldJSONObject.names().getString(k)
