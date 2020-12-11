@@ -26,7 +26,7 @@ fun JSONObject.getFormList(dataModelList: List<DataModel>, formType: FormType): 
         }
     }
     // Check for missing detailForms
-    dataModelList.forEach { dataModel ->
+    dataModelList.filter { it.isSlave == false }.forEach { dataModel ->
         val dataModelHasAnAssociatedForm = formList.find { it.dataModel.name == dataModel.name }
 
         if (dataModelHasAnAssociatedForm == null) { // no form was given for this dataModel
