@@ -32,7 +32,8 @@ class PathHelper(
     val appNameCondensed = appNameWithCaps.condense()
 
     fun getPath(currentPath: String): String {
-        return targetDirPath + replacePath(currentPath)
+        val path = targetDirPath + replacePath(currentPath)
+        return path.replaceIfWindowsPath()
     }
 
     fun replaceDirectoriesPath(path: String): String {
@@ -40,8 +41,7 @@ class PathHelper(
     }
 
     private fun replacePath(currentPath: String): String {
-        val paths = currentPath.split(Regex(templateFilesPath))
-
+        val paths = currentPath.replaceIfWindowsPath().split(Regex(templateFilesPath))
         if (paths.size < 2) {
             println("Couldn't find target directory with path : $currentPath")
             exitProcess(MISSING_TARGET_DIR)
@@ -53,24 +53,30 @@ class PathHelper(
 
     val detailFormTemplatesPath = templateFormsPath + File.separator + DETAIL_FORMS_KEY
 
-    val srcPath = targetDirPath + File.separator +
+    private val srcPath = targetDirPath + File.separator +
             APP_PATH_KEY + File.separator +
             SRC_PATH_KEY
 
-    val resPath = srcPath + File.separator +
-            MAIN_PATH_KEY + File.separator +
-            RES_PATH_KEY
+    fun resPath(): String {
+        val resPath = srcPath + File.separator +
+                MAIN_PATH_KEY + File.separator +
+                RES_PATH_KEY
+        return resPath.replaceIfWindowsPath()
+    }
 
-    val navigationPath = resPath + File.separator +
-            NAVIGATION_PATH_KEY
+    fun navigationPath(): String {
+        val navPath = resPath() + File.separator + NAVIGATION_PATH_KEY
+        return navPath.replaceIfWindowsPath()
+    }
 
-    val layoutPath = resPath + File.separator + LAYOUT_PATH_KEY
+    private val layoutPath = resPath() + File.separator + LAYOUT_PATH_KEY
 
-    val drawablePath = resPath + File.separator + DRAWABLE_PATH_KEY
-
-    val assetsPath = srcPath + File.separator +
+    fun assetsPath(): String {
+        val assetsPath = srcPath + File.separator +
             MAIN_PATH_KEY + File.separator +
             ASSETS_PATH_KEY
+        return assetsPath.replaceIfWindowsPath()
+    }
 
     fun getRecyclerViewItemPath(tableName: String) = layoutPath + File.separator + RECYCLER_VIEW_ITEM_PREFIX + tableName.toLowerCase().addXmlSuffix()
 
@@ -82,4 +88,13 @@ class PathHelper(
             PREFIX_PH + File.separator +
             COMPANY_PH + File.separator +
             PACKAGE_PH
+
+    private fun isWindowsOS(): Boolean = System.getProperty("os.name").contains("Windows")
+
+    private fun String.replaceIfWindowsPath(): String {
+        return if (isWindowsOS())
+            this.replace("\\", "/")
+        else
+            this
+    }
 }

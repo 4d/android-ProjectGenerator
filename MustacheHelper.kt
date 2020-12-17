@@ -158,7 +158,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
                     for (tableName in tableNames) { // file will be duplicated
 
-                        if (newFilePath.contains(fileHelper.pathHelper.navigationPath)) {
+                        if (newFilePath.contains(fileHelper.pathHelper.navigationPath())) {
                             val isTableInNavigation = tableNamesForNavigation.find { it.name == tableName.name }
                             if (isTableInNavigation == null) {
                                 continue
@@ -207,7 +207,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                         data[RELATIONS] = relations
                         data[RELATIONS_IMPORT] = relationsImport
 
-                        val replacedPath = if (newFilePath.contains(fileHelper.pathHelper.resPath))
+                        val replacedPath = if (newFilePath.contains(fileHelper.pathHelper.resPath()))
                             newFilePath.replace(TEMPLATE_PLACEHOLDER, tableName.name.toLowerCase())
                         else
                             newFilePath.replace(TEMPLATE_PLACEHOLDER, tableName.name)
@@ -403,7 +403,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         }
         val queries = Queries(queryList)
 
-        val queriesFile = File(fileHelper.pathHelper.assetsPath, QUERIES_FILENAME)
+        val queriesFile = File(fileHelper.pathHelper.assetsPath(), QUERIES_FILENAME)
         queriesFile.parentFile.mkdirs()
         if (!queriesFile.createNewFile()) {
             println("An error occurred while creating new file : $queriesFile")
@@ -413,7 +413,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
     }
 
     fun makeAppInfo() {
-        val appInfoFile = File(fileHelper.pathHelper.assetsPath, APP_INFO_FILENAME)
+        val appInfoFile = File(fileHelper.pathHelper.assetsPath(), APP_INFO_FILENAME)
         appInfoFile.parentFile.mkdirs()
         if (!appInfoFile.createNewFile()) {
             println("An error occurred while creating new file : $appInfoFile")
