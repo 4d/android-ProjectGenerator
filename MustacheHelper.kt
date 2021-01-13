@@ -2,6 +2,7 @@ import DefaultValues.DEFAULT_AUTHOR
 import DefaultValues.DEFAULT_DETAIL_FORM
 import DefaultValues.DEFAULT_LIST_FORM
 import DefaultValues.DEFAULT_PREFIX
+import DefaultValues.DEFAULT_REMOTE_ADDRESS
 import DefaultValues.NULL_FIELD_SEPARATOR
 import ExitCodes.FIELD_TYPE_ERROR
 import ExitCodes.FILE_CREATION_ERROR
@@ -27,6 +28,7 @@ import MustacheConstants.RELATION_NAME
 import MustacheConstants.RELATION_SAME_TYPE
 import MustacheConstants.RELATION_SOURCE
 import MustacheConstants.RELATION_TARGET
+import MustacheConstants.REMOTE_ADDRESS
 import MustacheConstants.TABLENAME
 import MustacheConstants.TABLENAMES
 import MustacheConstants.TABLENAMES_LOWERCASE
@@ -72,6 +74,14 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         data[COMPANY] = fileHelper.pathHelper.companyCondensed
         data[APP_NAME] = fileHelper.pathHelper.appNameCondensed
         data[APP_NAME_WITH_CAPS] = fileHelper.pathHelper.appNameWithCaps
+
+        // for network_security_config.xml
+        val remoteAddress =  projectEditor.findJsonString("remoteUrl")
+        if (remoteAddress.isNullOrEmpty())
+            data[REMOTE_ADDRESS] = DEFAULT_REMOTE_ADDRESS
+        else
+            data[REMOTE_ADDRESS] = remoteAddress.removePrefix("https://").removePrefix("http://").split(":")[0]
+
         projectEditor.findJsonString("androidSdk")?.let {
             data[ANDROID_SDK_PATH] = it
         } ?: run {

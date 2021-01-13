@@ -23,6 +23,7 @@ object MustacheConstants {
     const val COMPANY = "company"
     const val APP_NAME = "app_name"
     const val APP_NAME_WITH_CAPS = "app_name_with_caps"
+    const val REMOTE_ADDRESS = "remote_address"
     const val ANDROID_SDK_PATH = "android_sdk_path"
     const val TYPES_AND_TABLES = "types_and_tables"
     const val ENTITY_CLASSES = "entity_classes"
