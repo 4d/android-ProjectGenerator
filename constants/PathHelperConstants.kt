@@ -4,9 +4,9 @@ object PathHelperConstants {
      * DIRECTORIES PLACEHOLDERS
      */
 
-    const val PREFIX_PH = "__PREFIX_PH__"
-    const val COMPANY_PH = "__COMPANY_PH__"
-    const val PACKAGE_PH = "__PACKAGE_PH__"
+    const val PREFIX_PH = "__PFX__"
+    const val COMPANY_PH = "__CPY__"
+    const val PACKAGE_PH = "__PKG__"
     const val TEMPLATE_PLACEHOLDER = "__TEMPLATE__"
     const val TEMPLATE_RELATION_DAO_PLACEHOLDER = "__TEMPLATE_RELATION_DAO__"
     const val TEMPLATE_RELATION_ENTITY_PLACEHOLDER = "__TEMPLATE_RELATION_ENTITY__"
@@ -24,8 +24,15 @@ object PathHelperConstants {
     const val LAYOUT_PATH_KEY = "layout"
     const val DRAWABLE_PATH_KEY = "drawable"
     const val JAVA_PATH_KEY = "java"
-    const val LIST_FORMS_KEY = "__LIST_FORMS__"
-    const val DETAIL_FORMS_KEY = "__DETAIL_FORMS__"
+    const val LIST_FORMS_KEY = "list"
+    const val DETAIL_FORMS_KEY = "detail"
     const val RECYCLER_VIEW_ITEM_PREFIX = "recyclerview_item_"
     const val DETAIL_FORM_PREFIX = "fragment_detail_"
+
+    /**
+     * FILE EXTENSIONS
+     */
+
+    const val XML_EXT = ".xml"
+    const val XML_TXT_EXT = "_XML.txt" // because can't submit invalid .xml files on Perforce
 }

@@ -41,6 +41,7 @@ import MustacheConstants.TYPES_AND_TABLES
 import PathHelperConstants.TEMPLATE_PLACEHOLDER
 import PathHelperConstants.TEMPLATE_RELATION_DAO_PLACEHOLDER
 import PathHelperConstants.TEMPLATE_RELATION_ENTITY_PLACEHOLDER
+import PathHelperConstants.XML_TXT_EXT
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.samskivert.mustache.Mustache
@@ -154,7 +155,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
                 template = compiler.compile("{{>${currentFile.name}}}")
 
-                val newFilePath = fileHelper.pathHelper.getPath(currentFile.absolutePath)
+                val newFilePath = fileHelper.pathHelper.getPath(currentFile.absolutePath.replaceXmlTxtSuffix())
 
                 relations.clear()
                 projectEditor.dataModelList.forEach { dataModel ->
@@ -283,9 +284,9 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
             compiler = generateCompilerFolder(listFormTemplates.absolutePath)
 
             val formName = if (listForm.name.isNullOrEmpty())
-                DEFAULT_LIST_FORM.addXmlSuffix()
+                DEFAULT_LIST_FORM.addXmlTxtSuffix()
             else
-                "${listForm.name}".addXmlSuffix()
+                "${listForm.name}".addXmlTxtSuffix()
 
             template = compiler.compile("{{>${formName}}}")
 
@@ -317,9 +318,9 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
             compiler = generateCompilerFolder(detailFormTemplates.absolutePath)
 
             val formName = if (detailForm.name.isNullOrEmpty())
-                DEFAULT_DETAIL_FORM.addXmlSuffix()
+                DEFAULT_DETAIL_FORM.addXmlTxtSuffix()
             else
-                "${detailForm.name}".addXmlSuffix()
+                "${detailForm.name}".addXmlTxtSuffix()
 
             template = compiler.compile("{{>${formName}}}")
 
@@ -392,7 +393,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
     }
 
     private fun applyTemplate(newPath: String) {
-        val newFile = File(newPath)
+        val newFile = File(newPath.replaceXmlTxtSuffix())
         if (newFile.exists()) {
             return
         }

@@ -3,6 +3,7 @@ import FileHelperConstants.kotlinProjectDirs
 import PathHelperConstants.TEMPLATE_PLACEHOLDER
 import PathHelperConstants.TEMPLATE_RELATION_DAO_PLACEHOLDER
 import PathHelperConstants.TEMPLATE_RELATION_ENTITY_PLACEHOLDER
+import PathHelperConstants.XML_TXT_EXT
 import java.io.File
 import kotlin.system.exitProcess
 
@@ -38,6 +39,21 @@ class FileHelper(val pathHelper: PathHelper) {
             println("An error occurred while copying files with target folder : ${targetFolder.absolutePath}")
             exitProcess(COPY_FILE_ERROR)
         }
+
+        renameTxtXmlFiles(targetFolder)
+    }
+
+    private fun renameTxtXmlFiles(targetFolder: File) {
+        targetFolder.walkTopDown().filter { folder -> !folder.isHidden && folder.isDirectory }
+            .forEach { currentFolder ->
+
+                currentFolder.walkTopDown()
+                    .filter { file -> !file.isHidden && file.isFile && file.absolutePath.endsWith(XML_TXT_EXT) }
+                    .forEach { currentTxtXmlFile ->
+                        val newFile = File(currentTxtXmlFile.absolutePath.replaceXmlTxtSuffix())
+                        currentTxtXmlFile.renameTo(newFile)
+                    }
+            }
     }
 }
 

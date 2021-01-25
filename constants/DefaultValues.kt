@@ -11,6 +11,6 @@ object DefaultValues {
     const val DEFAULT_COMPANY = "Default Company"
     const val DEFAULT_APPLICATION = "Default Application"
     const val DEFAULT_AUTHOR = "Anonymous User"
-    const val DEFAULT_LIST_FORM = "simpletable"
-    const val DEFAULT_DETAIL_FORM = "blankform"
+    const val DEFAULT_LIST_FORM = "Simple Table"
+    const val DEFAULT_DETAIL_FORM = "Blank Form"
 }
