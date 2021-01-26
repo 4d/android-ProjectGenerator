@@ -280,13 +280,17 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
     fun applyListFormTemplate() {
         projectEditor.listFormList.forEach { listForm ->
 
-            val listFormTemplates = File(fileHelper.pathHelper.listFormTemplatesPath)
-            compiler = generateCompilerFolder(listFormTemplates.absolutePath)
-
             val formName = if (listForm.name.isNullOrEmpty())
                 DEFAULT_LIST_FORM.addXmlTxtSuffix()
             else
                 "${listForm.name}".addXmlTxtSuffix()
+
+            val listFormTemplates = if (formName.startsWith("/"))
+                File(fileHelper.pathHelper.hostListFormTemplatesPath)
+            else
+                File(fileHelper.pathHelper.listFormTemplatesPath)
+
+            compiler = generateCompilerFolder(listFormTemplates.absolutePath)
 
             template = compiler.compile("{{>${formName}}}")
 
@@ -314,13 +318,17 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
     fun applyDetailFormTemplate() {
         projectEditor.detailFormList.forEach { detailForm ->
 
-            val detailFormTemplates = File(fileHelper.pathHelper.detailFormTemplatesPath)
-            compiler = generateCompilerFolder(detailFormTemplates.absolutePath)
-
             val formName = if (detailForm.name.isNullOrEmpty())
                 DEFAULT_DETAIL_FORM.addXmlTxtSuffix()
             else
                 "${detailForm.name}".addXmlTxtSuffix()
+
+            val detailFormTemplates = if (formName.startsWith("/"))
+                File(fileHelper.pathHelper.hostDetailFormTemplatesPath)
+            else
+                File(fileHelper.pathHelper.detailFormTemplatesPath)
+
+            compiler = generateCompilerFolder(detailFormTemplates.absolutePath)
 
             template = compiler.compile("{{>${formName}}}")
 

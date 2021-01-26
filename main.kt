@@ -25,6 +25,7 @@ class Main : CliktCommand() {
     private lateinit var FILES_TO_COPY: String
     private lateinit var TEMPLATE_FILES: String
     private lateinit var TEMPLATE_FORMS: String
+    private lateinit var HOST_DB: String
     private lateinit var projectEditorJson: File
 
     val projectEditor: String by option(help = Clikt.projectEditorText).prompt(Clikt.projectEditorText).validate {
@@ -45,6 +46,11 @@ class Main : CliktCommand() {
         val templateFormsDir = File(it)
         require(templateFormsDir.exists() && templateFormsDir.isDirectory) { "Can't find template forms directory $it" }
         TEMPLATE_FORMS = templateForms.removeSuffix("/")
+    }
+    val hostDb: String by option(help = Clikt.hostDbText).prompt(Clikt.hostDbText).validate {
+        val hostDbDir = File(it)
+        require(hostDbDir.exists() && hostDbDir.isDirectory) { "Can't find host database directory $it" }
+        HOST_DB = hostDb.removeSuffix("/")
     }
 
     override fun run() {
@@ -67,6 +73,7 @@ class Main : CliktCommand() {
                 targetDirPath = projectEditor.findJsonString("targetDirPath")?.removeSuffix("/") ?: "",
                 templateFilesPath = TEMPLATE_FILES,
                 templateFormsPath = TEMPLATE_FORMS,
+                hostDb = HOST_DB,
                 filesToCopy = FILES_TO_COPY,
                 prefix = DEFAULT_PREFIX,
                 companyWithCaps = projectEditor.findJsonString("companyWithCaps") ?: DEFAULT_COMPANY,

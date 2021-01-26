@@ -5,6 +5,7 @@ import PathHelperConstants.COMPANY_PH
 import PathHelperConstants.DETAIL_FORMS_KEY
 import PathHelperConstants.DETAIL_FORM_PREFIX
 import PathHelperConstants.DRAWABLE_PATH_KEY
+import PathHelperConstants.HOST_FORMS
 import PathHelperConstants.JAVA_PATH_KEY
 import PathHelperConstants.LAYOUT_PATH_KEY
 import PathHelperConstants.LIST_FORMS_KEY
@@ -22,6 +23,7 @@ class PathHelper(
         val targetDirPath: String,
         val templateFilesPath: String,
         val templateFormsPath: String,
+        val hostDb: String,
         val filesToCopy: String,
         val prefix: String,
         val companyWithCaps: String,
@@ -52,6 +54,12 @@ class PathHelper(
     val listFormTemplatesPath = templateFormsPath + File.separator + LIST_FORMS_KEY
 
     val detailFormTemplatesPath = templateFormsPath + File.separator + DETAIL_FORMS_KEY
+
+    val hostFormTemplatesPath = hostDb + File.separator + HOST_FORMS
+
+    val hostListFormTemplatesPath = hostFormTemplatesPath + File.separator + LIST_FORMS_KEY
+
+    val hostDetailFormTemplatesPath = hostFormTemplatesPath + File.separator + DETAIL_FORMS_KEY
 
     private val srcPath = targetDirPath + File.separator +
             APP_PATH_KEY + File.separator +

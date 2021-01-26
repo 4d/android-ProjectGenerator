@@ -24,6 +24,7 @@ object PathHelperConstants {
     const val LAYOUT_PATH_KEY = "layout"
     const val DRAWABLE_PATH_KEY = "drawable"
     const val JAVA_PATH_KEY = "java"
+    const val HOST_FORMS = "form"
     const val LIST_FORMS_KEY = "list"
     const val DETAIL_FORMS_KEY = "detail"
     const val RECYCLER_VIEW_ITEM_PREFIX = "recyclerview_item_"
