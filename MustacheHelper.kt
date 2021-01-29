@@ -300,7 +300,8 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
             var i = 0
             listForm.fields?.forEach { field ->
                 i++
-                data["field_${i}_defined"] = true
+//                data["field_${i}_defined"] = true
+                data["field_${i}_defined"] = field.name.isNotEmpty()
                 data["field_${i}_name"] = field.name.condensePropertyName()
             }
 

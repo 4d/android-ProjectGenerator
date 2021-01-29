@@ -19,13 +19,24 @@ fun JSONObject.getFormList(dataModelList: List<DataModel>, formType: FormType): 
                 newFormJSONObject?.getSafeString(FORM_KEY)?.let {
                     form.name = it
                 }
-                val fieldList = newFormJSONObject?.getSafeArray(FIELDS_KEY).getStringList()
+                println("***+ formType : $formType")
+                println("newFormJSONObject = $newFormJSONObject")
+                println("newFormJSONObject?.getSafeArray(FIELDS_KEY) = ${ newFormJSONObject?.getSafeArray(FIELDS_KEY)}")
+                val fieldList = newFormJSONObject?.getSafeArray(FIELDS_KEY).getObjectListAsString()
                 form.fields = getFormFields(fieldList, formType)
                 formList.add(form)
             }
         }
     }
-    // Check for missing detailForms
+
+    for (form in formList) {
+        println("form (before checking missing forms) : ${form.name}")
+        form.fields?.let {
+            for (field in it)
+                println("> field : ${field.name}")
+        }
+    }
+    // Check for missing forms
     dataModelList.filter { it.isSlave == false }.forEach { dataModel ->
         val dataModelHasAnAssociatedForm = formList.find { it.dataModel.name == dataModel.name }
 
@@ -47,6 +58,13 @@ fun JSONObject.getFormList(dataModelList: List<DataModel>, formType: FormType): 
                 }
             }
             dataModelHasAnAssociatedForm.fields = fields
+        }
+    }
+    for (form in formList) {
+        println("form (after checking missing forms) : ${form.name}")
+        form.fields?.let {
+            for (field in it)
+                println("> field : ${field.name}")
         }
     }
     return formList

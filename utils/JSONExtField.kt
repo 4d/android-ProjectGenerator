@@ -19,33 +19,34 @@ fun getFormFields(fieldList: List<String>, formType: FormType): List<Field> {
             field = Field(name = NULL_FIELD_SEPARATOR)
             fields.add(field)
         } else {
-            val jsonObj = retrieveJSONObject(fieldString)
-            jsonObj?.let {
-                field = jsonObj.getFormField()
-                fields.add(field)
-            }
+//            val jsonObj = retrieveJSONObject(fieldString)
+//            jsonObj?.let {
+//                field = jsonObj.getFormField()
+//                fields.add(field)
+//            }
+            fields.add(retrieveJSONObject(fieldString).getFormField())
         }
     }
     return fields
 }
 
-fun JSONObject.getFormField(): Field {
+fun JSONObject?.getFormField(): Field {
     val field = Field(name = "")
-    this.getSafeString(LABEL_KEY)?.let { field.label = it }
-    this.getSafeString(SHORTLABEL_KEY)?.let { field.shortLabel = it }
-    this.getSafeInt(FIELDTYPE_KEY).let { field.fieldType = it }
-    this.getSafeInt(ID_KEY).let { field.id = it.toString() }
-    this.getSafeInt(RELATEDTABLENUMBER_KEY).let { field.relatedTableNumber = it }
-    this.getSafeString(INVERSENAME_KEY).let { field.inverseName = it }
-    this.getSafeString(NAME_KEY)?.let {
+    this?.getSafeString(LABEL_KEY)?.let { field.label = it }
+    this?.getSafeString(SHORTLABEL_KEY)?.let { field.shortLabel = it }
+    this?.getSafeInt(FIELDTYPE_KEY).let { field.fieldType = it }
+    this?.getSafeInt(ID_KEY).let { field.id = it.toString() }
+    this?.getSafeInt(RELATEDTABLENUMBER_KEY).let { field.relatedTableNumber = it }
+    this?.getSafeString(INVERSENAME_KEY).let { field.inverseName = it }
+    this?.getSafeString(NAME_KEY)?.let {
         field.name = it
         field.fieldTypeString = typeStringFromTypeInt(field.fieldType)
     }
-    this.getSafeString(RELATEDDATACLASS_KEY).let {
+    this?.getSafeString(RELATEDDATACLASS_KEY).let {
         field.relatedDataClass = it
         field.fieldTypeString = it
     }
-    this.getSafeString(RELATEDENTITIES_KEY).let {
+    this?.getSafeString(RELATEDENTITIES_KEY).let {
         field.relatedEntities = it
         field.fieldTypeString = "Entities<$it>"
     }
