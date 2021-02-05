@@ -41,7 +41,6 @@ import MustacheConstants.TYPES_AND_TABLES
 import PathHelperConstants.TEMPLATE_PLACEHOLDER
 import PathHelperConstants.TEMPLATE_RELATION_DAO_PLACEHOLDER
 import PathHelperConstants.TEMPLATE_RELATION_ENTITY_PLACEHOLDER
-import PathHelperConstants.XML_TXT_EXT
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.samskivert.mustache.Mustache
@@ -280,19 +279,17 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
     fun applyListFormTemplate() {
         projectEditor.listFormList.forEach { listForm ->
 
-            val formName = if (listForm.name.isNullOrEmpty())
-                DEFAULT_LIST_FORM.addXmlTxtSuffix()
-            else
-                "${listForm.name}".addXmlTxtSuffix()
+            val formName = listForm.name
+            val listFormTemplate = if (formName.isNullOrEmpty()) {
+                fileHelper.pathHelper.getDefaultListFormFile()
+            } else {
+                fileHelper.pathHelper.getListFormFile(formName)
+            }
 
-            val listFormTemplates = if (formName.startsWith("/"))
-                File(fileHelper.pathHelper.hostListFormTemplatesPath)
-            else
-                File(fileHelper.pathHelper.listFormTemplatesPath)
+            val oldFormText = readFileDirectlyAsText(listFormTemplate)
+            val newFormText = replaceTemplateText(oldFormText, FormType.LIST)
 
-            compiler = generateCompilerFolder(listFormTemplates.absolutePath)
-
-            template = compiler.compile("{{>${formName}}}")
+            template = compiler.compile(newFormText)
 
             data[TABLENAME_LOWERCASE] = listForm.dataModel.name.toLowerCase()
             data[TABLENAME] = listForm.dataModel.name
@@ -315,90 +312,88 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         }
     }
 
-    fun applyDetailFormTemplate() {
-        projectEditor.detailFormList.forEach { detailForm ->
+   fun applyDetailFormTemplate() {
+       projectEditor.detailFormList.forEach { detailForm ->
 
-            val formName = if (detailForm.name.isNullOrEmpty())
-                DEFAULT_DETAIL_FORM.addXmlTxtSuffix()
-            else
-                "${detailForm.name}".addXmlTxtSuffix()
+           val formName = detailForm.name
+           val detailFormTemplate = if (formName.isNullOrEmpty()) {
+               fileHelper.pathHelper.getDefaultDetailFormFile()
+           } else {
+                fileHelper.pathHelper.getDetailFormFile(formName)
+           }
 
-            val detailFormTemplates = if (formName.startsWith("/"))
-                File(fileHelper.pathHelper.hostDetailFormTemplatesPath)
-            else
-                File(fileHelper.pathHelper.detailFormTemplatesPath)
+           val oldFormText = readFileDirectlyAsText(detailFormTemplate)
+           val newFormText = replaceTemplateText(oldFormText, FormType.DETAIL)
 
-            compiler = generateCompilerFolder(detailFormTemplates.absolutePath)
+           template = compiler.compile(newFormText)
 
-            template = compiler.compile("{{>${formName}}}")
+           data[TABLENAME_LOWERCASE] = detailForm.dataModel.name.toLowerCase()
+           data[TABLENAME] = detailForm.dataModel.name
 
-            data[TABLENAME_LOWERCASE] = detailForm.dataModel.name.toLowerCase()
-            data[TABLENAME] = detailForm.dataModel.name
+           val formFieldList = mutableListOf<TemplateFormFieldFiller>()
 
-            val formFieldList = mutableListOf<TemplateFormFieldFiller>()
+           var lastNullIndex = 0
 
-            var lastNullIndex = 0
+           detailForm.fields?.let { fieldList ->
 
-            detailForm.fields?.let { fieldList ->
+               if (fieldList.isNotEmpty()) {
 
-                if (fieldList.isNotEmpty()) {
+                   lastNullIndex = -1
 
-                    lastNullIndex = -1
+                   // Looking for __null_field__ separator to figure out if there is any specific field on the form template
+                   fieldList.find { it.name == NULL_FIELD_SEPARATOR }?.apply { lastNullIndex = fieldList.lastIndexOf(this) }
 
-                    // Looking for __null_field__ separator to figure out if there is any specific field on the form template
-                    fieldList.find { it.name == NULL_FIELD_SEPARATOR }?.apply { lastNullIndex = fieldList.lastIndexOf(this) }
+                   if (lastNullIndex == -1) { // template with no specific field
+                       for (i in fieldList.indices) {
+                           formFieldList.add(createFormField(fieldList[i], i + 1))
+                       }
+                   } else { // template with specific fields
 
-                    if (lastNullIndex == -1) { // template with no specific field
-                        for (i in fieldList.indices) {
-                            formFieldList.add(createFormField(fieldList[i], i + 1))
-                        }
-                    } else { // template with specific fields
+                       // everything before the last "__null_field__" is template specific
+                       for (i in 0 until lastNullIndex) {
 
-                        // everything before the last "__null_field__" is template specific
-                        for (i in 0 until lastNullIndex) {
+                           if (fieldList[i].name != NULL_FIELD_SEPARATOR) {
+                               data["field_${i + 1}_defined"] = fieldList[i].name.isNotEmpty()
+                               data["field_${i + 1}_name"] = fieldList[i].name.condensePropertyName()
+                           }
+                       }
 
-                            if (fieldList[i].name != NULL_FIELD_SEPARATOR) {
-                                data["field_${i + 1}_defined"] = fieldList[i].name.isNotEmpty()
-                                data["field_${i + 1}_name"] = fieldList[i].name.condensePropertyName()
-                            }
-                        }
+                       // everything after the last "__null_field__" found is free list
+                       if (fieldList.size > lastNullIndex + 1) {
+                           for (i in lastNullIndex + 1 until fieldList.size) {
+                               formFieldList.add(createFormField(fieldList[i], i))
+                           }
+                       } else {
+                           // no additional field given
+                       }
+                   }
 
-                        // everything after the last "__null_field__" found is free list
-                        if (fieldList.size > lastNullIndex + 1) {
-                            for (i in lastNullIndex + 1 until fieldList.size) {
-                                formFieldList.add(createFormField(fieldList[i], i))
-                            }
-                        } else {
-                            // no additional field given
-                        }
-                    }
+               } else {
+                   // no field given -> must display every field from dataModel
+                   detailForm.dataModel.fields?.let { dataModelFields ->
+                       var i = 0
+                       dataModelFields.forEach { field ->
+                           if (!isPrivateRelationField(field.name)) {
+                               i++
+                               formFieldList.add(createFormField(field, i))
+                           }
+                       }
+                   }
+               }
+               data[FORM_FIELDS] = formFieldList
+           }
 
-                } else {
-                    // no field given -> must display every field from dataModel
-                    detailForm.dataModel.fields?.let { dataModelFields ->
-                        var i = 0
-                        dataModelFields.forEach { field ->
-                            if (!isPrivateRelationField(field.name)) {
-                                i++
-                                formFieldList.add(createFormField(field, i))
-                            }
-                        }
-                    }
-                }
-                data[FORM_FIELDS] = formFieldList
-            }
+           val newFilePath = fileHelper.pathHelper.getDetailFormPath(detailForm.dataModel.name)
+           applyTemplate(newFilePath)
 
-            val newFilePath = fileHelper.pathHelper.getDetailFormPath(detailForm.dataModel.name)
-            applyTemplate(newFilePath)
-
-            // cleaning data for other templates
-            data.remove(FORM_FIELDS)
-            for (i in 1 until lastNullIndex) {
-                data.remove("field_${i}_defined")
-                data.remove("field_${i}_name")
-            }
-        }
-    }
+           // cleaning data for other templates
+           data.remove(FORM_FIELDS)
+           for (i in 1 until lastNullIndex) {
+               data.remove("field_${i}_defined")
+               data.remove("field_${i}_name")
+           }
+       }
+   }
 
     private fun applyTemplate(newPath: String) {
         val newFile = File(newPath.replaceXmlTxtSuffix())
@@ -445,5 +440,92 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         return Mustache.compiler().withLoader { name ->
             FileReader(File(templateFileFolder, name))
         }
+    }
+
+    fun readFileDirectlyAsText(file: File): String
+            = file.readText(Charsets.UTF_8)
+
+    fun replaceTemplateText(oldFormText: String, formType: FormType): String {
+
+        val variableType: String
+        val variableFieldPath: String
+        val variableName: String
+        if (formType == FormType.LIST) {
+            variableType = "{{prefix}}.{{company}}.{{app_name}}.data.model.entity.{{tableName}}"
+            variableFieldPath = "entityData"
+            variableName = "entityData"
+        } else {
+            variableType = "{{prefix}}.{{company}}.{{app_name}}.viewmodel.entity.EntityViewModel{{tableName}}"
+            variableFieldPath = "viewModel.entity"
+            variableName = "viewModel"
+        }
+
+        var newFormText = oldFormText.replace("<!--FOR_EACH_FIELD-->", "{{#form_fields}}")
+            .replace("<!--END_FOR_EACH_FIELD-->", "{{/form_fields}}")
+            .replace("<!--IF_IS_RELATION-->", "{{#isRelation}}")
+            .replace("<!--END_IF_IS_RELATION-->", "{{/isRelation}}")
+            .replace("<!--IF_IS_NOT_RELATION-->", "{{^isRelation}}")
+            .replace("<!--END_IF_IS_NOT_RELATION-->", "{{/isRelation}}")
+            .replace("<!--IF_IS_IMAGE-->", "{{#isImage}}")
+            .replace("<!--END_IF_IS_IMAGE-->", "{{/isImage}}")
+            .replace("<!--IF_IS_NOT_IMAGE-->", "{{^isImage}}")
+            .replace("<!--END_IF_IS_NOT_IMAGE-->", "{{/isImage}}")
+            .replace("__LABEL_ID__", "{{tableName_lowercase}}_field_label_{{viewId}}")
+            .replace("__VALUE_ID__", "{{tableName_lowercase}}_field_value_{{viewId}}")
+            .replace("__BUTTON_ID__", "{{tableName_lowercase}}_field_button_{{viewId}}")
+            .replace("android:text=\"__LABEL__\"", "android:text=\"{{label}}\"")
+            .replace("android:text=\"__BUTTON__\"", "android:text=\"{{label}}\"")
+            .replace("android:text=\"__TEXT__\"", "android:text=\"@{${variableFieldPath}.{{name}}.toString()}\"")
+            .replace("app:imageUrl=\"__IMAGE__\"",
+                "app:imageFieldName='@{\"{{name}}\"}'\n" +
+                    "app:imageKey=\"@{${variableFieldPath}.__KEY}\"\n" +
+                    "app:imageTableName='@{\"{{tableName}}\"}'\n" +
+                    "app:imageUrl=\"@{${variableFieldPath}.{{name}}.__deferred.uri}\"")
+
+        var regex = ("(\\h*)<!--ENTITY_VARIABLE-->").toRegex()
+        newFormText = regex.replace(newFormText) { matchResult ->
+            val indent = matchResult.destructured.component1()
+            "${indent}<variable\n" +
+            "${indent}\tname=\"${variableName}\"\n" +
+            "${indent}\ttype=\"${variableType}\" />"
+        }
+
+        regex = ("__SPECIFIC_ID_(\\d+)__").toRegex()
+        newFormText = regex.replace(newFormText) { matchResult ->
+            val id = matchResult.destructured.component1()
+            "{{tableName_lowercase}}_field_value_${id}"
+        }
+
+        regex = ("(\\h*)android:text=\"__BUTTON_(\\d+)__\"").toRegex()
+        newFormText = regex.replace(newFormText) { matchResult ->
+            val indent = matchResult.destructured.component1()
+            "${indent}android:text=\"{{label}}\""
+        }
+
+        regex = ("(\\h*)android:text=\"__TEXT_(\\d+)__\"").toRegex()
+        newFormText = regex.replace(newFormText) { matchResult ->
+            val indent = matchResult.destructured.component1()
+            val id = matchResult.destructured.component2()
+            "${indent}{{#field_${id}_defined}}\n" +
+            "${indent}android:text=\"@{${variableFieldPath}.{{field_${id}_name}}.toString()}\"\n" +
+            "${indent}{{/field_${id}_defined}}"
+        }
+
+        regex = ("(\\h*)app:imageUrl=\"__IMAGE_(\\d+)__\"").toRegex()
+        newFormText = regex.replace(newFormText) { matchResult ->
+            val indent = matchResult.destructured.component1()
+            val id = matchResult.destructured.component2()
+            "${indent}{{#field_${id}_defined}}\n" +
+            "${indent}app:imageFieldName='@{\"{{field_${id}_name}}\"}'\n" +
+            "${indent}app:imageKey=\"@{${variableFieldPath}.__KEY}\"\n" +
+            "${indent}app:imageTableName='@{\"{{tableName}}\"}'\n" +
+            "${indent}app:imageUrl=\"@{${variableFieldPath}.{{field_${id}_name}}.__deferred.uri}\"\n" +
+            "${indent}{{/field_${id}_defined}}\n" +
+            "${indent}{{^field_${id}_defined}}\n" +
+            "${indent}app:imageDrawable=\"@{@drawable/ic_placeholder}\"\n" +
+            "${indent}{{/field_${id}_defined}}"
+        }
+
+        return newFormText
     }
 }

@@ -1,3 +1,5 @@
+import DefaultValues.DEFAULT_DETAIL_FORM
+import DefaultValues.DEFAULT_LIST_FORM
 import ExitCodes.MISSING_TARGET_DIR
 import PathHelperConstants.APP_PATH_KEY
 import PathHelperConstants.ASSETS_PATH_KEY
@@ -104,5 +106,18 @@ class PathHelper(
             this.replace("\\", "/")
         else
             this
+    }
+
+    fun getDefaultListFormFile() =  File(listFormTemplatesPath + File.separator + DEFAULT_LIST_FORM.addXmlSuffix())
+    fun getDefaultDetailFormFile() =  File(detailFormTemplatesPath + File.separator + DEFAULT_DETAIL_FORM.addXmlSuffix())
+
+    fun getListFormFile(formName: String): File {
+        val templatePath =  if (formName.startsWith("/")) hostListFormTemplatesPath else listFormTemplatesPath
+        return File(templatePath + File.separator + formName.addXmlSuffix())
+    }
+
+    fun getDetailFormFile(formName: String): File {
+        val templatePath =  if (formName.startsWith("/")) hostDetailFormTemplatesPath else detailFormTemplatesPath
+        return File(templatePath + File.separator + formName.addXmlSuffix())
     }
 }
