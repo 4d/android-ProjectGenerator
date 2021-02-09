@@ -2,6 +2,7 @@ import ProjectEditorConstants.DETAIL_KEY
 import ProjectEditorConstants.FIELDS_KEY
 import ProjectEditorConstants.FORM_KEY
 import ProjectEditorConstants.LIST_KEY
+import ProjectEditorConstants.PHOTO_TYPE
 import ProjectEditorConstants.PROJECT_KEY
 import org.json.JSONObject
 
@@ -40,21 +41,37 @@ fun JSONObject.getFormList(dataModelList: List<DataModel>, formType: FormType): 
     dataModelList.filter { it.isSlave == false }.forEach { dataModel ->
         val dataModelHasAnAssociatedForm = formList.find { it.dataModel.name == dataModel.name }
 
+        println("dataModelHasAnAssociatedForm = $dataModelHasAnAssociatedForm")
         if (dataModelHasAnAssociatedForm == null) { // no form was given for this dataModel
             val form = Form(dataModel = dataModel)
             val fields = mutableListOf<Field>()
             dataModel.fields?.forEach {
-                if (!isPrivateRelationField(it.name)) {
-                    fields.add(it)
+                println("field = $it")
+                if (!isPrivateRelationField(it.name) && it.isSlave == false) {
+                    // if Simple Table (default list form, avoid photo and relations)
+                    if (formType == FormType.LIST && (it.inverseName != null || it.fieldTypeString == PHOTO_TYPE)) {
+                        // don't add this field
+                    } else {
+                        println("adding field = $it")
+                        fields.add(it)
+                    }
                 }
             }
             form.fields = fields
+            println("adding form : $form")
             formList.add(form)
-        } else if (dataModelHasAnAssociatedForm.fields.isNullOrEmpty()) { // no field was given in the form
+        } else if (dataModelHasAnAssociatedForm.fields.isNullOrEmpty()) { // no field was given in the form, but form already created
             val fields = mutableListOf<Field>()
             dataModel.fields?.forEach {
-                if (!isPrivateRelationField(it.name)) {
-                    fields.add(it)
+                println("field = $it")
+                if (!isPrivateRelationField(it.name) && it.isSlave == false) {
+                    // if Simple Table (default list form, avoid photo and relations)
+                    if (formType == FormType.LIST && (it.inverseName != null || it.fieldTypeString == PHOTO_TYPE)) {
+                        // don't add this field
+                    } else {
+                        println("adding field = $it")
+                        fields.add(it)
+                    }
                 }
             }
             dataModelHasAnAssociatedForm.fields = fields

@@ -19,11 +19,6 @@ fun getFormFields(fieldList: List<String>, formType: FormType): List<Field> {
             field = Field(name = NULL_FIELD_SEPARATOR)
             fields.add(field)
         } else {
-//            val jsonObj = retrieveJSONObject(fieldString)
-//            jsonObj?.let {
-//                field = jsonObj.getFormField()
-//                fields.add(field)
-//            }
             fields.add(retrieveJSONObject(fieldString).getFormField())
         }
     }

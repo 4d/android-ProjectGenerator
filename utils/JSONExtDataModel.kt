@@ -60,12 +60,14 @@ fun JSONObject.getDataModelList(): List<DataModel> {
                         val newFieldJSONObject = newDataModelJSONObject.getSafeObject(keyField.toString())
                         val field = newFieldJSONObject?.getDataModelField(keyField)
                         field?.let {
+                            it.isSlave = false
                             fieldList.add(it)
                             getRelation(it, dataModelName)?.let { relation ->
                                 relationList.add(relation)
 
                                 if (relation.relationType == RelationType.MANY_TO_ONE) {
                                     val relationKeyField = Field(name = "__${relation.name}Key")
+                                    println("Many to One relation: adding relationKeyField = $relationKeyField")
                                     relationKeyField.fieldType = 0
                                     relationKeyField.fieldTypeString = typeStringFromTypeInt(relationKeyField.fieldType)
                                     relationKeyField.variableType = VariableType.VAR.string
@@ -82,20 +84,24 @@ fun JSONObject.getDataModelList(): List<DataModel> {
                                     val slaveFieldList = mutableListOf<Field>()
                                     val slaveRelationList = mutableListOf<Relation>()
 
-//                                    val inverseField = Field(name = "")
-//                                    newFieldJSONObject.getSafeString(INVERSENAME_KEY)?.let { inverseName -> inverseField.name = inverseName }
-//                                    inverseField.relatedEntities = dataModelName
-//                                    inverseField.fieldTypeString = "Entities<$dataModelName>"
-//                                    slaveFieldList.add(inverseField)
-
                                     for (k in 0 until newFieldJSONObject.names().length()) {
                                         val slaveKeyField = newFieldJSONObject.names().getString(k)
                                         val newSlaveFieldJSONObject = newFieldJSONObject.getSafeObject(slaveKeyField.toString())
                                         val slaveField = newSlaveFieldJSONObject?.getDataModelField(slaveKeyField)
                                         slaveField?.let { field ->
+                                            field.isSlave = true
                                             slaveFieldList.add(field)
                                             getRelation(field, relatedDataClass)?.let { relation ->
                                                 slaveRelationList.add(relation)
+
+                                                if (relation.relationType == RelationType.MANY_TO_ONE) {
+                                                    val relationKeyField = Field(name = "__${relation.name}Key")
+                                                    println("Many to One relation: adding relationKeyField = $relationKeyField")
+                                                    relationKeyField.fieldType = 0
+                                                    relationKeyField.fieldTypeString = typeStringFromTypeInt(relationKeyField.fieldType)
+                                                    relationKeyField.variableType = VariableType.VAR.string
+                                                    slaveFieldList.add(relationKeyField)
+                                                }
                                             }
                                         }
                                     }
@@ -103,7 +109,7 @@ fun JSONObject.getDataModelList(): List<DataModel> {
                                     // checking if we already added this dataModel
                                     val dataModelIndex = dataModelList.indexOfFirst { dataModel ->  dataModel.name == relatedDataClass } // -1 if not found
                                     when {
-                                        dataModelIndex != -1 -> { // in case we did add this dataModel already
+                                        dataModelIndex != -1 -> { // in case we did added this dataModel already
                                             slaveFieldList.forEach { slaveField ->
                                                 if (dataModelList[dataModelIndex].fields?.find { field -> field.name == slaveField.name } == null) {
                                                     dataModelList[dataModelIndex].fields?.add(slaveField)
@@ -133,12 +139,13 @@ fun JSONObject.getDataModelList(): List<DataModel> {
                     // Add savedFields from another definition of this table (in a relation)
                     savedFields.forEach { savedField ->
                         if (!fieldList.map { it.name }.contains(savedField.name)) {
+                            savedField.isSlave = true
                             fieldList.add(savedField)
                         }
                     }
-                    savedRelations.forEach { savedRelations ->
-                        if (!relationList.map { it.name }.contains(savedRelations.name)) {
-                            relationList.add(savedRelations)
+                    savedRelations.forEach { savedRelation ->
+                        if (!relationList.map { it.name }.contains(savedRelation.name)) {
+                            relationList.add(savedRelation)
                         }
                     }
 

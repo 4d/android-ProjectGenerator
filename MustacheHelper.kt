@@ -77,10 +77,13 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
         // for network_security_config.xml
         val remoteAddress =  projectEditor.findJsonString("remoteUrl")
+        println("remoteAddress = $remoteAddress")
         if (remoteAddress.isNullOrEmpty())
             data[REMOTE_ADDRESS] = DEFAULT_REMOTE_ADDRESS
         else
             data[REMOTE_ADDRESS] = remoteAddress.removePrefix("https://").removePrefix("http://").split(":")[0]
+
+        println("data[REMOTE_ADDRESS] = ${data[REMOTE_ADDRESS]}")
 
         projectEditor.findJsonString("androidSdk")?.let {
             data[ANDROID_SDK_PATH] = it
@@ -117,7 +120,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         data[TABLENAMES_LOWERCASE] = tableNames_lowercase
         data[TABLENAMES_RELATIONS] = dataModelRelationList
         data[TABLENAMES_WITHOUT_RELATIONS] = tableNames_without_relations
-        data[TABLENAMES_RELATIONS_DISTINCT] = dataModelRelationList.distinctBy { it.relation_source }.distinctBy { it.relation_target }
+        data[TABLENAMES_RELATIONS_DISTINCT] = dataModelRelationList.distinctBy { it.relation_source to it.relation_target }
         data[ENTITY_CLASSES] = entityClassesString.dropLast(2)
 
         val typesAndTables = mutableListOf<TemplateTableFiller>()
@@ -370,7 +373,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
                } else {
                    // no field given -> must display every field from dataModel
-                   detailForm.dataModel.fields?.let { dataModelFields ->
+                  /* detailForm.dataModel.fields?.let { dataModelFields ->
                        var i = 0
                        dataModelFields.forEach { field ->
                            if (!isPrivateRelationField(field.name)) {
@@ -378,7 +381,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                formFieldList.add(createFormField(field, i))
                            }
                        }
-                   }
+                   }*/
                }
                data[FORM_FIELDS] = formFieldList
            }
