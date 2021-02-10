@@ -2,6 +2,7 @@ import DefaultValues.DEFAULT_REMOTE_URL
 import ExitCodes.PROJECT_EDITOR_JSON_EMPTY
 import ProjectEditorConstants.AUTHENTICATION_KEY
 import ProjectEditorConstants.BOOLEAN_TYPE
+import ProjectEditorConstants.CACHE_4D_SDK_KEY
 import ProjectEditorConstants.DATASOURCE_KEY
 import ProjectEditorConstants.DATE_TYPE
 import ProjectEditorConstants.DEVELOPER_KEY
@@ -70,6 +71,7 @@ class ProjectEditor(projectEditorFile: File) {
             "author" -> jsonObj.getSafeObject(PROJECT_KEY)?.getSafeObject(DEVELOPER_KEY)?.getSafeString(NAME_KEY)
             "targetDirPath" -> jsonObj.getSafeString(PATH_KEY)
             "androidSdk" -> jsonObj.getSafeString(SDK_KEY)
+            "cache4dSdk" -> jsonObj.getSafeString(CACHE_4D_SDK_KEY)
             "companyWithCaps" -> jsonObj.getSafeObject(PROJECT_KEY)?.getSafeObject(ORGANIZATION_KEY)?.getSafeString(NAME_KEY)
             "appNameWithCaps" -> jsonObj.getSafeObject(PROJECT_KEY)?.getSafeObject(PRODUCT_KEY)?.getSafeString(NAME_KEY)
             "remoteUrl" -> jsonObj.getSafeObject(PROJECT_KEY)?.getSafeObject(SERVER_KEY)?.getSafeObject(URLS_KEY)?.getSafeString(PRODUCTION_KEY)

@@ -10,4 +10,5 @@ object ExitCodes {
     const val MISSING_ANDROID_SDK_PATH = 7
     const val FILE_CREATION_ERROR = 8
     const val FIELD_TYPE_ERROR = 9
+    const val MISSING_ANDROID_CACHE_SDK_PATH = 10
 }

@@ -31,6 +31,7 @@ object ProjectEditorConstants {
     const val DEVELOPER_KEY = "developer"
     const val PATH_KEY = "path"
     const val SDK_KEY = "sdk"
+    const val CACHE_4D_SDK_KEY = "cache_4d_sdk"
     const val ORGANIZATION_KEY = "organization"
     const val PRODUCT_KEY = "product"
     const val SERVER_KEY = "server"

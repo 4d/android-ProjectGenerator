@@ -6,6 +6,7 @@ import DefaultValues.DEFAULT_REMOTE_ADDRESS
 import DefaultValues.NULL_FIELD_SEPARATOR
 import ExitCodes.FIELD_TYPE_ERROR
 import ExitCodes.FILE_CREATION_ERROR
+import ExitCodes.MISSING_ANDROID_CACHE_SDK_PATH
 import ExitCodes.MISSING_ANDROID_SDK_PATH
 import FileHelperConstants.APP_INFO_FILENAME
 import FileHelperConstants.QUERIES_FILENAME
@@ -13,6 +14,7 @@ import MustacheConstants.ANDROID_SDK_PATH
 import MustacheConstants.APP_NAME
 import MustacheConstants.APP_NAME_WITH_CAPS
 import MustacheConstants.AUTHOR
+import MustacheConstants.CACHE_4D_SDK_PATH
 import MustacheConstants.COMPANY
 import MustacheConstants.COMPANY_HEADER
 import MustacheConstants.DATE_DAY
@@ -92,6 +94,14 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
             exitProcess(MISSING_ANDROID_SDK_PATH)
         }
         println("> Android SDK = ${data[ANDROID_SDK_PATH]}")
+
+        projectEditor.findJsonString("cache4dSdk")?.let {
+            data[CACHE_4D_SDK_PATH] = it
+        } ?: run {
+            println("Missing 4D Mobile cache SDK path")
+            exitProcess(MISSING_ANDROID_CACHE_SDK_PATH)
+        }
+        println("> Cache 4D SDK = ${data[CACHE_4D_SDK_PATH]}")
 
         var entityClassesString = ""
 

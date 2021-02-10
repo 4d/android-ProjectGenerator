@@ -25,6 +25,7 @@ object MustacheConstants {
     const val APP_NAME_WITH_CAPS = "app_name_with_caps"
     const val REMOTE_ADDRESS = "remote_address"
     const val ANDROID_SDK_PATH = "android_sdk_path"
+    const val CACHE_4D_SDK_PATH = "cache_4d_sdk_path"
     const val TYPES_AND_TABLES = "types_and_tables"
     const val ENTITY_CLASSES = "entity_classes"
     const val RELATION_SOURCE = "relation_source"
