@@ -3,6 +3,7 @@ import ExitCodes.PROJECT_EDITOR_JSON_EMPTY
 import ProjectEditorConstants.AUTHENTICATION_KEY
 import ProjectEditorConstants.BOOLEAN_TYPE
 import ProjectEditorConstants.CACHE_4D_SDK_KEY
+import ProjectEditorConstants.DATAMODEL_KEY
 import ProjectEditorConstants.DATASOURCE_KEY
 import ProjectEditorConstants.DATE_TYPE
 import ProjectEditorConstants.DEVELOPER_KEY
@@ -10,6 +11,7 @@ import ProjectEditorConstants.EMAIL_KEY
 import ProjectEditorConstants.EMPTY_TYPE
 import ProjectEditorConstants.FLOAT_TYPE
 import ProjectEditorConstants.INT_TYPE
+import ProjectEditorConstants.LIST_KEY
 import ProjectEditorConstants.NAME_KEY
 import ProjectEditorConstants.ORGANIZATION_KEY
 import ProjectEditorConstants.PATH_KEY
@@ -18,13 +20,14 @@ import ProjectEditorConstants.PRODUCTION_KEY
 import ProjectEditorConstants.PRODUCT_KEY
 import ProjectEditorConstants.PROJECT_KEY
 import ProjectEditorConstants.SDK_KEY
+import ProjectEditorConstants.SEARCHABLE_KEY
 import ProjectEditorConstants.SERVER_KEY
 import ProjectEditorConstants.SOURCE_KEY
 import ProjectEditorConstants.STRING_TYPE
 import ProjectEditorConstants.TEAMID_KEY
-import ProjectEditorConstants.TEXT_TYPE
 import ProjectEditorConstants.TIME_TYPE
 import ProjectEditorConstants.URLS_KEY
+import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
 import kotlin.system.exitProcess
@@ -35,6 +38,8 @@ class ProjectEditor(projectEditorFile: File) {
     lateinit var listFormList: List<Form>
     lateinit var detailFormList: List<Form>
     lateinit var navigationTableList: List<String>
+    lateinit var jsonSearchableColumn: JSONObject
+
 
     private lateinit var jsonObj: JSONObject
 
@@ -50,13 +55,16 @@ class ProjectEditor(projectEditorFile: File) {
             jsonObj = it
 
             dataModelList = jsonObj.getDataModelList()
-            println("> DataModels list successfully read.")
+            jsonSearchableColumn = getColumnSearchable(jsonObj.getJSONObject(PROJECT_KEY).getJSONObject(LIST_KEY))
+
 
             listFormList = jsonObj.getFormList(dataModelList, FormType.LIST)
             println("> List forms list successfully read.")
 
             detailFormList = jsonObj.getFormList(dataModelList, FormType.DETAIL)
             println("> Detail forms list successfully read.")
+
+            println("deatiledListForm :: ${detailFormList}")
 
             navigationTableList = jsonObj.getNavigationTableList()
             println("> Navigation tables list successfully read.")
@@ -72,18 +80,22 @@ class ProjectEditor(projectEditorFile: File) {
             "targetDirPath" -> jsonObj.getSafeString(PATH_KEY)
             "androidSdk" -> jsonObj.getSafeString(SDK_KEY)
             "cache4dSdk" -> jsonObj.getSafeString(CACHE_4D_SDK_KEY)
-            "companyWithCaps" -> jsonObj.getSafeObject(PROJECT_KEY)?.getSafeObject(ORGANIZATION_KEY)?.getSafeString(NAME_KEY)
+            "companyWithCaps" -> jsonObj.getSafeObject(PROJECT_KEY)?.getSafeObject(ORGANIZATION_KEY)
+                ?.getSafeString(NAME_KEY)
             "appNameWithCaps" -> jsonObj.getSafeObject(PROJECT_KEY)?.getSafeObject(PRODUCT_KEY)?.getSafeString(NAME_KEY)
-            "remoteUrl" -> jsonObj.getSafeObject(PROJECT_KEY)?.getSafeObject(SERVER_KEY)?.getSafeObject(URLS_KEY)?.getSafeString(PRODUCTION_KEY)
+            "remoteUrl" -> jsonObj.getSafeObject(PROJECT_KEY)?.getSafeObject(SERVER_KEY)?.getSafeObject(URLS_KEY)
+                ?.getSafeString(PRODUCTION_KEY)
             "teamId" -> jsonObj.getSafeObject(PROJECT_KEY)?.getSafeObject(ORGANIZATION_KEY)?.getSafeString(TEAMID_KEY)
-            "embeddedData" ->jsonObj.getSafeObject(PROJECT_KEY)?.getSafeObject(DATASOURCE_KEY)?.getSafeString(SOURCE_KEY)
+            "embeddedData" -> jsonObj.getSafeObject(PROJECT_KEY)?.getSafeObject(DATASOURCE_KEY)
+                ?.getSafeString(SOURCE_KEY)
             else -> return null
         }
     }
 
     fun findJsonBoolean(key: String): Boolean? {
         return when (key) {
-            "mailAuth" -> jsonObj.getSafeObject(PROJECT_KEY)?.getSafeObject(SERVER_KEY)?.getSafeObject(AUTHENTICATION_KEY)?.getSafeBoolean(EMAIL_KEY)
+            "mailAuth" -> jsonObj.getSafeObject(PROJECT_KEY)?.getSafeObject(SERVER_KEY)
+                ?.getSafeObject(AUTHENTICATION_KEY)?.getSafeBoolean(EMAIL_KEY)
             else -> return null
         }
     }
@@ -96,12 +108,44 @@ class ProjectEditor(projectEditorFile: File) {
         val teamId = findJsonString("teamId") ?: ""
         val embeddedData = findJsonString("embeddedData") == "local"
         return AppInfo(
-                team = Team(TeamID = teamId, TeamName = ""),
-                guestLogin = mailAuth.not(),
-                remoteUrl = remoteUrl,
-                embeddedData = embeddedData,
-                initialGlobalStamp = 0
+            team = Team(TeamID = teamId, TeamName = ""),
+            guestLogin = mailAuth.not(),
+            remoteUrl = remoteUrl,
+            embeddedData = embeddedData,
+            initialGlobalStamp = 0,
+            searchableField = this.jsonSearchableColumn
         )
+    }
+
+    //Fun Fetch Column
+    private fun getColumnSearchable(datarecv: JSONObject?): JSONObject {
+        val jsonObject = JSONObject()
+        datarecv.let {
+
+            for (i in 0 until it?.names()?.length()!!) {
+                val newJson = JSONArray()
+                val searchableField = datarecv?.getSafeObject(it.names()[i] as String)
+                    ?.getSafeArray(ProjectEditorConstants.SEARCHABLE_KEY)
+                if (searchableField != null) {
+                    for (index in 0 until searchableField.length()) {
+                        newJson.put(searchableField.getSafeObject(index)?.get(NAME_KEY))
+                    }
+                } else {
+                    newJson.put(datarecv?.getSafeObject(it.names()[i] as String)
+                        ?.getSafeObject(SEARCHABLE_KEY)?.get(NAME_KEY))
+                }
+                jsonObject.put(getTableName(it.names()[i].toString()), newJson)
+            }
+
+        }
+        return jsonObject
+    }
+
+
+    private fun getTableName(index: String): String {
+        val dataModel = jsonObj.getSafeObject(PROJECT_KEY)?.getSafeObject(DATAMODEL_KEY)?.getJSONObject(index)
+        val newDataModelJSONObject = dataModel?.getSafeObject(ProjectEditorConstants.EMPTY_KEY)
+        return newDataModelJSONObject?.get(NAME_KEY) as String
     }
 }
 
