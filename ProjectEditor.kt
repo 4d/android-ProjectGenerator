@@ -38,7 +38,9 @@ class ProjectEditor(projectEditorFile: File) {
     lateinit var listFormList: List<Form>
     lateinit var detailFormList: List<Form>
     lateinit var navigationTableList: List<String>
-    lateinit var jsonSearchableColumn: JSONObject
+
+
+    private val searchableFields = HashMap<String,List<String>>()
 
 
     private lateinit var jsonObj: JSONObject
@@ -51,11 +53,13 @@ class ProjectEditor(projectEditorFile: File) {
             exitProcess(PROJECT_EDITOR_JSON_EMPTY)
         }
 
+
+
         retrieveJSONObject(jsonString)?.let {
             jsonObj = it
 
             dataModelList = jsonObj.getDataModelList()
-            jsonSearchableColumn = getColumnSearchable(jsonObj.getJSONObject(PROJECT_KEY).getJSONObject(LIST_KEY))
+            getColumnSearchable(jsonObj.getJSONObject(PROJECT_KEY).getJSONObject(LIST_KEY))
 
 
             listFormList = jsonObj.getFormList(dataModelList, FormType.LIST)
@@ -113,32 +117,30 @@ class ProjectEditor(projectEditorFile: File) {
             remoteUrl = remoteUrl,
             embeddedData = embeddedData,
             initialGlobalStamp = 0,
-            searchableField = this.jsonSearchableColumn
+            searchableField = searchableFields
         )
     }
 
     //Fun Fetch Column
-    private fun getColumnSearchable(datarecv: JSONObject?): JSONObject {
-        val jsonObject = JSONObject()
+    private fun getColumnSearchable(datarecv: JSONObject?) {
         datarecv.let {
 
             for (i in 0 until it?.names()?.length()!!) {
-                val newJson = JSONArray()
+                var columns = mutableListOf<String>()
                 val searchableField = datarecv?.getSafeObject(it.names()[i] as String)
                     ?.getSafeArray(ProjectEditorConstants.SEARCHABLE_KEY)
                 if (searchableField != null) {
                     for (index in 0 until searchableField.length()) {
-                        newJson.put(searchableField.getSafeObject(index)?.get(NAME_KEY))
+                       columns.add(searchableField.getSafeObject(index)?.get(NAME_KEY) as String)
                     }
                 } else {
-                    newJson.put(datarecv?.getSafeObject(it.names()[i] as String)
-                        ?.getSafeObject(SEARCHABLE_KEY)?.get(NAME_KEY))
+                    columns.add(datarecv?.getSafeObject(it.names()[i] as String)
+                        ?.getSafeObject(SEARCHABLE_KEY)?.get(NAME_KEY) as String)
                 }
-                jsonObject.put(getTableName(it.names()[i].toString()), newJson)
+               searchableFields.put(getTableName(it.names()[i].toString()),columns)
             }
 
         }
-        return jsonObject
     }
 
 

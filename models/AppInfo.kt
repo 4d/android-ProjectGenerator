@@ -6,5 +6,5 @@ data class AppInfo(
         val remoteUrl: String,
         val embeddedData: Boolean,
         val initialGlobalStamp: Int,
-        val searchableField: JSONObject
+        val searchableField: Map<String,List<String>>
 )
