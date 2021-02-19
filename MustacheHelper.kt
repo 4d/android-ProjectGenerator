@@ -1,8 +1,6 @@
 import DefaultValues.DEFAULT_AUTHOR
-import DefaultValues.DEFAULT_DETAIL_FORM
-import DefaultValues.DEFAULT_LIST_FORM
 import DefaultValues.DEFAULT_PREFIX
-import DefaultValues.DEFAULT_REMOTE_ADDRESS
+import DefaultValues.DEFAULT_REMOTE_URL
 import DefaultValues.NULL_FIELD_SEPARATOR
 import ExitCodes.FIELD_TYPE_ERROR
 import ExitCodes.FILE_CREATION_ERROR
@@ -78,13 +76,14 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         data[APP_NAME_WITH_CAPS] = fileHelper.pathHelper.appNameWithCaps
 
         // for network_security_config.xml
-        val remoteAddress =  projectEditor.findJsonString("remoteUrl")
+        // whitelist production host address if defined, else, server host address, else localhost
+        var remoteAddress =  projectEditor.findJsonString("productionUrl")
         println("remoteAddress = $remoteAddress")
         if (remoteAddress.isNullOrEmpty())
-            data[REMOTE_ADDRESS] = DEFAULT_REMOTE_ADDRESS
-        else
-            data[REMOTE_ADDRESS] = remoteAddress.removePrefix("https://").removePrefix("http://").split(":")[0]
-
+            remoteAddress = projectEditor.findJsonString("remoteUrl")
+            if (remoteAddress.isNullOrEmpty())
+                remoteAddress = DEFAULT_REMOTE_URL
+        data[REMOTE_ADDRESS] = remoteAddress.removePrefix("https://").removePrefix("http://").split(":")[0]
         println("data[REMOTE_ADDRESS] = ${data[REMOTE_ADDRESS]}")
 
         projectEditor.findJsonString("androidSdk")?.let {
