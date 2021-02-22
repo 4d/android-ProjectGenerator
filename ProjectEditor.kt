@@ -5,7 +5,6 @@ import ProjectEditorConstants.BOOLEAN_TYPE
 import ProjectEditorConstants.CACHE_4D_SDK_KEY
 import ProjectEditorConstants.DATAMODEL_KEY
 import ProjectEditorConstants.DATASOURCE_KEY
-import ProjectEditorConstants.DATE_TYPE
 import ProjectEditorConstants.DEVELOPER_KEY
 import ProjectEditorConstants.EMAIL_KEY
 import ProjectEditorConstants.EMPTY_TYPE
@@ -24,7 +23,6 @@ import ProjectEditorConstants.SERVER_KEY
 import ProjectEditorConstants.SOURCE_KEY
 import ProjectEditorConstants.STRING_TYPE
 import ProjectEditorConstants.TEAMID_KEY
-import ProjectEditorConstants.TIME_TYPE
 import ProjectEditorConstants.URLS_KEY
 import org.json.JSONObject
 import java.io.File
@@ -38,7 +36,6 @@ class ProjectEditor(projectEditorFile: File) {
     lateinit var navigationTableList: List<String>
     private val searchableFields = HashMap<String, List<String>>()
 
-
     private lateinit var jsonObj: JSONObject
 
     init {
@@ -49,12 +46,11 @@ class ProjectEditor(projectEditorFile: File) {
             exitProcess(PROJECT_EDITOR_JSON_EMPTY)
         }
 
-
-
         retrieveJSONObject(jsonString)?.let {
             jsonObj = it
 
             dataModelList = jsonObj.getDataModelList()
+            println("> DataModels list successfully read.")
             getSearchableColums(jsonObj)
 
             listFormList = jsonObj.getFormList(dataModelList, FormType.LIST)
@@ -62,8 +58,6 @@ class ProjectEditor(projectEditorFile: File) {
 
             detailFormList = jsonObj.getFormList(dataModelList, FormType.DETAIL)
             println("> Detail forms list successfully read.")
-
-            println("deatiledListForm :: ${detailFormList}")
 
             navigationTableList = jsonObj.getNavigationTableList()
             println("> Navigation tables list successfully read.")

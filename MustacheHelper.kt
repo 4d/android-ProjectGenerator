@@ -241,6 +241,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                         //cleaning
                         data.remove(FIELDS)
                         data.remove(RELATIONS)
+                        data.remove(FIRST_FIELD)
                     }
 
                 } else if (currentFile.isWithRelationDaoTemplateName()) {
@@ -494,13 +495,17 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
             .replace("android:text=\"__LABEL__\"", "android:text=\"{{label}}\"")
             .replace("android:text=\"__BUTTON__\"", "android:text=\"{{label}}\"")
             .replace("android:text=\"__TEXT__\"", "android:text=\"@{${variableFieldPath}.{{name}}.toString()}\"")
-            .replace("app:imageUrl=\"__IMAGE__\"",
-                "app:imageFieldName='@{\"{{name}}\"}'\n" +
-                    "app:imageKey=\"@{${variableFieldPath}.__KEY}\"\n" +
-                    "app:imageTableName='@{\"{{tableName}}\"}'\n" +
-                    "app:imageUrl=\"@{${variableFieldPath}.{{name}}.__deferred.uri}\"")
 
-        var regex = ("(\\h*)<!--ENTITY_VARIABLE-->").toRegex()
+        var regex = ("(\\h*)app:imageUrl=\"__IMAGE__\"").toRegex()
+        newFormText = regex.replace(newFormText) { matchResult ->
+            val indent = matchResult.destructured.component1()
+            "${indent}app:imageFieldName='@{\"{{name}}\"}'\n" +
+            "${indent}app:imageKey=\"@{${variableFieldPath}.__KEY}\"\n" +
+            "${indent}app:imageTableName='@{\"{{tableName}}\"}'\n" +
+            "${indent}app:imageUrl=\"@{${variableFieldPath}.{{name}}.__deferred.uri}\""
+        }
+
+        regex = ("(\\h*)<!--ENTITY_VARIABLE-->").toRegex()
         newFormText = regex.replace(newFormText) { matchResult ->
             val indent = matchResult.destructured.component1()
             "${indent}<variable\n" +
