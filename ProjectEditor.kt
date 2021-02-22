@@ -11,7 +11,6 @@ import ProjectEditorConstants.EMAIL_KEY
 import ProjectEditorConstants.EMPTY_TYPE
 import ProjectEditorConstants.FLOAT_TYPE
 import ProjectEditorConstants.INT_TYPE
-import ProjectEditorConstants.LIST_KEY
 import ProjectEditorConstants.NAME_KEY
 import ProjectEditorConstants.ORGANIZATION_KEY
 import ProjectEditorConstants.PATH_KEY
@@ -20,14 +19,12 @@ import ProjectEditorConstants.PRODUCTION_KEY
 import ProjectEditorConstants.PRODUCT_KEY
 import ProjectEditorConstants.PROJECT_KEY
 import ProjectEditorConstants.SDK_KEY
-import ProjectEditorConstants.SEARCHABLE_KEY
 import ProjectEditorConstants.SERVER_KEY
 import ProjectEditorConstants.SOURCE_KEY
 import ProjectEditorConstants.STRING_TYPE
 import ProjectEditorConstants.TEAMID_KEY
 import ProjectEditorConstants.TIME_TYPE
 import ProjectEditorConstants.URLS_KEY
-import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
 import kotlin.system.exitProcess
@@ -38,9 +35,7 @@ class ProjectEditor(projectEditorFile: File) {
     lateinit var listFormList: List<Form>
     lateinit var detailFormList: List<Form>
     lateinit var navigationTableList: List<String>
-
-
-    private val searchableFields = HashMap<String,List<String>>()
+    private val searchableFields = HashMap<String, List<String>>()
 
 
     private lateinit var jsonObj: JSONObject
@@ -59,8 +54,7 @@ class ProjectEditor(projectEditorFile: File) {
             jsonObj = it
 
             dataModelList = jsonObj.getDataModelList()
-            getColumnSearchable(jsonObj.getJSONObject(PROJECT_KEY).getJSONObject(LIST_KEY))
-
+            getSearchableColums(jsonObj)
 
             listFormList = jsonObj.getFormList(dataModelList, FormType.LIST)
             println("> List forms list successfully read.")
@@ -121,33 +115,47 @@ class ProjectEditor(projectEditorFile: File) {
         )
     }
 
-    //Fun Fetch Column
-    private fun getColumnSearchable(datarecv: JSONObject?) {
-        datarecv.let {
-
-            for (i in 0 until it?.names()?.length()!!) {
-                var columns = mutableListOf<String>()
-                val searchableField = datarecv?.getSafeObject(it.names()[i] as String)
-                    ?.getSafeArray(ProjectEditorConstants.SEARCHABLE_KEY)
-                if (searchableField != null) {
-                    for (index in 0 until searchableField.length()) {
-                       columns.add(searchableField.getSafeObject(index)?.get(NAME_KEY) as String)
-                    }
-                } else {
-                    columns.add(datarecv?.getSafeObject(it.names()[i] as String)
-                        ?.getSafeObject(SEARCHABLE_KEY)?.get(NAME_KEY) as String)
-                }
-               searchableFields.put(getTableName(it.names()[i].toString()),columns)
-            }
-
-        }
-    }
-
-
     private fun getTableName(index: String): String {
         val dataModel = jsonObj.getSafeObject(PROJECT_KEY)?.getSafeObject(DATAMODEL_KEY)?.getJSONObject(index)
         val newDataModelJSONObject = dataModel?.getSafeObject(ProjectEditorConstants.EMPTY_KEY)
         return newDataModelJSONObject?.get(NAME_KEY) as String
+    }
+
+    private fun getSearchableColums(datarecv: JSONObject?) {
+
+        datarecv.let {
+            if (datarecv!!.has("project")) {
+                if (datarecv.getJSONObject("project").has("list")) {
+                    val jsonrecv = datarecv.getJSONObject("project").getJSONObject("list")
+                    val jsonKeys = jsonrecv.names()
+                    println("JSONArray :: $jsonrecv")
+                    for (index in 0 until jsonKeys.length()) {
+                        var columns = mutableListOf<String>()
+                        val jsonObject = jsonrecv.getJSONObject(jsonKeys.getString(index))
+                        if (jsonObject.has("searchableField")) {
+                            val dat = jsonObject.getSafeArray("searchableField")
+                            if (dat != null) {
+                                for (ind in 0 until dat.length()) {
+                                    columns.add(dat.getJSONObject(ind).get("name") as String)
+                                }
+                            } else {
+                                if (!(jsonObject.get("searchableField")).equals(null)) {
+                                    columns.add(jsonObject.getJSONObject("searchableField").get("name") as String)
+                                } else {
+                                    println("searchableField is not available")
+                                }
+                            }
+
+                        } else {
+                            println("No searchable Field Found")
+                        }
+                        if (columns.size != 0) searchableFields.put(getTableName(jsonrecv.names()[index].toString()),
+                            columns)
+                    }
+
+                }
+            }
+        }
     }
 }
 
