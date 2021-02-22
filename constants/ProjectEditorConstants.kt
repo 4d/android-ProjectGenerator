@@ -21,6 +21,7 @@ object ProjectEditorConstants {
     const val ISTOMANY_KEY = "isToMany"
     const val RELATEDENTITIES_KEY = "relatedEntities"
     const val LIST_KEY = "list"
+    const val SEARCHABLE_KEY ="searchableField"
     const val FORM_KEY = "form"
     const val FIELDS_KEY = "fields"
     const val ID_KEY = "id"

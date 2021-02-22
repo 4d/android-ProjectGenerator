@@ -20,6 +20,7 @@ import MustacheConstants.DATE_MONTH
 import MustacheConstants.DATE_YEAR
 import MustacheConstants.ENTITY_CLASSES
 import MustacheConstants.FIELDS
+import MustacheConstants.FIRST_FIELD
 import MustacheConstants.FORM_FIELDS
 import MustacheConstants.PREFIX
 import MustacheConstants.RELATIONS
@@ -47,7 +48,7 @@ import com.samskivert.mustache.Mustache
 import com.samskivert.mustache.Template
 import java.io.File
 import java.io.FileReader
-import java.util.*
+import java.util.Calendar
 import kotlin.system.exitProcess
 
 class MustacheHelper(private val fileHelper: FileHelper, private val projectEditor: ProjectEditor) {
@@ -114,7 +115,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
             tableNames.add(TemplateTableFiller(name = dataModel.name))
             tableNames_lowercase.add(TemplateLayoutFiller(name = dataModel.name, nameLowerCase = dataModel.name.toLowerCase(), nameCamelCase = dataModel.name.capitalizeWords(), hasIcon = dataModel.iconPath != null, icon = dataModel.iconPath
-                    ?: ""))
+                ?: ""))
             entityClassesString += "${dataModel.name}::class, "
         }
 
@@ -145,7 +146,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                 if (navigationTableCounter > 3)
                     return@forEach
                 tableNamesForNavigation.add(TemplateLayoutFiller(name = dataModel.name, nameLowerCase = dataModel.name.toLowerCase(), nameCamelCase = dataModel.name.capitalizeWords(), hasIcon = dataModel.iconPath != null, icon = dataModel.iconPath
-                        ?: ""))
+                    ?: ""))
                 navigationTableCounter++
             }
         }
@@ -208,6 +209,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                 }
                             }
                             data[FIELDS] = fieldList
+                            data[FIRST_FIELD] = fieldList.firstOrNull()?.name_original ?: ""
                         }
 
                         relations.clear()
