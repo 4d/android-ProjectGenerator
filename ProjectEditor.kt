@@ -18,6 +18,7 @@ import ProjectEditorConstants.PHOTO_TYPE
 import ProjectEditorConstants.PRODUCTION_KEY
 import ProjectEditorConstants.PRODUCT_KEY
 import ProjectEditorConstants.PROJECT_KEY
+import ProjectEditorConstants.REMOTE_URL_KEY
 import ProjectEditorConstants.SDK_KEY
 import ProjectEditorConstants.SERVER_KEY
 import ProjectEditorConstants.SOURCE_KEY
@@ -81,8 +82,8 @@ class ProjectEditor(projectEditorFile: File) {
             "companyWithCaps" -> jsonObj.getSafeObject(PROJECT_KEY)?.getSafeObject(ORGANIZATION_KEY)
                 ?.getSafeString(NAME_KEY)
             "appNameWithCaps" -> jsonObj.getSafeObject(PROJECT_KEY)?.getSafeObject(PRODUCT_KEY)?.getSafeString(NAME_KEY)
-            "remoteUrl" -> jsonObj.getSafeObject(PROJECT_KEY)?.getSafeObject(SERVER_KEY)?.getSafeObject(URLS_KEY)
-                ?.getSafeString(PRODUCTION_KEY)
+            "productionUrl" -> jsonObj.getSafeObject(PROJECT_KEY)?.getSafeObject(SERVER_KEY)?.getSafeObject(URLS_KEY)?.getSafeString(PRODUCTION_KEY)
+            "remoteUrl" -> jsonObj.getSafeString(REMOTE_URL_KEY)
             "teamId" -> jsonObj.getSafeObject(PROJECT_KEY)?.getSafeObject(ORGANIZATION_KEY)?.getSafeString(TEAMID_KEY)
             "embeddedData" -> jsonObj.getSafeObject(PROJECT_KEY)?.getSafeObject(DATASOURCE_KEY)
                 ?.getSafeString(SOURCE_KEY)
@@ -100,7 +101,9 @@ class ProjectEditor(projectEditorFile: File) {
 
     fun getAppInfo(): AppInfo {
         val mailAuth = findJsonBoolean("mailAuth") ?: false
-        var remoteUrl = findJsonString("remoteUrl")
+        var remoteUrl = findJsonString("productionUrl")
+        if (remoteUrl.isNullOrEmpty())
+            remoteUrl = findJsonString("remoteUrl")
         if (remoteUrl.isNullOrEmpty())
             remoteUrl = DEFAULT_REMOTE_URL
         val teamId = findJsonString("teamId") ?: ""
@@ -164,13 +167,13 @@ fun typeStringFromTypeInt(type: Int?): String = when (type) {
     1 -> FLOAT_TYPE
     2 -> STRING_TYPE
     3 -> PHOTO_TYPE
-    4 -> DATE_TYPE
+    4 -> STRING_TYPE
     5 -> EMPTY_TYPE
     6 -> BOOLEAN_TYPE
     7 -> EMPTY_TYPE
     8 -> INT_TYPE
     9 -> INT_TYPE
-    11 -> TIME_TYPE
+    11 -> STRING_TYPE
     12 -> EMPTY_TYPE
     25 -> INT_TYPE
     else -> EMPTY_TYPE

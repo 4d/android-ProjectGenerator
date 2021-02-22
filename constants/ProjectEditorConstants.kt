@@ -40,6 +40,7 @@ object ProjectEditorConstants {
     const val SOURCE_KEY = "source"
     const val URLS_KEY = "urls"
     const val PRODUCTION_KEY = "production"
+    const val REMOTE_URL_KEY = "remote_url"
     const val TEAMID_KEY = "teamId"
     const val AUTHENTICATION_KEY = "authentication"
     const val EMAIL_KEY = "email"
