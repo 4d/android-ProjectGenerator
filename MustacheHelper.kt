@@ -22,6 +22,7 @@ import MustacheConstants.DATE_MONTH
 import MustacheConstants.DATE_YEAR
 import MustacheConstants.ENTITY_CLASSES
 import MustacheConstants.FIELDS
+import MustacheConstants.FIRST_FIELD
 import MustacheConstants.FORM_FIELDS
 import MustacheConstants.PREFIX
 import MustacheConstants.RELATIONS
@@ -49,7 +50,7 @@ import com.samskivert.mustache.Mustache
 import com.samskivert.mustache.Template
 import java.io.File
 import java.io.FileReader
-import java.util.*
+import java.util.Calendar
 import kotlin.system.exitProcess
 
 class MustacheHelper(private val fileHelper: FileHelper, private val projectEditor: ProjectEditor) {
@@ -114,8 +115,8 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
             }
 
             tableNames.add(TemplateTableFiller(name = dataModel.name))
-            tableNames_lowercase.add(TemplateLayoutFiller(name = dataModel.name, nameLowerCase = dataModel.name.toLowerCase(), hasIcon = dataModel.iconPath != null, icon = dataModel.iconPath
-                    ?: ""))
+            tableNames_lowercase.add(TemplateLayoutFiller(name = dataModel.name, nameLowerCase = dataModel.name.toLowerCase(), nameCamelCase = dataModel.name.capitalizeWords(), hasIcon = dataModel.iconPath != null, icon = dataModel.iconPath
+                ?: ""))
             entityClassesString += "${dataModel.name}::class, "
         }
 
@@ -145,8 +146,8 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
             projectEditor.dataModelList.find { it.id == navigationTableId }?.let { dataModel ->
                 if (navigationTableCounter > 3)
                     return@forEach
-                tableNamesForNavigation.add(TemplateLayoutFiller(name = dataModel.name, nameLowerCase = dataModel.name.toLowerCase(), hasIcon = dataModel.iconPath != null, icon = dataModel.iconPath
-                        ?: ""))
+                tableNamesForNavigation.add(TemplateLayoutFiller(name = dataModel.name, nameLowerCase = dataModel.name.toLowerCase(), nameCamelCase = dataModel.name.capitalizeWords(), hasIcon = dataModel.iconPath != null, icon = dataModel.iconPath
+                    ?: ""))
                 navigationTableCounter++
             }
         }
@@ -209,6 +210,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                 }
                             }
                             data[FIELDS] = fieldList
+                            data[FIRST_FIELD] = fieldList.firstOrNull()?.name_original ?: ""
                         }
 
                         relations.clear()
@@ -312,6 +314,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                 i++
                 data["field_${i}_defined"] = field.name.isNotEmpty()
                 data["field_${i}_name"] = field.name.condensePropertyName()
+                data["field_${i}_label"] = field.label ?: ""
             }
 
             val newFilePath = fileHelper.pathHelper.getRecyclerViewItemPath(listForm.dataModel.name)
@@ -321,6 +324,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
             for (j in 1 until i + 1) {
                 data.remove("field_${j}_defined")
                 data.remove("field_${j}_name")
+                data.remove("field_${j}_label")
             }
         }
     }
@@ -368,6 +372,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                            if (fieldList[i].name != NULL_FIELD_SEPARATOR) {
                                data["field_${i + 1}_defined"] = fieldList[i].name.isNotEmpty()
                                data["field_${i + 1}_name"] = fieldList[i].name.condensePropertyName()
+                               data["field_${i + 1}_label"] = fieldList[i].label ?: ""
                            }
                        }
 
@@ -404,6 +409,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
            for (i in 1 until lastNullIndex) {
                data.remove("field_${i}_defined")
                data.remove("field_${i}_name")
+               data.remove("field_${i}_label")
            }
        }
    }
@@ -522,6 +528,15 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
             "${indent}{{#field_${id}_defined}}\n" +
             "${indent}android:text=\"@{${variableFieldPath}.{{field_${id}_name}}.toString()}\"\n" +
             "${indent}{{/field_${id}_defined}}"
+        }
+
+        regex = ("(\\h*)android:text=\"__LABEL_(\\d+)__\"").toRegex()
+        newFormText = regex.replace(newFormText) { matchResult ->
+            val indent = matchResult.destructured.component1()
+            val id = matchResult.destructured.component2()
+            "${indent}{{#field_${id}_defined}}\n" +
+                    "${indent}android:text=\"@{${variableFieldPath}.{{field_${id}_label}}.toString()}\"\n" +
+                    "${indent}{{/field_${id}_defined}}"
         }
 
         regex = ("(\\h*)app:imageUrl=\"__IMAGE_(\\d+)__\"").toRegex()

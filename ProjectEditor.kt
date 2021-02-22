@@ -110,7 +110,7 @@ class ProjectEditor(projectEditorFile: File) {
         if (remoteUrl.isNullOrEmpty())
             remoteUrl = DEFAULT_REMOTE_URL
         val teamId = findJsonString("teamId") ?: ""
-        val embeddedData = findJsonString("embeddedData") == "local"
+        val embeddedData = findJsonString("embeddedData") != null
         return AppInfo(
             team = Team(TeamID = teamId, TeamName = ""),
             guestLogin = mailAuth.not(),
@@ -162,7 +162,7 @@ fun typeStringFromTypeInt(type: Int?): String = when (type) {
     7 -> EMPTY_TYPE
     8 -> INT_TYPE
     9 -> INT_TYPE
-    10 -> TIME_TYPE
+    11 -> TIME_TYPE
     12 -> EMPTY_TYPE
     25 -> INT_TYPE
     else -> EMPTY_TYPE
