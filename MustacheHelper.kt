@@ -209,7 +209,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                 }
                             }
                             data[FIELDS] = fieldList
-                            data[FIRST_FIELD] = fieldList.firstOrNull()?.name_original ?: ""
+                            data[FIRST_FIELD] = fieldList.firstOrNull()?.name ?: ""
                         }
 
                         relations.clear()
