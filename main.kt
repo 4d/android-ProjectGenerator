@@ -48,8 +48,8 @@ class Main : CliktCommand() {
         TEMPLATE_FORMS = templateForms.removeSuffix("/")
     }
     val hostDb: String by option(help = Clikt.hostDbText).prompt(Clikt.hostDbText).validate {
-        val hostDbDir = File(it)
-        require(hostDbDir.exists() && hostDbDir.isDirectory) { "Can't find host database directory $it" }
+//        val hostDbDir = File(it)
+//        require(hostDbDir.exists() && hostDbDir.isDirectory) { "Can't find host database directory $it" }
         HOST_DB = hostDb.removeSuffix("/")
     }
 
