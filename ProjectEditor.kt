@@ -51,6 +51,7 @@ class ProjectEditor(projectEditorFile: File) {
 
             dataModelList = jsonObj.getDataModelList()
             println("> DataModels list successfully read.")
+
             getSearchableColums(jsonObj)
 
             listFormList = jsonObj.getFormList(dataModelList, FormType.LIST)
