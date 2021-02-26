@@ -41,12 +41,12 @@ fun JSONObject.getFormList(dataModelList: List<DataModel>, formType: FormType): 
     dataModelList.filter { it.isSlave == false }.forEach { dataModel ->
         val dataModelHasAnAssociatedForm = formList.find { it.dataModel.name == dataModel.name }
 
-        println("dataModelHasAnAssociatedForm = $dataModelHasAnAssociatedForm")
+//        println("dataModelHasAnAssociatedForm = $dataModelHasAnAssociatedForm")
         if (dataModelHasAnAssociatedForm == null) { // no form was given for this dataModel
             val form = Form(dataModel = dataModel)
             val fields = mutableListOf<Field>()
             dataModel.fields?.forEach {
-                println("field = $it")
+//                println("field = $it")
                 if (!isPrivateRelationField(it.name) && it.isSlave == false) {
                     // if Simple Table (default list form, avoid photo and relations)
                     if (formType == FormType.LIST && (it.inverseName != null || it.fieldTypeString == PHOTO_TYPE)) {
@@ -63,7 +63,7 @@ fun JSONObject.getFormList(dataModelList: List<DataModel>, formType: FormType): 
         } else if (dataModelHasAnAssociatedForm.fields.isNullOrEmpty()) { // no field was given in the form, but form already created
             val fields = mutableListOf<Field>()
             dataModel.fields?.forEach {
-                println("field = $it")
+//                println("field = $it")
                 if (!isPrivateRelationField(it.name) && it.isSlave == false) {
                     // if Simple Table (default list form, avoid photo and relations)
                     if (formType == FormType.LIST && (it.inverseName != null || it.fieldTypeString == PHOTO_TYPE)) {
