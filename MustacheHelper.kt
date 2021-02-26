@@ -581,7 +581,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
             val indent = matchResult.destructured.component1()
             val id = matchResult.destructured.component2()
             "${indent}{{#field_${id}_defined}}\n" +
-                    "${indent}android:text=\"@{${variableFieldPath}.{{field_${id}_label}}.toString()}\"\n" +
+                    "${indent}android:text=\"{{field_${id}_label}}\"\n" +
                     "${indent}{{/field_${id}_defined}}"
         }
 
