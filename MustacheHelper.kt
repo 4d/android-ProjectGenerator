@@ -2,6 +2,7 @@ import DefaultValues.DEFAULT_AUTHOR
 import DefaultValues.DEFAULT_PREFIX
 import DefaultValues.DEFAULT_REMOTE_URL
 import DefaultValues.NULL_FIELD_SEPARATOR
+import ExitCodes.COPY_TEMPLATE_FILE_ERROR
 import ExitCodes.FIELD_TYPE_ERROR
 import ExitCodes.FILE_CREATION_ERROR
 import ExitCodes.MISSING_ANDROID_CACHE_SDK_PATH
@@ -292,124 +293,165 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
     }
 
     fun applyListFormTemplate() {
+
         projectEditor.listFormList.forEach { listForm ->
 
-            val formName = listForm.name
-            val listFormTemplate = if (formName.isNullOrEmpty()) {
-                fileHelper.pathHelper.getDefaultListFormFile()
-            } else {
-                fileHelper.pathHelper.getListFormFile(formName)
-            }
+            val formPath = fileHelper.pathHelper.getFormPath(listForm.name, FormType.LIST)
 
-            val oldFormText = readFileDirectlyAsText(listFormTemplate)
-            val newFormText = replaceTemplateText(oldFormText, FormType.LIST)
+            val appFolderInTemplate = fileHelper.pathHelper.getAppFolderInTemplate(formPath)
 
-            template = compiler.compile(newFormText)
+            File(appFolderInTemplate).walkTopDown().filter { folder -> !folder.isHidden && folder.isDirectory }.forEach { currentFolder ->
 
-            data[TABLENAME_LOWERCASE] = listForm.dataModel.name.toLowerCase()
-            data[TABLENAME] = listForm.dataModel.name
+                compiler = generateCompilerFolder(currentFolder.absolutePath)
 
-            var i = 0
-            listForm.fields?.forEach { field ->
-                i++
-                data["field_${i}_defined"] = field.name.isNotEmpty()
-                data["field_${i}_name"] = field.name.condensePropertyName()
-                data["field_${i}_label"] = field.label ?: ""
-            }
+                currentFolder.walkTopDown()
+                    .filter { file -> !file.isHidden && file.isFile && currentFolder.absolutePath.contains(file.parent) }
+                    .forEach { currentFile ->
 
-            val newFilePath = fileHelper.pathHelper.getRecyclerViewItemPath(listForm.dataModel.name)
-            applyTemplate(newFilePath)
+                        println(" > Processed file : $currentFile")
 
-            // cleaning data for other templates
-            for (j in 1 until i + 1) {
-                data.remove("field_${j}_defined")
-                data.remove("field_${j}_name")
-                data.remove("field_${j}_label")
+                        template = compiler.compile("{{>${currentFile.name}}}")
+
+                        if (currentFile.name == "layout.xml") {
+                            val oldFormText = readFileDirectlyAsText(currentFile)
+                            val newFormText = replaceTemplateText(oldFormText, FormType.LIST)
+                            template = compiler.compile(newFormText)
+
+                            data[TABLENAME_LOWERCASE] = listForm.dataModel.name.toLowerCase()
+                            data[TABLENAME] = listForm.dataModel.name
+
+                            var i = 0
+                            listForm.fields?.forEach { field ->
+                                i++
+                                data["field_${i}_defined"] = field.name.isNotEmpty()
+                                data["field_${i}_name"] = field.name.condensePropertyName()
+                                data["field_${i}_label"] = field.label ?: ""
+                            }
+
+                            val newFilePath = fileHelper.pathHelper.getRecyclerViewItemPath(listForm.dataModel.name)
+                            applyTemplate(newFilePath)
+
+                            // cleaning data for other templates
+                            for (j in 1 until i + 1) {
+                                data.remove("field_${j}_defined")
+                                data.remove("field_${j}_name")
+                                data.remove("field_${j}_label")
+                            }
+                        } else { // any file to copy in project
+                            val newFile = File(fileHelper.pathHelper.getLayoutTemplatePath(currentFile.absolutePath, formPath))
+                            println("File to copy : ${currentFile.absolutePath}; target : ${newFile.absolutePath}")
+                            if (!currentFile.copyRecursively(target = newFile, overwrite = true)) {
+                                println("An error occurred while copying template files with target : ${newFile.absolutePath}")
+                                exitProcess(COPY_TEMPLATE_FILE_ERROR)
+                            }
+                        }
+                    }
             }
         }
     }
 
    fun applyDetailFormTemplate() {
+
        projectEditor.detailFormList.forEach { detailForm ->
 
-           val formName = detailForm.name
-           val detailFormTemplate = if (formName.isNullOrEmpty()) {
-               fileHelper.pathHelper.getDefaultDetailFormFile()
-           } else {
-                fileHelper.pathHelper.getDetailFormFile(formName)
-           }
+           val formPath = fileHelper.pathHelper.getFormPath(detailForm.name, FormType.DETAIL)
 
-           val oldFormText = readFileDirectlyAsText(detailFormTemplate)
-           val newFormText = replaceTemplateText(oldFormText, FormType.DETAIL)
+           val appFolderInTemplate = fileHelper.pathHelper.getAppFolderInTemplate(formPath)
 
-           template = compiler.compile(newFormText)
+           File(appFolderInTemplate).walkTopDown().filter { folder -> !folder.isHidden && folder.isDirectory }.forEach { currentFolder ->
 
-           data[TABLENAME_LOWERCASE] = detailForm.dataModel.name.toLowerCase()
-           data[TABLENAME] = detailForm.dataModel.name
+               compiler = generateCompilerFolder(currentFolder.absolutePath)
 
-           val formFieldList = mutableListOf<TemplateFormFieldFiller>()
+               currentFolder.walkTopDown()
+                   .filter { file -> !file.isHidden && file.isFile && currentFolder.absolutePath.contains(file.parent) }
+                   .forEach { currentFile ->
 
-           var lastNullIndex = 0
+                       println(" > Processed file : $currentFile")
 
-           detailForm.fields?.let { fieldList ->
+                       template = compiler.compile("{{>${currentFile.name}}}")
 
-               if (fieldList.isNotEmpty()) {
+                       if (currentFile.name == "layout.xml") {
+                           val oldFormText = readFileDirectlyAsText(currentFile)
+                           val newFormText = replaceTemplateText(oldFormText, FormType.DETAIL)
 
-                   lastNullIndex = -1
+                           template = compiler.compile(newFormText)
 
-                   // Looking for __null_field__ separator to figure out if there is any specific field on the form template
-                   fieldList.find { it.name == NULL_FIELD_SEPARATOR }?.apply { lastNullIndex = fieldList.lastIndexOf(this) }
+                           data[TABLENAME_LOWERCASE] = detailForm.dataModel.name.toLowerCase()
+                           data[TABLENAME] = detailForm.dataModel.name
 
-                   if (lastNullIndex == -1) { // template with no specific field
-                       for (i in fieldList.indices) {
-                           formFieldList.add(createFormField(fieldList[i], i + 1))
-                       }
-                   } else { // template with specific fields
+                           val formFieldList = mutableListOf<TemplateFormFieldFiller>()
 
-                       // everything before the last "__null_field__" is template specific
-                       for (i in 0 until lastNullIndex) {
+                           var lastNullIndex = 0
 
-                           if (fieldList[i].name != NULL_FIELD_SEPARATOR) {
-                               data["field_${i + 1}_defined"] = fieldList[i].name.isNotEmpty()
-                               data["field_${i + 1}_name"] = fieldList[i].name.condensePropertyName()
-                               data["field_${i + 1}_label"] = fieldList[i].label ?: ""
+                           detailForm.fields?.let { fieldList ->
+
+                               if (fieldList.isNotEmpty()) {
+
+                                   lastNullIndex = -1
+
+                                   // Looking for __null_field__ separator to figure out if there is any specific field on the form template
+                                   fieldList.find { it.name == NULL_FIELD_SEPARATOR }?.apply { lastNullIndex = fieldList.lastIndexOf(this) }
+
+                                   if (lastNullIndex == -1) { // template with no specific field
+                                       for (i in fieldList.indices) {
+                                           formFieldList.add(createFormField(fieldList[i], i + 1))
+                                       }
+                                   } else { // template with specific fields
+
+                                       // everything before the last "__null_field__" is template specific
+                                       for (i in 0 until lastNullIndex) {
+
+                                           if (fieldList[i].name != NULL_FIELD_SEPARATOR) {
+                                               data["field_${i + 1}_defined"] = fieldList[i].name.isNotEmpty()
+                                               data["field_${i + 1}_name"] = fieldList[i].name.condensePropertyName()
+                                               data["field_${i + 1}_label"] = fieldList[i].label ?: ""
+                                           }
+                                       }
+
+                                       // everything after the last "__null_field__" found is free list
+                                       if (fieldList.size > lastNullIndex + 1) {
+                                           for (i in lastNullIndex + 1 until fieldList.size) {
+                                               formFieldList.add(createFormField(fieldList[i], i))
+                                           }
+                                       } else {
+                                           // no additional field given
+                                       }
+                                   }
+
+                               } else {
+                                   // no field given -> must display every field from dataModel
+                                   /* detailForm.dataModel.fields?.let { dataModelFields ->
+                                        var i = 0
+                                        dataModelFields.forEach { field ->
+                                            if (!isPrivateRelationField(field.name)) {
+                                                i++
+                                                formFieldList.add(createFormField(field, i))
+                                            }
+                                        }
+                                    }*/
+                               }
+                               data[FORM_FIELDS] = formFieldList
                            }
-                       }
 
-                       // everything after the last "__null_field__" found is free list
-                       if (fieldList.size > lastNullIndex + 1) {
-                           for (i in lastNullIndex + 1 until fieldList.size) {
-                               formFieldList.add(createFormField(fieldList[i], i))
+                           val newFilePath = fileHelper.pathHelper.getDetailFormPath(detailForm.dataModel.name)
+                           applyTemplate(newFilePath)
+
+                           // cleaning data for other templates
+                           data.remove(FORM_FIELDS)
+                           for (i in 1 until lastNullIndex) {
+                               data.remove("field_${i}_defined")
+                               data.remove("field_${i}_name")
+                               data.remove("field_${i}_label")
                            }
-                       } else {
-                           // no additional field given
+
+                       } else { // any file to copy in project
+                           val newFile = File(fileHelper.pathHelper.getLayoutTemplatePath(currentFile.absolutePath, formPath))
+                           if (!currentFile.copyRecursively(target = newFile, overwrite = true)) {
+                               println("An error occurred while copying template files with target : ${newFile.absolutePath}")
+                               exitProcess(COPY_TEMPLATE_FILE_ERROR)
+                           }
                        }
                    }
-
-               } else {
-                   // no field given -> must display every field from dataModel
-                  /* detailForm.dataModel.fields?.let { dataModelFields ->
-                       var i = 0
-                       dataModelFields.forEach { field ->
-                           if (!isPrivateRelationField(field.name)) {
-                               i++
-                               formFieldList.add(createFormField(field, i))
-                           }
-                       }
-                   }*/
-               }
-               data[FORM_FIELDS] = formFieldList
-           }
-
-           val newFilePath = fileHelper.pathHelper.getDetailFormPath(detailForm.dataModel.name)
-           applyTemplate(newFilePath)
-
-           // cleaning data for other templates
-           data.remove(FORM_FIELDS)
-           for (i in 1 until lastNullIndex) {
-               data.remove("field_${i}_defined")
-               data.remove("field_${i}_name")
-               data.remove("field_${i}_label")
            }
        }
    }
