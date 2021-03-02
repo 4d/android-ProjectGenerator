@@ -47,6 +47,7 @@ import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.samskivert.mustache.Mustache
 import com.samskivert.mustache.Template
+import org.json.JSONObject
 import java.io.File
 import java.io.FileReader
 import java.util.Calendar
@@ -115,7 +116,13 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
             }
 
             tableNames.add(TemplateTableFiller(name = dataModel.name))
-            tableNames_lowercase.add(TemplateLayoutFiller(name = dataModel.name, nameLowerCase = dataModel.name.toLowerCase(), nameCamelCase = dataModel.name.capitalizeWords(), hasIcon = dataModel.iconPath != null, icon = dataModel.iconPath
+            tableNames_lowercase.add(
+                TemplateLayoutFiller(
+                    name = dataModel.name,
+                    nameLowerCase = dataModel.name.toLowerCase(),
+                    nameCamelCase = dataModel.name.capitalizeWords(),
+                    hasIcon = (dataModel.iconPath != null && dataModel.iconPath != ""),
+                    icon = dataModel.iconPath
                 ?: ""))
             entityClassesString += "${dataModel.name}::class, "
         }
@@ -146,7 +153,13 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
             projectEditor.dataModelList.find { it.id == navigationTableId }?.let { dataModel ->
                 if (navigationTableCounter > 3)
                     return@forEach
-                tableNamesForNavigation.add(TemplateLayoutFiller(name = dataModel.name, nameLowerCase = dataModel.name.toLowerCase(), nameCamelCase = dataModel.name.capitalizeWords(), hasIcon = dataModel.iconPath != null, icon = dataModel.iconPath
+                tableNamesForNavigation.add(
+                    TemplateLayoutFiller(
+                        name = dataModel.name,
+                        nameLowerCase = dataModel.name.toLowerCase(),
+                        nameCamelCase = dataModel.name.capitalizeWords(),
+                        hasIcon = (dataModel.iconPath != null && dataModel.iconPath != ""),
+                        icon = dataModel.iconPath
                     ?: ""))
                 navigationTableCounter++
             }
@@ -298,6 +311,9 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
             val formPath = fileHelper.pathHelper.getFormPath(listForm.name, FormType.LIST)
 
+            tableNames.find { it.name == listForm.dataModel.name }?.layout_manager_type = getLayoutManagerType(formPath)
+            data[TABLENAMES] = tableNames
+
             val appFolderInTemplate = fileHelper.pathHelper.getAppFolderInTemplate(formPath)
 
             File(appFolderInTemplate).walkTopDown().filter { folder -> !folder.isHidden && folder.isDirectory }.forEach { currentFolder ->
@@ -308,7 +324,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                     .filter { file -> !file.isHidden && file.isFile && currentFolder.absolutePath.contains(file.parent) }
                     .forEach { currentFile ->
 
-                        println(" > Processed file : $currentFile")
+                        println(" > Processed template file : $currentFile")
 
                         template = compiler.compile("{{>${currentFile.name}}}")
 
@@ -366,7 +382,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                    .filter { file -> !file.isHidden && file.isFile && currentFolder.absolutePath.contains(file.parent) }
                    .forEach { currentFile ->
 
-                       println(" > Processed file : $currentFile")
+                       println(" > Processed template file : $currentFile")
 
                        template = compiler.compile("{{>${currentFile.name}}}")
 
@@ -601,5 +617,19 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         }
 
         return newFormText
+    }
+
+    fun getLayoutManagerType(formPath: String): String {
+        val manifest = File(formPath + File.separator + "manifest.json")
+        val jsonString = manifest.readFile()
+        var type = "Collection"
+        retrieveJSONObject(jsonString)?.let {
+            type = it.getSafeObject("tags")?.getSafeString("___LISTFORMTYPE___") ?: "Collection"
+        }
+        return when (type) {
+            "Collection" -> "GRID"
+            "Table" -> "LINEAR"
+            else -> "LINEAR"
+        }
     }
 }
