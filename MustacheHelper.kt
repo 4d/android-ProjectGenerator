@@ -33,6 +33,7 @@ import MustacheConstants.RELATION_TARGET
 import MustacheConstants.REMOTE_ADDRESS
 import MustacheConstants.TABLENAME
 import MustacheConstants.TABLENAMES
+import MustacheConstants.TABLENAMES_LAYOUT
 import MustacheConstants.TABLENAMES_LOWERCASE
 import MustacheConstants.TABLENAMES_NAVIGATION
 import MustacheConstants.TABLENAMES_RELATIONS
@@ -63,6 +64,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
     private lateinit var template: Template
 
     private val tableNamesForNavigation = mutableListOf<TemplateLayoutFiller>()
+    private val tableNamesForLayoutType = mutableListOf<TemplateLayoutTypeFiller>()
     private var tableNames = mutableListOf<TemplateTableFiller>()
     private var tableNames_lowercase = mutableListOf<TemplateLayoutFiller>()
     private var relations = mutableListOf<TemplateRelationFiller>()
@@ -122,8 +124,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                     nameLowerCase = dataModel.name.toLowerCase(),
                     nameCamelCase = dataModel.name.capitalizeWords(),
                     hasIcon = (dataModel.iconPath != null && dataModel.iconPath != ""),
-                    icon = dataModel.iconPath
-                ?: ""))
+                    icon = dataModel.iconPath ?: ""))
             entityClassesString += "${dataModel.name}::class, "
         }
 
@@ -159,12 +160,24 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                         nameLowerCase = dataModel.name.toLowerCase(),
                         nameCamelCase = dataModel.name.capitalizeWords(),
                         hasIcon = (dataModel.iconPath != null && dataModel.iconPath != ""),
-                        icon = dataModel.iconPath
-                    ?: ""))
+                        icon = dataModel.iconPath ?: ""))
                 navigationTableCounter++
             }
         }
         data[TABLENAMES_NAVIGATION] = tableNamesForNavigation
+
+        // Specifying if list layout is table or collection (LinearLayout or GridLayout)
+        tableNamesForNavigation.map { it.name }.forEach { tableName ->
+            val listFormName = projectEditor.listFormList.find { listform -> listform.dataModel.name == tableName }?.name
+            val formPath = fileHelper.pathHelper.getFormPath(listFormName, FormType.LIST)
+            tableNamesForLayoutType.add(TemplateLayoutTypeFiller(name = tableName, layout_manager_type = getLayoutManagerType(formPath)))
+        }
+//        projectEditor.listFormList.forEach { listForm ->
+//            val formPath = fileHelper.pathHelper.getFormPath(listForm.name, FormType.LIST)
+//            tableNamesForLayoutType.add(TemplateLayoutTypeFiller(name = listForm.dataModel.name, layout_manager_type = getLayoutManagerType(formPath)))
+//        }
+        data[TABLENAMES_LAYOUT] = tableNamesForLayoutType
+        println("data[TABLENAMES_LAYOUT] = ${data[TABLENAMES_LAYOUT]}")
     }
 
     /**
@@ -309,10 +322,17 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
         projectEditor.listFormList.forEach { listForm ->
 
-            val formPath = fileHelper.pathHelper.getFormPath(listForm.name, FormType.LIST)
+            var formPath = fileHelper.pathHelper.getFormPath(listForm.name, FormType.LIST)
 
-            tableNames.find { it.name == listForm.dataModel.name }?.layout_manager_type = getLayoutManagerType(formPath)
-            data[TABLENAMES] = tableNames
+            if (File(formPath).exists()) {
+                if (!fileHelper.pathHelper.appFolderExistsInTemplate(formPath)) {
+                    println("WARNING : AN IOS TEMPLATE WAS GIVEN FOR THE LIST FORM $formPath")
+                    formPath = fileHelper.pathHelper.getDefaultTemplateListFormPath()
+                }
+            } else {
+                println("WARNING : MISSING LIST FORM TEMPLATE $formPath")
+                formPath = fileHelper.pathHelper.getDefaultTemplateListFormPath()
+            }
 
             val appFolderInTemplate = fileHelper.pathHelper.getAppFolderInTemplate(formPath)
 
@@ -370,7 +390,17 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
        projectEditor.detailFormList.forEach { detailForm ->
 
-           val formPath = fileHelper.pathHelper.getFormPath(detailForm.name, FormType.DETAIL)
+           var formPath = fileHelper.pathHelper.getFormPath(detailForm.name, FormType.DETAIL)
+
+           if (File(formPath).exists()) {
+               if (!fileHelper.pathHelper.appFolderExistsInTemplate(formPath)) {
+                   println("WARNING : AN IOS TEMPLATE WAS GIVEN FOR THE DETAIL FORM $formPath")
+                   formPath = fileHelper.pathHelper.getDefaultTemplateDetailFormPath()
+               }
+           } else {
+               println("WARNING : MISSING DETAIL FORM TEMPLATE $formPath")
+               formPath = fileHelper.pathHelper.getDefaultTemplateDetailFormPath()
+           }
 
            val appFolderInTemplate = fileHelper.pathHelper.getAppFolderInTemplate(formPath)
 
@@ -592,6 +622,15 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
             "${indent}{{/field_${id}_defined}}"
         }
 
+        regex = ("(\\h*)android:progress=\"__PROGRESS_(\\d+)__\"").toRegex()
+        newFormText = regex.replace(newFormText) { matchResult ->
+            val indent = matchResult.destructured.component1()
+            val id = matchResult.destructured.component2()
+            "${indent}{{#field_${id}_defined}}\n" +
+                    "${indent}android:progress=\"@{${variableFieldPath}.{{field_${id}_name}} != null ? ${variableFieldPath}.{{field_${id}_name}} : 0}\"\n" +
+                    "${indent}{{/field_${id}_defined}}"
+        }
+
         regex = ("(\\h*)android:text=\"__LABEL_(\\d+)__\"").toRegex()
         newFormText = regex.replace(newFormText) { matchResult ->
             val indent = matchResult.destructured.component1()
@@ -620,16 +659,20 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
     }
 
     fun getLayoutManagerType(formPath: String): String {
+        println("getLayoutManagerType: $formPath")
         val manifest = File(formPath + File.separator + "manifest.json")
-        val jsonString = manifest.readFile()
-        var type = "Collection"
-        retrieveJSONObject(jsonString)?.let {
-            type = it.getSafeObject("tags")?.getSafeString("___LISTFORMTYPE___") ?: "Collection"
+        if (manifest.exists()) {
+            val jsonString = manifest.readFile()
+            var type = "Collection"
+            retrieveJSONObject(jsonString)?.let {
+                type = it.getSafeObject("tags")?.getSafeString("___LISTFORMTYPE___") ?: "Collection"
+            }
+            return when (type) {
+                "Collection" -> "GRID"
+                "Table" -> "LINEAR"
+                else -> "LINEAR"
+            }
         }
-        return when (type) {
-            "Collection" -> "GRID"
-            "Table" -> "LINEAR"
-            else -> "LINEAR"
-        }
+        return "LINEAR"
     }
 }

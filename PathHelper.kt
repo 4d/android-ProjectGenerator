@@ -130,6 +130,9 @@ class PathHelper(
             if (formType == FormType.LIST) getTemplateListFormPath(formName) else getTemplateDetailFormPath(formName)
         }
     }
+
+    fun appFolderExistsInTemplate(formPath: String): Boolean = File(formPath + File.separator + APP_PATH_KEY).exists()
+
     fun getAppFolderInTemplate(formPath: String): String {
         return formPath + File.separator + APP_PATH_KEY
     }
