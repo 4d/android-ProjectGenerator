@@ -1,7 +1,7 @@
 import DefaultValues.DEFAULT_AUTHOR
 import DefaultValues.DEFAULT_PREFIX
 import DefaultValues.DEFAULT_REMOTE_URL
-import DefaultValues.NULL_FIELD_SEPARATOR
+import DefaultValues.LAYOUT_FILE
 import ExitCodes.COPY_TEMPLATE_FILE_ERROR
 import ExitCodes.FIELD_TYPE_ERROR
 import ExitCodes.FILE_CREATION_ERROR
@@ -48,7 +48,6 @@ import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.samskivert.mustache.Mustache
 import com.samskivert.mustache.Template
-import org.json.JSONObject
 import java.io.File
 import java.io.FileReader
 import java.util.Calendar
@@ -348,7 +347,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
                         template = compiler.compile("{{>${currentFile.name}}}")
 
-                        if (currentFile.name == "layout.xml") {
+                        if (currentFile.name == LAYOUT_FILE) {
                             val oldFormText = readFileDirectlyAsText(currentFile)
                             val newFormText = replaceTemplateText(oldFormText, FormType.LIST)
                             template = compiler.compile(newFormText)
@@ -357,7 +356,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                             data[TABLENAME] = listForm.dataModel.name
 
                             var i = 0
-                            listForm.fields?.forEach { field ->
+                            listForm.fields?.forEach { field -> // Could also iter over specificFieldsCount as Detail form
                                 i++
                                 data["field_${i}_defined"] = field.name.isNotEmpty()
                                 data["field_${i}_name"] = field.name.condensePropertyName()
@@ -402,6 +401,12 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                formPath = fileHelper.pathHelper.getDefaultTemplateDetailFormPath()
            }
 
+           // not used in list form
+           var specificFieldsCount = 0
+           getTemplateManifestJSONContent(formPath)?.let {
+               specificFieldsCount = it.getSafeObject("fields")?.getSafeInt("count") ?: 0
+           }
+
            val appFolderInTemplate = fileHelper.pathHelper.getAppFolderInTemplate(formPath)
 
            File(appFolderInTemplate).walkTopDown().filter { folder -> !folder.isHidden && folder.isDirectory }.forEach { currentFolder ->
@@ -416,7 +421,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
                        template = compiler.compile("{{>${currentFile.name}}}")
 
-                       if (currentFile.name == "layout.xml") {
+                       if (currentFile.name == LAYOUT_FILE) {
                            val oldFormText = readFileDirectlyAsText(currentFile)
                            val newFormText = replaceTemplateText(oldFormText, FormType.DETAIL)
 
@@ -427,36 +432,24 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
                            val formFieldList = mutableListOf<TemplateFormFieldFiller>()
 
-                           var lastNullIndex = 0
-
                            detailForm.fields?.let { fieldList ->
 
                                if (fieldList.isNotEmpty()) {
 
-                                   lastNullIndex = -1
-
-                                   // Looking for __null_field__ separator to figure out if there is any specific field on the form template
-                                   fieldList.find { it.name == NULL_FIELD_SEPARATOR }?.apply { lastNullIndex = fieldList.lastIndexOf(this) }
-
-                                   if (lastNullIndex == -1) { // template with no specific field
+                                   if (specificFieldsCount == 0) { // template with no specific field
                                        for (i in fieldList.indices) {
                                            formFieldList.add(createFormField(fieldList[i], i + 1))
                                        }
                                    } else { // template with specific fields
 
-                                       // everything before the last "__null_field__" is template specific
-                                       for (i in 0 until lastNullIndex) {
-
-                                           if (fieldList[i].name != NULL_FIELD_SEPARATOR) {
-                                               data["field_${i + 1}_defined"] = fieldList[i].name.isNotEmpty()
-                                               data["field_${i + 1}_name"] = fieldList[i].name.condensePropertyName()
-                                               data["field_${i + 1}_label"] = fieldList[i].label ?: ""
-                                           }
+                                       for (i in 0 until specificFieldsCount) {
+                                           data["field_${i + 1}_defined"] = fieldList[i].name.isNotEmpty()
+                                           data["field_${i + 1}_name"] = fieldList[i].name.condensePropertyName()
+                                           data["field_${i + 1}_label"] = fieldList[i].label ?: ""
                                        }
 
-                                       // everything after the last "__null_field__" found is free list
-                                       if (fieldList.size > lastNullIndex + 1) {
-                                           for (i in lastNullIndex + 1 until fieldList.size) {
+                                       if (fieldList.size > specificFieldsCount + 1) {
+                                           for (i in specificFieldsCount + 1 until fieldList.size) {
                                                formFieldList.add(createFormField(fieldList[i], i))
                                            }
                                        } else {
@@ -464,17 +457,6 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                        }
                                    }
 
-                               } else {
-                                   // no field given -> must display every field from dataModel
-                                   /* detailForm.dataModel.fields?.let { dataModelFields ->
-                                        var i = 0
-                                        dataModelFields.forEach { field ->
-                                            if (!isPrivateRelationField(field.name)) {
-                                                i++
-                                                formFieldList.add(createFormField(field, i))
-                                            }
-                                        }
-                                    }*/
                                }
                                data[FORM_FIELDS] = formFieldList
                            }
@@ -484,7 +466,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
                            // cleaning data for other templates
                            data.remove(FORM_FIELDS)
-                           for (i in 1 until lastNullIndex) {
+                           for (i in 1 until specificFieldsCount) {
                                data.remove("field_${i}_defined")
                                data.remove("field_${i}_name")
                                data.remove("field_${i}_label")
@@ -660,19 +642,16 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
     fun getLayoutManagerType(formPath: String): String {
         println("getLayoutManagerType: $formPath")
-        val manifest = File(formPath + File.separator + "manifest.json")
-        if (manifest.exists()) {
-            val jsonString = manifest.readFile()
-            var type = "Collection"
-            retrieveJSONObject(jsonString)?.let {
-                type = it.getSafeObject("tags")?.getSafeString("___LISTFORMTYPE___") ?: "Collection"
-            }
-            return when (type) {
-                "Collection" -> "GRID"
-                "Table" -> "LINEAR"
-                else -> "LINEAR"
-            }
+
+        var type = "Collection"
+        getTemplateManifestJSONContent(formPath)?.let {
+            type = it.getSafeObject("tags")?.getSafeString("___LISTFORMTYPE___") ?: "Collection"
         }
-        return "LINEAR"
+
+        return when (type) {
+            "Collection" -> "GRID"
+            "Table" -> "LINEAR"
+            else -> "LINEAR"
+        }
     }
 }

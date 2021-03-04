@@ -4,6 +4,7 @@ import PathHelperConstants.TEMPLATE_PLACEHOLDER
 import PathHelperConstants.TEMPLATE_RELATION_DAO_PLACEHOLDER
 import PathHelperConstants.TEMPLATE_RELATION_ENTITY_PLACEHOLDER
 import PathHelperConstants.XML_TXT_EXT
+import org.json.JSONObject
 import java.io.File
 import kotlin.system.exitProcess
 
@@ -67,4 +68,15 @@ fun File.readFile(): String {
     return this.bufferedReader().use {
         it.readText()
     }
+}
+
+fun getTemplateManifest(formPath: String): File = File(formPath + File.separator + "manifest.json")
+
+fun getTemplateManifestJSONContent(formPath: String): JSONObject? {
+    val manifest = getTemplateManifest(formPath)
+    return if (manifest.exists()) {
+        val jsonString = manifest.readFile()
+        retrieveJSONObject(jsonString)
+    } else
+        null
 }
