@@ -27,6 +27,9 @@ class Main : CliktCommand() {
     private lateinit var TEMPLATE_FORMS: String
     private lateinit var HOST_DB: String
     private lateinit var projectEditorJson: File
+    init {
+        Log.plantTree(this::class.java.canonicalName)
+    }
 
     val projectEditor: String by option(help = Clikt.projectEditorText).prompt(Clikt.projectEditorText).validate {
         projectEditorJson = File(it)
@@ -54,20 +57,20 @@ class Main : CliktCommand() {
     }
 
     override fun run() {
-        println("Parameters checked.")
-        println("Starting procedure...")
+        Log.d("Parameters checked.")
+        Log.d("Starting procedure...")
         start()
-        println("Procedure complete.")
+        Log.d("Procedure complete.")
     }
 
     private fun start() {
 
-        println("Start reading project editor json file ${projectEditorJson.name}...")
+       Log.d("Start reading project editor json file ${projectEditorJson.name}...")
 
         val projectEditor = ProjectEditor(projectEditorJson)
 
-        println("Reading project editor json file done.")
-        println("--------------------------------------")
+        Log.d("Reading project editor json file done.")
+        Log.v("--------------------------------------")
 
         val pathHelper = PathHelper(
                 targetDirPath = projectEditor.findJsonString("targetDirPath")?.removeSuffix("/") ?: "",
@@ -82,20 +85,20 @@ class Main : CliktCommand() {
 
         val fileHelper = FileHelper(pathHelper)
 
-        println("Start gathering Mustache templating data...")
+        Log.d("Start gathering Mustache templating data...")
 
         val mustacheHelper = MustacheHelper(fileHelper, projectEditor)
 
-        println("Gathering Mustache templating data done.")
-        println("----------------------------------------")
+        Log.d("Gathering Mustache templating data done.")
+        Log.v("----------------------------------------")
 
         fileHelper.copyFiles()
 
-        println("Files successfully copied.")
+        Log.d("Files successfully copied.")
 
         fileHelper.createPathDirectories()
 
-        println("Start applying Mustache templating...")
+        Log.d("Start applying Mustache templating...")
 
         mustacheHelper.applyTemplates()
 
@@ -103,16 +106,16 @@ class Main : CliktCommand() {
 
         mustacheHelper.applyDetailFormTemplate()
 
-        println("Mustache templating done.")
-        println("-------------------------")
+        Log.d("Mustache templating done.")
+        Log.v("-------------------------")
 
         mustacheHelper.makeQueries()
 
-        println("Queries file successfully generated.")
+        Log.d("Queries file successfully generated.")
 
         mustacheHelper.makeAppInfo()
 
-        println("AppInfo file successfully generated.")
+        Log.d("AppInfo file successfully generated.")
     }
 }
 
