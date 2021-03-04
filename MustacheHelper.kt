@@ -321,6 +321,10 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
         projectEditor.listFormList.forEach { listForm ->
 
+            println("MustacheHelper : listform.name = ${listForm.name}")
+            println("MustacheHelper : listform.datamodel.name = ${listForm.dataModel.name}")
+            println("MustacheHelper : listform.fields size = ${listForm.fields?.size}")
+
             var formPath = fileHelper.pathHelper.getFormPath(listForm.name, FormType.LIST)
 
             if (File(formPath).exists()) {
@@ -434,23 +438,45 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
                            detailForm.fields?.let { fieldList ->
 
+                               fieldList.forEach {
+                                   println("${detailForm.name} / field = $it")
+                               }
+
                                if (fieldList.isNotEmpty()) {
 
                                    if (specificFieldsCount == 0) { // template with no specific field
                                        for (i in fieldList.indices) {
-                                           formFieldList.add(createFormField(fieldList[i], i + 1))
+                                           if (fieldList[i].name.isNotEmpty()) {
+                                               formFieldList.add(createFormField(fieldList[i], i + 1))
+                                           } else {
+                                               // you can get null fields in json file
+                                               // occurs when you select a form, and then select back Blank form
+                                           }
                                        }
                                    } else { // template with specific fields
 
                                        for (i in 0 until specificFieldsCount) {
+                                           println("fieldList[i] = ${fieldList[i]}")
                                            data["field_${i + 1}_defined"] = fieldList[i].name.isNotEmpty()
                                            data["field_${i + 1}_name"] = fieldList[i].name.condensePropertyName()
                                            data["field_${i + 1}_label"] = fieldList[i].label ?: ""
                                        }
 
-                                       if (fieldList.size > specificFieldsCount + 1) {
-                                           for (i in specificFieldsCount + 1 until fieldList.size) {
-                                               formFieldList.add(createFormField(fieldList[i], i))
+                                       println("fieldList.size = ${fieldList.size}")
+                                       println("specificFieldsCount = $specificFieldsCount")
+
+                                       if (fieldList.size > specificFieldsCount) {
+                                           var k = specificFieldsCount // another counter to avoid null field
+                                           for (i in specificFieldsCount until fieldList.size) {
+                                               println("in for loop, i = $i")
+                                               println("in for loop, k = $k")
+                                               println("fieldList[i] = ${fieldList[i]}")
+                                               if (fieldList[i].name.isNotEmpty()) {
+                                                   formFieldList.add(createFormField(fieldList[i], k + 1))
+                                                   k++
+                                               } else {
+                                                   // don't add null field
+                                               }
                                            }
                                        } else {
                                            // no additional field given
