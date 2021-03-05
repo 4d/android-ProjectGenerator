@@ -17,6 +17,7 @@
 //INCLUDE models/fillers/TemplateFieldFiller.kt
 //INCLUDE models/fillers/TemplateFormFieldFiller.kt
 //INCLUDE models/fillers/TemplateLayoutFiller.kt
+//INCLUDE models/fillers/TemplateLayoutTypeFiller.kt
 //INCLUDE models/fillers/TemplateRelationFiller.kt
 //INCLUDE models/fillers/TemplateTableFiller.kt
 //INCLUDE models/projecteditor/DataModel.kt

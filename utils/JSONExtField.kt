@@ -1,26 +1,18 @@
-import DefaultValues.NULL_FIELD_SEPARATOR
 import ProjectEditorConstants.FIELDTYPE_KEY
 import ProjectEditorConstants.ID_KEY
 import ProjectEditorConstants.INVERSENAME_KEY
 import ProjectEditorConstants.LABEL_KEY
 import ProjectEditorConstants.NAME_KEY
-import ProjectEditorConstants.NULL_KEY
 import ProjectEditorConstants.RELATEDDATACLASS_KEY
 import ProjectEditorConstants.RELATEDENTITIES_KEY
 import ProjectEditorConstants.RELATEDTABLENUMBER_KEY
 import ProjectEditorConstants.SHORTLABEL_KEY
 import org.json.JSONObject
 
-fun getFormFields(fieldList: List<String>, formType: FormType): List<Field> {
+fun getFormFields(fieldList: List<String>): List<Field> {
     val fields = mutableListOf<Field>()
     fieldList.forEach { fieldString ->
-        val field: Field
-        if (formType == FormType.DETAIL && fieldString == NULL_KEY) {
-            field = Field(name = NULL_FIELD_SEPARATOR)
-            fields.add(field)
-        } else {
-            fields.add(retrieveJSONObject(fieldString).getFormField())
-        }
+        fields.add(retrieveJSONObject(fieldString).getFormField())
     }
     return fields
 }

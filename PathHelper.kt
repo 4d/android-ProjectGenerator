@@ -6,7 +6,6 @@ import PathHelperConstants.ASSETS_PATH_KEY
 import PathHelperConstants.COMPANY_PH
 import PathHelperConstants.DETAIL_FORMS_KEY
 import PathHelperConstants.DETAIL_FORM_PREFIX
-import PathHelperConstants.DRAWABLE_PATH_KEY
 import PathHelperConstants.HOST_FORMS
 import PathHelperConstants.JAVA_PATH_KEY
 import PathHelperConstants.LAYOUT_PATH_KEY
@@ -19,6 +18,7 @@ import PathHelperConstants.RECYCLER_VIEW_ITEM_PREFIX
 import PathHelperConstants.RES_PATH_KEY
 import PathHelperConstants.SRC_PATH_KEY
 import java.io.File
+import java.util.zip.ZipFile
 import kotlin.system.exitProcess
 
 class PathHelper(
@@ -40,12 +40,26 @@ class PathHelper(
         return path.replaceIfWindowsPath()
     }
 
+    fun getLayoutTemplatePath(currentPath: String, formPath: String): String {
+        val path = targetDirPath + replaceLayoutTemplatePath(currentPath, formPath)
+        return path.replaceIfWindowsPath()
+    }
+
     fun replaceDirectoriesPath(path: String): String {
         return path.replace(PREFIX_PH, prefix).replace(COMPANY_PH, companyCondensed).replace(PACKAGE_PH, appNameCondensed)
     }
 
     private fun replacePath(currentPath: String): String {
         val paths = currentPath.replaceIfWindowsPath().split(Regex(templateFilesPath))
+        if (paths.size < 2) {
+            println("Couldn't find target directory with path : $currentPath")
+            exitProcess(MISSING_TARGET_DIR)
+        }
+        return replaceDirectoriesPath(paths[1])
+    }
+
+    private fun replaceLayoutTemplatePath(currentPath: String, formPath: String): String {
+        val paths = currentPath.replaceIfWindowsPath().split(Regex(formPath))
         if (paths.size < 2) {
             println("Couldn't find target directory with path : $currentPath")
             exitProcess(MISSING_TARGET_DIR)
@@ -108,16 +122,68 @@ class PathHelper(
             this
     }
 
-    fun getDefaultListFormFile() =  File(listFormTemplatesPath + File.separator + DEFAULT_LIST_FORM.addXmlSuffix())
-    fun getDefaultDetailFormFile() =  File(detailFormTemplatesPath + File.separator + DEFAULT_DETAIL_FORM.addXmlSuffix())
 
-    fun getListFormFile(formName: String): File {
-        val templatePath =  if (formName.startsWith("/")) hostListFormTemplatesPath else listFormTemplatesPath
-        return File(templatePath + File.separator + formName.addXmlSuffix())
+    fun getFormPath(formName: String?, formType: FormType): String {
+        return if (formName.isNullOrEmpty()) {
+            if (formType == FormType.LIST) getDefaultTemplateListFormPath() else getDefaultTemplateDetailFormPath()
+        } else {
+            if (formType == FormType.LIST) getTemplateListFormPath(formName) else getTemplateDetailFormPath(formName)
+        }
     }
 
-    fun getDetailFormFile(formName: String): File {
-        val templatePath =  if (formName.startsWith("/")) hostDetailFormTemplatesPath else detailFormTemplatesPath
-        return File(templatePath + File.separator + formName.addXmlSuffix())
+    fun appFolderExistsInTemplate(formPath: String): Boolean = File(formPath + File.separator + APP_PATH_KEY).exists()
+
+    fun getAppFolderInTemplate(formPath: String): String {
+        return formPath + File.separator + APP_PATH_KEY
+    }
+
+    fun getDefaultTemplateListFormPath() = listFormTemplatesPath + File.separator + DEFAULT_LIST_FORM
+    fun getDefaultTemplateDetailFormPath() = detailFormTemplatesPath + File.separator + DEFAULT_DETAIL_FORM
+
+    fun getTemplateListFormPath(formName: String): String {
+        var templatePath = ""
+        if (formName.startsWith("/")) {
+            templatePath = hostListFormTemplatesPath
+
+            /*if (formName.endsWith(".zip")) {
+                val zipFile = File(templatePath + File.separator + formName.removePrefix("/"))
+                unzipTemplate(zipFile)
+            }*/
+
+        } else {
+            templatePath = listFormTemplatesPath
+        }
+        return templatePath + File.separator + formName.removePrefix("/")
+    }
+
+    fun getTemplateDetailFormPath(formName: String): String {
+        var templatePath = ""
+        if (formName.startsWith("/")) {
+            templatePath = hostDetailFormTemplatesPath
+
+            /*if (formName.endsWith(".zip")) {
+                val zipFile = File(templatePath + File.separator + formName.removePrefix("/"))
+                unzipTemplate(zipFile)
+            }*/
+
+        } else {
+            templatePath = detailFormTemplatesPath
+        }
+        return templatePath + File.separator + formName.removePrefix("/")
+    }
+
+    private fun unzipTemplate(zipFile: File) {
+        ZipFile(zipFile).use { zip ->
+            zip.entries().asSequence().forEach { entry ->
+
+                println("zip entry is : $entry")
+                zip.getInputStream(entry).use { input ->
+
+                    File(entry.name).outputStream().use { output ->
+                        input.copyTo(output)
+                    }
+                }
+            }
+        }
     }
 }

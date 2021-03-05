@@ -1,7 +1,8 @@
 import DefaultValues.DEFAULT_AUTHOR
 import DefaultValues.DEFAULT_PREFIX
 import DefaultValues.DEFAULT_REMOTE_URL
-import DefaultValues.NULL_FIELD_SEPARATOR
+import DefaultValues.LAYOUT_FILE
+import ExitCodes.COPY_TEMPLATE_FILE_ERROR
 import ExitCodes.FIELD_TYPE_ERROR
 import ExitCodes.FILE_CREATION_ERROR
 import ExitCodes.MISSING_ANDROID_CACHE_SDK_PATH
@@ -32,6 +33,7 @@ import MustacheConstants.RELATION_TARGET
 import MustacheConstants.REMOTE_ADDRESS
 import MustacheConstants.TABLENAME
 import MustacheConstants.TABLENAMES
+import MustacheConstants.TABLENAMES_LAYOUT
 import MustacheConstants.TABLENAMES_LOWERCASE
 import MustacheConstants.TABLENAMES_NAVIGATION
 import MustacheConstants.TABLENAMES_RELATIONS
@@ -61,6 +63,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
     private lateinit var template: Template
 
     private val tableNamesForNavigation = mutableListOf<TemplateLayoutFiller>()
+    private val tableNamesForLayoutType = mutableListOf<TemplateLayoutTypeFiller>()
     private var tableNames = mutableListOf<TemplateTableFiller>()
     private var tableNames_lowercase = mutableListOf<TemplateLayoutFiller>()
     private var relations = mutableListOf<TemplateRelationFiller>()
@@ -125,12 +128,15 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
             }
 
             tableNames.add(TemplateTableFiller(name = dataModel.name))
-            tableNames_lowercase.add(TemplateLayoutFiller(name = dataModel.name,
-                nameLowerCase = dataModel.name.toLowerCase(),
-                nameCamelCase = dataModel.name.capitalizeWords(),
-                hasIcon = dataModel.iconPath != null,
-                icon = dataModel.iconPath
-                    ?: ""))
+
+            tableNames_lowercase.add(
+                TemplateLayoutFiller(
+                    name = dataModel.name,
+                    nameLowerCase = dataModel.name.toLowerCase(),
+                    nameCamelCase = dataModel.name.capitalizeWords(),
+                    hasIcon = (dataModel.iconPath != null && dataModel.iconPath != ""),
+                    icon = dataModel.iconPath ?: ""))
+
             entityClassesString += "${dataModel.name}::class, "
             Log.d("ProjectDataModelLis  ${entityClassesString}:: ${dataModel.name}")
         }
@@ -164,16 +170,28 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
             projectEditor.dataModelList.find { it.id == navigationTableId }?.let { dataModel ->
                 if (navigationTableCounter > 3)
                     return@forEach
-                tableNamesForNavigation.add(TemplateLayoutFiller(name = dataModel.name,
-                    nameLowerCase = dataModel.name.toLowerCase(),
-                    nameCamelCase = dataModel.name.capitalizeWords(),
-                    hasIcon = dataModel.iconPath != null,
-                    icon = dataModel.iconPath
-                        ?: ""))
+
+                tableNamesForNavigation.add(
+                    TemplateLayoutFiller(
+                        name = dataModel.name,
+                        nameLowerCase = dataModel.name.toLowerCase(),
+                        nameCamelCase = dataModel.name.capitalizeWords(),
+                        hasIcon = (dataModel.iconPath != null && dataModel.iconPath != ""),
+                        icon = dataModel.iconPath ?: ""))
+
                 navigationTableCounter++
             }
         }
         data[TABLENAMES_NAVIGATION] = tableNamesForNavigation
+
+        // Specifying if list layout is table or collection (LinearLayout or GridLayout)
+        tableNamesForNavigation.map { it.name }.forEach { tableName ->
+            val listFormName = projectEditor.listFormList.find { listform -> listform.dataModel.name == tableName }?.name
+            val formPath = fileHelper.pathHelper.getFormPath(listFormName, FormType.LIST)
+            tableNamesForLayoutType.add(TemplateLayoutTypeFiller(name = tableName, layout_manager_type = getLayoutManagerType(formPath)))
+        }
+
+        data[TABLENAMES_LAYOUT] = tableNamesForLayoutType
         Log.d("TABLENAMES" ,"${data[TABLENAMES]}")
     }
 
@@ -325,145 +343,220 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
     }
 
     fun applyListFormTemplate() {
+
         projectEditor.listFormList.forEach { listForm ->
 
-            val formName = listForm.name
-            // println("formName :: $formName")//SimpleTable
-            val listFormTemplate = if (formName.isNullOrEmpty()) {
-                fileHelper.pathHelper.getDefaultListFormFile()
-            } else {
-                fileHelper.pathHelper.getListFormFile(formName)
-            }
-            //println("listFormTemplate :: $listFormTemplate") //relative Path of the template
-            val oldFormText = readFileDirectlyAsText(listFormTemplate)
-            val newFormText = replaceTemplateText(oldFormText, FormType.LIST)
-            template = compiler.compile(newFormText)
+            println("MustacheHelper : listform.name = ${listForm.name}")
+            println("MustacheHelper : listform.datamodel.name = ${listForm.dataModel.name}")
+            println("MustacheHelper : listform.fields size = ${listForm.fields?.size}")
 
+            var formPath = fileHelper.pathHelper.getFormPath(listForm.name, FormType.LIST)
 
-            data[TABLENAME_LOWERCASE] = listForm.dataModel.name.toLowerCase()
-            data[TABLENAME] = listForm.dataModel.name
-
-            var i = 0
-            listForm.fields?.forEach { field ->
-                i++
-                val key = formatFields[field.name.condensePropertyName()]
-                if (formatFields[field.name.condensePropertyName()] != null) {
-                    data["field_${i}_name"] =
-                        "@{Format.${formatTypeFunctionName[key]}(${typeChoice[key]},$variableName.${field.name.condensePropertyName()}.toString())}"
-                } else {
-                    data["field_${i}_name"] = "@{$variableName.${field.name.condensePropertyName()}.toString()}"
+            if (File(formPath).exists()) {
+                if (!fileHelper.pathHelper.appFolderExistsInTemplate(formPath)) {
+                    println("WARNING : AN IOS TEMPLATE WAS GIVEN FOR THE LIST FORM $formPath")
+                    formPath = fileHelper.pathHelper.getDefaultTemplateListFormPath()
                 }
-                data["field_${i}_defined"] = field.name.isNotEmpty()
-                data["field_${i}_label"] = field.label ?: ""
+            } else {
+                println("WARNING : MISSING LIST FORM TEMPLATE $formPath")
+                formPath = fileHelper.pathHelper.getDefaultTemplateListFormPath()
             }
 
-            val newFilePath = fileHelper.pathHelper.getRecyclerViewItemPath(listForm.dataModel.name)
-            applyTemplate(newFilePath)
+            val appFolderInTemplate = fileHelper.pathHelper.getAppFolderInTemplate(formPath)
 
-            // cleaning data for other templates
-            for (j in 1 until i + 1) {
-                data.remove("field_${j}_defined")
-                data.remove("field_${j}_name")
-                data.remove("field_${j}_label")
+            File(appFolderInTemplate).walkTopDown().filter { folder -> !folder.isHidden && folder.isDirectory }.forEach { currentFolder ->
+
+                compiler = generateCompilerFolder(currentFolder.absolutePath)
+
+                currentFolder.walkTopDown()
+                    .filter { file -> !file.isHidden && file.isFile && currentFolder.absolutePath.contains(file.parent) }
+                    .forEach { currentFile ->
+
+                        println(" > Processed template file : $currentFile")
+
+                        template = compiler.compile("{{>${currentFile.name}}}")
+
+                        if (currentFile.name == LAYOUT_FILE) {
+                            val oldFormText = readFileDirectlyAsText(currentFile)
+                            val newFormText = replaceTemplateText(oldFormText, FormType.LIST)
+                            template = compiler.compile(newFormText)
+
+                            data[TABLENAME_LOWERCASE] = listForm.dataModel.name.toLowerCase()
+                            data[TABLENAME] = listForm.dataModel.name
+
+                            var i = 0
+                            listForm.fields?.forEach { field -> // Could also iter over specificFieldsCount as Detail form
+                                i++
+                               // data["field_${i}_defined"] = field.name.isNotEmpty()
+                               // data["field_${i}_name"] = field.name.condensePropertyName()
+                               // data["field_${i}_label"] = field.label ?: ""
+                                val key = formatFields[field.name.condensePropertyName()]
+                                if (formatFields[field.name.condensePropertyName()] != null) {
+                                    data["field_${i}_name"] =
+                                        "@{Format.${formatTypeFunctionName[key]}(${typeChoice[key]},$variableName.${field.name.condensePropertyName()}.toString())}"
+                                } else {
+                                    data["field_${i}_name"] = "@{$variableName.${field.name.condensePropertyName()}.toString()}"
+                                }
+                                data["field_${i}_defined"] = field.name.isNotEmpty()
+                                data["field_${i}_label"] = field.label ?: ""
+                            }
+
+                            val newFilePath = fileHelper.pathHelper.getRecyclerViewItemPath(listForm.dataModel.name)
+                            applyTemplate(newFilePath)
+
+                            // cleaning data for other templates
+                            for (j in 1 until i + 1) {
+                                data.remove("field_${j}_defined")
+                                data.remove("field_${j}_name")
+                                data.remove("field_${j}_label")
+                            }
+                        } else { // any file to copy in project
+                            val newFile = File(fileHelper.pathHelper.getLayoutTemplatePath(currentFile.absolutePath, formPath))
+                            println("File to copy : ${currentFile.absolutePath}; target : ${newFile.absolutePath}")
+                            if (!currentFile.copyRecursively(target = newFile, overwrite = true)) {
+                                println("An error occurred while copying template files with target : ${newFile.absolutePath}")
+                                exitProcess(COPY_TEMPLATE_FILE_ERROR)
+                            }
+                        }
+                    }
             }
         }
     }
 
    fun applyDetailFormTemplate() {
+
        projectEditor.detailFormList.forEach { detailForm ->
 
-           val formName = detailForm.name
-           val detailFormTemplate = if (formName.isNullOrEmpty()) {
-               fileHelper.pathHelper.getDefaultDetailFormFile()
+           var formPath = fileHelper.pathHelper.getFormPath(detailForm.name, FormType.DETAIL)
+
+           if (File(formPath).exists()) {
+               if (!fileHelper.pathHelper.appFolderExistsInTemplate(formPath)) {
+                   println("WARNING : AN IOS TEMPLATE WAS GIVEN FOR THE DETAIL FORM $formPath")
+                   formPath = fileHelper.pathHelper.getDefaultTemplateDetailFormPath()
+               }
            } else {
-                fileHelper.pathHelper.getDetailFormFile(formName)
+               println("WARNING : MISSING DETAIL FORM TEMPLATE $formPath")
+               formPath = fileHelper.pathHelper.getDefaultTemplateDetailFormPath()
            }
 
-           val oldFormText = readFileDirectlyAsText(detailFormTemplate)
-           val newFormText = replaceTemplateText(oldFormText, FormType.DETAIL)
+           // not used in list form
+           var specificFieldsCount = 0
+           getTemplateManifestJSONContent(formPath)?.let {
+               specificFieldsCount = it.getSafeObject("fields")?.getSafeInt("count") ?: 0
+           }
 
-           template = compiler.compile(newFormText)
+           val appFolderInTemplate = fileHelper.pathHelper.getAppFolderInTemplate(formPath)
 
-           data[TABLENAME_LOWERCASE] = detailForm.dataModel.name.toLowerCase()
-           data[TABLENAME] = detailForm.dataModel.name
+           File(appFolderInTemplate).walkTopDown().filter { folder -> !folder.isHidden && folder.isDirectory }.forEach { currentFolder ->
 
-           val formFieldList = mutableListOf<TemplateFormFieldFiller>()
+               compiler = generateCompilerFolder(currentFolder.absolutePath)
 
-           var lastNullIndex = 0
+               currentFolder.walkTopDown()
+                   .filter { file -> !file.isHidden && file.isFile && currentFolder.absolutePath.contains(file.parent) }
+                   .forEach { currentFile ->
 
-           detailForm.fields?.let { fieldList ->
+                       println(" > Processed template file : $currentFile")
 
-               if (fieldList.isNotEmpty()) {
+                       template = compiler.compile("{{>${currentFile.name}}}")
 
-                   lastNullIndex = -1
+                       if (currentFile.name == LAYOUT_FILE) {
+                           val oldFormText = readFileDirectlyAsText(currentFile)
+                           val newFormText = replaceTemplateText(oldFormText, FormType.DETAIL)
 
-                    // Looking for __null_field__ separator to figure out if there is any specific field on the form template
-                    fieldList.find { it.name == NULL_FIELD_SEPARATOR }
-                        ?.apply { lastNullIndex = fieldList.lastIndexOf(this) }
-                    if (lastNullIndex == -1) { // template with no specific field
-                        for (i in fieldList.indices) {
-                            val key = fieldList[i].name.condensePropertyName()
-                            if (formatFields[key] != null) {
-                                var customFormat =
-                                    "@{Format.${formatTypeFunctionName[formatFields[key]]}(${typeChoice[formatFields[key]]},$variableName.${key}.toString()).toString()}"
-                                formFieldList.add(createFormField(customFormat, fieldList[i], i + 1))
-                            } else {
-                               // formFieldList.add(createFormField("@{${variableName}.${fieldList[i].name.condensePropertyName()}.toString()}",fieldList[i],i + 1))
-                                // println("ImageList 1:: ${fieldList[i].name.condensePropertyName()}")
-                                if (fieldList[i].name.condensePropertyName().equals("Photo")){
-                                    //println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
-                                    //println("ImageList :: ${fieldList[i].name.condensePropertyName()}")
-                                    formFieldList.add(createFormField(fieldList[i],i + 1))
-                                }else{
-                                    formFieldList.add(createFormField("@{${variableName}.${fieldList[i].name.condensePropertyName()}.toString()}",fieldList[i],i + 1))
-                                }
+                           template = compiler.compile(newFormText)
 
-                            }
-                        }
-                    } else { // template with specific fields
-                        // everything before the last "__null_field__" is template specific
-                        for (i in 0 until lastNullIndex) {
-                            if (fieldList[i].name != NULL_FIELD_SEPARATOR) {
-                                data["field_${i + 1}_defined"] = fieldList[i].name.isNotEmpty()
-                                data["field_${i + 1}_name"] = fieldList[i].name.condensePropertyName()
-                                data["field_${i + 1}_label"] = fieldList[i].label ?: ""
-                            }
-                        }
+                           data[TABLENAME_LOWERCASE] = detailForm.dataModel.name.toLowerCase()
+                           data[TABLENAME] = detailForm.dataModel.name
 
-                       // everything after the last "__null_field__" found is free list
-                       if (fieldList.size > lastNullIndex + 1) {
-                           for (i in lastNullIndex + 1 until fieldList.size) {
-                               formFieldList.add(createFormField(fieldList[i], i))
+                           val formFieldList = mutableListOf<TemplateFormFieldFiller>()
+
+                           detailForm.fields?.let { fieldList ->
+
+                               fieldList.forEach {
+                                   println("${detailForm.name} / field = $it")
+                               }
+
+                               if (fieldList.isNotEmpty()) {
+
+                                   if (specificFieldsCount == 0) { // template with no specific field
+                                       for (i in fieldList.indices) {
+                                           if (fieldList[i].name.isNotEmpty()) {
+                                               // formFieldList.add(createFormField(fieldList[i], i + 1))
+
+                                                val key = fieldList[i].name.condensePropertyName()
+                                                if (formatFields[key] != null) {
+                                                    var customFormat =
+                                                        "@{Format.${formatTypeFunctionName[formatFields[key]]}(${typeChoice[formatFields[key]]},$variableName.${key}.toString()).toString()}"
+                                                    formFieldList.add(createFormField(customFormat, fieldList[i], i + 1))
+                                                } else {
+                                                // formFieldList.add(createFormField("@{${variableName}.${fieldList[i].name.condensePropertyName()}.toString()}",fieldList[i],i + 1))
+                                                    // println("ImageList 1:: ${fieldList[i].name.condensePropertyName()}")
+                                                    if (fieldList[i].name.condensePropertyName().equals("Photo")){
+                                                        //println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+                                                        //println("ImageList :: ${fieldList[i].name.condensePropertyName()}")
+                                                        formFieldList.add(createFormField(fieldList[i],i + 1))
+                                                    }else{
+                                                        formFieldList.add(createFormField("@{${variableName}.${fieldList[i].name.condensePropertyName()}.toString()}",fieldList[i],i + 1))
+                                                    }
+                                                }
+                                           } else {
+                                               // you can get null fields in json file
+                                               // occurs when you select a form, and then select back Blank form
+                                           }
+                                       }
+                                   } else { // template with specific fields
+
+                                       for (i in 0 until specificFieldsCount) {
+                                           println("fieldList[i] = ${fieldList[i]}")
+                                           data["field_${i + 1}_defined"] = fieldList[i].name.isNotEmpty()
+                                           data["field_${i + 1}_name"] = fieldList[i].name.condensePropertyName()
+                                           data["field_${i + 1}_label"] = fieldList[i].label ?: ""
+                                       }
+
+                                       println("fieldList.size = ${fieldList.size}")
+                                       println("specificFieldsCount = $specificFieldsCount")
+
+                                       if (fieldList.size > specificFieldsCount) {
+                                           var k = specificFieldsCount // another counter to avoid null field
+                                           for (i in specificFieldsCount until fieldList.size) {
+                                               println("in for loop, i = $i")
+                                               println("in for loop, k = $k")
+                                               println("fieldList[i] = ${fieldList[i]}")
+                                               if (fieldList[i].name.isNotEmpty()) {
+                                                   formFieldList.add(createFormField(fieldList[i], k + 1))
+                                                   k++
+                                               } else {
+                                                   // don't add null field
+                                               }
+                                           }
+                                       } else {
+                                           // no additional field given
+                                       }
+                                   }
+
+                               }
+                               data[FORM_FIELDS] = formFieldList
                            }
-                       } else {
-                           // no additional field given
+
+                           val newFilePath = fileHelper.pathHelper.getDetailFormPath(detailForm.dataModel.name)
+                           applyTemplate(newFilePath)
+
+                           // cleaning data for other templates
+                           data.remove(FORM_FIELDS)
+                           for (i in 1 until specificFieldsCount) {
+                               data.remove("field_${i}_defined")
+                               data.remove("field_${i}_name")
+                               data.remove("field_${i}_label")
+                           }
+
+                       } else { // any file to copy in project
+                           val newFile = File(fileHelper.pathHelper.getLayoutTemplatePath(currentFile.absolutePath, formPath))
+                           if (!currentFile.copyRecursively(target = newFile, overwrite = true)) {
+                               println("An error occurred while copying template files with target : ${newFile.absolutePath}")
+                               exitProcess(COPY_TEMPLATE_FILE_ERROR)
+                           }
                        }
                    }
-
-               } else {
-                   // no field given -> must display every field from dataModel
-                  /* detailForm.dataModel.fields?.let { dataModelFields ->
-                       var i = 0
-                       dataModelFields.forEach { field ->
-                           if (!isPrivateRelationField(field.name)) {
-                               i++
-                               formFieldList.add(createFormField(field, i))
-                           }
-                       }
-                   }*/
-               }
-               data[FORM_FIELDS] = formFieldList
-           }
-
-           val newFilePath = fileHelper.pathHelper.getDetailFormPath(detailForm.dataModel.name)
-           applyTemplate(newFilePath)
-
-           // cleaning data for other templates
-           data.remove(FORM_FIELDS)
-           for (i in 1 until lastNullIndex) {
-               data.remove("field_${i}_defined")
-               data.remove("field_${i}_name")
-               data.remove("field_${i}_label")
            }
        }
    }
@@ -592,6 +685,15 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
         }
 
+        regex = ("(\\h*)android:progress=\"__PROGRESS_(\\d+)__\"").toRegex()
+        newFormText = regex.replace(newFormText) { matchResult ->
+            val indent = matchResult.destructured.component1()
+            val id = matchResult.destructured.component2()
+            "${indent}{{#field_${id}_defined}}\n" +
+                    "${indent}android:progress=\"@{${variableFieldPath}.{{field_${id}_name}} != null ? ${variableFieldPath}.{{field_${id}_name}} : 0}\"\n" +
+                    "${indent}{{/field_${id}_defined}}"
+        }
+
         regex = ("(\\h*)android:text=\"__LABEL_(\\d+)__\"").toRegex()
         newFormText = regex.replace(newFormText) { matchResult ->
             val indent = matchResult.destructured.component1()
@@ -618,5 +720,20 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         }
 
         return newFormText
+    }
+
+    fun getLayoutManagerType(formPath: String): String {
+        println("getLayoutManagerType: $formPath")
+
+        var type = "Collection"
+        getTemplateManifestJSONContent(formPath)?.let {
+            type = it.getSafeObject("tags")?.getSafeString("___LISTFORMTYPE___") ?: "Collection"
+        }
+
+        return when (type) {
+            "Collection" -> "GRID"
+            "Table" -> "LINEAR"
+            else -> "LINEAR"
+        }
     }
 }

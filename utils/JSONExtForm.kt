@@ -24,7 +24,7 @@ fun JSONObject.getFormList(dataModelList: List<DataModel>, formType: FormType): 
                 println("newFormJSONObject = $newFormJSONObject")
                 println("newFormJSONObject?.getSafeArray(FIELDS_KEY) = ${ newFormJSONObject?.getSafeArray(FIELDS_KEY)}")
                 val fieldList = newFormJSONObject?.getSafeArray(FIELDS_KEY).getObjectListAsString()
-                form.fields = getFormFields(fieldList, formType)
+                form.fields = getFormFields(fieldList)
                 formList.add(form)
             }
         }
@@ -37,22 +37,48 @@ fun JSONObject.getFormList(dataModelList: List<DataModel>, formType: FormType): 
                 println("> field : ${field.name}")
         }
     }
-    // Check for missing forms
-    dataModelList.filter { it.isSlave == false }.forEach { dataModel ->
-        val dataModelHasAnAssociatedForm = formList.find { it.dataModel.name == dataModel.name }
 
-        println("dataModelHasAnAssociatedForm = $dataModelHasAnAssociatedForm")
-        if (dataModelHasAnAssociatedForm == null) { // no form was given for this dataModel
-            val form = Form(dataModel = dataModel)
+    for (form in formList) {
+        if (form.name.isNullOrEmpty()) {
+            // Set default forms
             val fields = mutableListOf<Field>()
-            dataModel.fields?.forEach {
-                println("field = $it")
+            dataModelList.find { it.name == form.dataModel.name }?.fields?.forEach {
                 if (!isPrivateRelationField(it.name) && it.isSlave == false) {
                     // if Simple Table (default list form, avoid photo and relations)
                     if (formType == FormType.LIST && (it.inverseName != null || it.fieldTypeString == PHOTO_TYPE)) {
                         // don't add this field
                     } else {
-                        println("adding field = $it")
+                        println("adding field to default form = $it")
+                        fields.add(it)
+                    }
+                }
+            }
+            form.fields = fields
+
+        } else {
+            // a form was specified
+        }
+    }
+
+
+    // Check for missing forms
+    /*dataModelList.filter { it.isSlave == false }.forEach { dataModel ->
+        println("datamodel . name = ${dataModel.name}")
+        val dataModelHasAnAssociatedForm = formList.find { it.dataModel.name == dataModel.name }
+
+        println("dataModelHasAnAssociatedForm.name = ${dataModelHasAnAssociatedForm?.name}")
+        if (dataModelHasAnAssociatedForm?.name == null) { // no form was given for this dataModel
+            println("dataModelHasAnAssociatedForm = null")
+            val form = Form(dataModel = dataModel)
+            val fields = mutableListOf<Field>()
+            dataModel.fields?.forEach {
+//                println("field = $it")
+                if (!isPrivateRelationField(it.name) && it.isSlave == false) {
+                    // if Simple Table (default list form, avoid photo and relations)
+                    if (formType == FormType.LIST && (it.inverseName != null || it.fieldTypeString == PHOTO_TYPE)) {
+                        // don't add this field
+                    } else {
+                        println("adding field to an undeclared form name = $it")
                         fields.add(it)
                     }
                 }
@@ -60,23 +86,25 @@ fun JSONObject.getFormList(dataModelList: List<DataModel>, formType: FormType): 
             form.fields = fields
             println("adding form : $form")
             formList.add(form)
-        } else if (dataModelHasAnAssociatedForm.fields.isNullOrEmpty()) { // no field was given in the form, but form already created
+        } else if (dataModelHasAnAssociatedForm.fields.isNullOrEmpty()) { // no field was given in the form, but form already created - wrong, instead :
+            // default forms
+            println("dataModelHasAnAssociatedForm fields nullOrEmpty")
             val fields = mutableListOf<Field>()
             dataModel.fields?.forEach {
-                println("field = $it")
+//                println("field = $it")
                 if (!isPrivateRelationField(it.name) && it.isSlave == false) {
                     // if Simple Table (default list form, avoid photo and relations)
                     if (formType == FormType.LIST && (it.inverseName != null || it.fieldTypeString == PHOTO_TYPE)) {
                         // don't add this field
                     } else {
-                        println("adding field = $it")
-                        fields.add(it)
+                        println("adding field to a declared form name = $it")
+//                        fields.add(it)
                     }
                 }
             }
             dataModelHasAnAssociatedForm.fields = fields
         }
-    }
+    }*/
     for (form in formList) {
         println("form (after checking missing forms) : ${form.name}")
         form.fields?.let {
@@ -85,4 +113,8 @@ fun JSONObject.getFormList(dataModelList: List<DataModel>, formType: FormType): 
         }
     }
     return formList
+}
+
+fun setDefaultForm() {
+
 }

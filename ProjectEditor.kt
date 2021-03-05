@@ -53,7 +53,9 @@ class ProjectEditor(projectEditorFile: File) {
             jsonObj = it
 
             dataModelList = jsonObj.getDataModelList()
+
             Log.d("> DataModels list successfully read.")
+
             getSearchableColums(jsonObj)
             setFormatFields()
 
