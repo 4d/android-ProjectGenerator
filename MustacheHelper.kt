@@ -397,6 +397,10 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                 } else {
                                     data["field_${i}_name"] = "@{$variableName.${field.name.condensePropertyName()}.toString()}"
                                 }
+                                if(field.name.condensePropertyName().equals("Photo")){
+                                    Log.d("Fieldname :: ${field.name.condensePropertyName()}")
+                                    data["field_${i}_name"] = "${field.name.condensePropertyName()}"
+                                }
                                 data["field_${i}_defined"] = field.name.isNotEmpty()
                                 data["field_${i}_label"] = field.label ?: ""
                             }
