@@ -36,13 +36,16 @@ class ProjectEditor(projectEditorFile: File) {
     lateinit var navigationTableList: List<String>
     private val searchableFields = HashMap<String, List<String>>()
 
-    private lateinit var jsonObj: JSONObject
+    lateinit var jsonObj: JSONObject
+    // Hold sort Filed
+    val formatFields = HashMap<String,String>()
 
     init {
         val jsonString = projectEditorFile.readFile()
+        Log.plantTree(this::class.java.canonicalName)
 
         if (jsonString.isEmpty()) {
-            println("Json file ${projectEditorFile.name} is empty")
+            Log.d("Json file ${projectEditorFile.name} is empty")
             exitProcess(PROJECT_EDITOR_JSON_EMPTY)
         }
 
@@ -50,21 +53,23 @@ class ProjectEditor(projectEditorFile: File) {
             jsonObj = it
 
             dataModelList = jsonObj.getDataModelList()
-            println("> DataModels list successfully read.")
+
+            Log.d("> DataModels list successfully read.")
 
             getSearchableColums(jsonObj)
+            setFormatFields()
 
             listFormList = jsonObj.getFormList(dataModelList, FormType.LIST)
-            println("> List forms list successfully read.")
+            Log.d("> List forms list successfully read.")
 
             detailFormList = jsonObj.getFormList(dataModelList, FormType.DETAIL)
-            println("> Detail forms list successfully read.")
+            Log.d("> Detail forms list successfully read.")
 
             navigationTableList = jsonObj.getNavigationTableList()
-            println("> Navigation tables list successfully read.")
+            Log.d("> Navigation tables list successfully read.")
 
         } ?: kotlin.run {
-            println("Could not read global json object from file ${projectEditorFile.name}")
+            Log.e("Could not read global json object from file ${projectEditorFile.name}")
         }
     }
 
@@ -126,7 +131,7 @@ class ProjectEditor(projectEditorFile: File) {
                 if (datarecv.getJSONObject("project").has("list")) {
                     val jsonrecv = datarecv.getJSONObject("project").getJSONObject("list")
                     val jsonKeys = jsonrecv.names()
-                    println("JSONArray :: $jsonrecv")
+                    Log.i("JSONArray :: $jsonrecv")
                     for (index in 0 until jsonKeys.length()) {
                         var columns = mutableListOf<String>()
                         val jsonObject = jsonrecv.getJSONObject(jsonKeys.getString(index))
@@ -140,18 +145,40 @@ class ProjectEditor(projectEditorFile: File) {
                                 if (!(jsonObject.get("searchableField")).equals(null)) {
                                     columns.add(jsonObject.getJSONObject("searchableField").get("name") as String)
                                 } else {
-                                    println("searchableField is not available")
+                                    Log.w("searchableField is not available")
                                 }
                             }
-
                         } else {
-                            println("No searchable Field Found")
+                            Log.w("No searchable Field Found")
                         }
                         if (columns.size != 0) searchableFields.put(getTableName(jsonrecv.names()[index].toString()),
                             columns)
                     }
 
                 }
+            }
+        }
+    }
+
+    private fun setFormatFields(){
+        if (jsonObj.has("project")) {
+            if (jsonObj.getJSONObject("project").has("dataModel")) {
+                //println("Data Model Present")
+                val dataModel = jsonObj.getJSONObject("project").getJSONObject("dataModel")
+                val dataModeArray = dataModel.names()
+                for (index in 0 until dataModeArray.length()){
+                    val fieldJSONObject = dataModel.getJSONObject(dataModeArray[index] as String)
+                    val fieldJSONArray = fieldJSONObject.names()
+                    //if ()
+                    for (ind in 0 until fieldJSONArray.length()){
+                        val jsonColumnObject = fieldJSONObject.getJSONObject(fieldJSONArray[ind] as String)
+                        if (jsonColumnObject.has("format")){
+                            formatFields.put(jsonColumnObject["name"].toString(),jsonColumnObject["format"].toString())
+                            // println("check >>${jsonColumnObject["name"]} -  ${jsonColumnObject["format"]}")
+                        }
+                    }
+                }
+                //println(dataModeArray)
             }
         }
     }

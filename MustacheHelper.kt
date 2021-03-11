@@ -50,7 +50,7 @@ import com.samskivert.mustache.Mustache
 import com.samskivert.mustache.Template
 import java.io.File
 import java.io.FileReader
-import java.util.Calendar
+import java.util.*
 import kotlin.system.exitProcess
 
 class MustacheHelper(private val fileHelper: FileHelper, private val projectEditor: ProjectEditor) {
@@ -67,8 +67,15 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
     private var tableNames = mutableListOf<TemplateTableFiller>()
     private var tableNames_lowercase = mutableListOf<TemplateLayoutFiller>()
     private var relations = mutableListOf<TemplateRelationFiller>()
+    private var formatFields: HashMap<String, String>
+
+    //TypeChoice Key
+    private val typeChoice = Key.getKeys()
+    private val formatTypeFunctionName = Key.getFormatTypeFunctionName()
+    private lateinit var variableName: String
 
     init {
+        Log.plantTree(this::class.java.canonicalName)
         data[COMPANY_HEADER] = fileHelper.pathHelper.companyWithCaps
         data[AUTHOR] = projectEditor.findJsonString("author") ?: DEFAULT_AUTHOR
         data[DATE_DAY] = Calendar.getInstance().get(Calendar.DAY_OF_MONTH).toString()
@@ -78,45 +85,50 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         data[COMPANY] = fileHelper.pathHelper.companyCondensed
         data[APP_NAME] = fileHelper.pathHelper.appNameCondensed
         data[APP_NAME_WITH_CAPS] = fileHelper.pathHelper.appNameWithCaps
+        formatFields = projectEditor.formatFields
 
         // for network_security_config.xml
         // whitelist production host address if defined, else, server host address, else localhost
         var remoteAddress =  projectEditor.findJsonString("productionUrl")
-        println("remoteAddress = $remoteAddress")
+        Log.d("remoteAddress = $remoteAddress")
         if (remoteAddress.isNullOrEmpty())
             remoteAddress = projectEditor.findJsonString("remoteUrl")
             if (remoteAddress.isNullOrEmpty())
                 remoteAddress = DEFAULT_REMOTE_URL
         data[REMOTE_ADDRESS] = remoteAddress.removePrefix("https://").removePrefix("http://").split(":")[0]
-        println("data[REMOTE_ADDRESS] = ${data[REMOTE_ADDRESS]}")
+        Log.d("data[REMOTE_ADDRESS] = ${data[REMOTE_ADDRESS]}")
 
         projectEditor.findJsonString("androidSdk")?.let {
             data[ANDROID_SDK_PATH] = it
         } ?: run {
-            println("Missing Android SDK path")
+            Log.e("Missing Android SDK path")
             exitProcess(MISSING_ANDROID_SDK_PATH)
         }
-        println("> Android SDK = ${data[ANDROID_SDK_PATH]}")
+        Log.d("> Android SDK = ${data[ANDROID_SDK_PATH]}")
 
         projectEditor.findJsonString("cache4dSdk")?.let {
             data[CACHE_4D_SDK_PATH] = it
         } ?: run {
-            println("Missing 4D Mobile cache SDK path")
+            Log.e("Missing 4D Mobile cache SDK path")
             exitProcess(MISSING_ANDROID_CACHE_SDK_PATH)
         }
-        println("> Cache 4D SDK = ${data[CACHE_4D_SDK_PATH]}")
+        Log.d("> Cache 4D SDK = ${data[CACHE_4D_SDK_PATH]}")
 
         var entityClassesString = ""
 
         val dataModelRelationList = mutableListOf<TemplateRelationFiller>()
 
+        //println("ProjectDataModelLis :: ${projectEditor.dataModelList}" )
         projectEditor.dataModelList.forEach { dataModel ->
 
             dataModel.relationList?.filter { it.relationType == RelationType.MANY_TO_ONE }?.forEach { relation ->
-                dataModelRelationList.add(TemplateRelationFiller(relation_source = relation.source, relation_target = relation.target, relation_name = relation.name.condensePropertyName()))
+                dataModelRelationList.add(TemplateRelationFiller(relation_source = relation.source,
+                    relation_target = relation.target,
+                    relation_name = relation.name.condensePropertyName()))
             }
 
             tableNames.add(TemplateTableFiller(name = dataModel.name))
+
             tableNames_lowercase.add(
                 TemplateLayoutFiller(
                     name = dataModel.name,
@@ -124,7 +136,9 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                     nameCamelCase = dataModel.name.capitalizeWords(),
                     hasIcon = (dataModel.iconPath != null && dataModel.iconPath != ""),
                     icon = dataModel.iconPath ?: ""))
+
             entityClassesString += "${dataModel.name}::class, "
+            Log.d("ProjectDataModelLis  ${entityClassesString}:: ${dataModel.name}")
         }
 
         val tableNames_without_relations = mutableListOf<TemplateTableFiller>()
@@ -138,7 +152,8 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         data[TABLENAMES_LOWERCASE] = tableNames_lowercase
         data[TABLENAMES_RELATIONS] = dataModelRelationList
         data[TABLENAMES_WITHOUT_RELATIONS] = tableNames_without_relations
-        data[TABLENAMES_RELATIONS_DISTINCT] = dataModelRelationList.distinctBy { it.relation_source to it.relation_target }
+        data[TABLENAMES_RELATIONS_DISTINCT] =
+            dataModelRelationList.distinctBy { it.relation_source to it.relation_target }
         data[ENTITY_CLASSES] = entityClassesString.dropLast(2)
 
         val typesAndTables = mutableListOf<TemplateTableFiller>()
@@ -148,11 +163,14 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         typesAndTables.add(TemplateTableFiller(name = "Time"))
         data[TYPES_AND_TABLES] = typesAndTables
 
-        var navigationTableCounter = 0 // Counter to limit to 4 navigation tables as it is not possible to have more than 5
+
+        var navigationTableCounter =
+            0 // Counter to limit to 4 navigation tables as it is not possible to have more than 5
         projectEditor.navigationTableList.forEach { navigationTableId ->
             projectEditor.dataModelList.find { it.id == navigationTableId }?.let { dataModel ->
                 if (navigationTableCounter > 3)
                     return@forEach
+
                 tableNamesForNavigation.add(
                     TemplateLayoutFiller(
                         name = dataModel.name,
@@ -160,6 +178,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                         nameCamelCase = dataModel.name.capitalizeWords(),
                         hasIcon = (dataModel.iconPath != null && dataModel.iconPath != ""),
                         icon = dataModel.iconPath ?: ""))
+
                 navigationTableCounter++
             }
         }
@@ -171,72 +190,78 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
             val formPath = fileHelper.pathHelper.getFormPath(listFormName, FormType.LIST)
             tableNamesForLayoutType.add(TemplateLayoutTypeFiller(name = tableName, layout_manager_type = getLayoutManagerType(formPath)))
         }
-//        projectEditor.listFormList.forEach { listForm ->
-//            val formPath = fileHelper.pathHelper.getFormPath(listForm.name, FormType.LIST)
-//            tableNamesForLayoutType.add(TemplateLayoutTypeFiller(name = listForm.dataModel.name, layout_manager_type = getLayoutManagerType(formPath)))
-//        }
+
         data[TABLENAMES_LAYOUT] = tableNamesForLayoutType
-        println("data[TABLENAMES_LAYOUT] = ${data[TABLENAMES_LAYOUT]}")
+        Log.d("TABLENAMES" ,"${data[TABLENAMES]}")
     }
 
     /**
      * TEMPLATING
      */
     fun applyTemplates() {
-        File(fileHelper.pathHelper.templateFilesPath).walkTopDown().filter { folder -> !folder.isHidden && folder.isDirectory }.forEach { currentFolder ->
+        File(fileHelper.pathHelper.templateFilesPath).walkTopDown()
+            .filter { folder -> !folder.isHidden && folder.isDirectory }.forEach { currentFolder ->
 
             compiler = generateCompilerFolder(currentFolder.absolutePath)
 
-            currentFolder.walkTopDown().filter { file -> !file.isHidden && file.isFile && currentFolder.absolutePath.contains(file.parent) }.forEach { currentFile ->
+            currentFolder.walkTopDown()
+                .filter { file -> !file.isHidden && file.isFile && currentFolder.absolutePath.contains(file.parent) }
+                .forEach { currentFile ->
 
-                println(" > Processed file : $currentFile")
+                    Log.d("Processed file"  ,"$currentFile")
 
-                template = compiler.compile("{{>${currentFile.name}}}")
+                    template = compiler.compile("{{>${currentFile.name}}}")
 
-                val newFilePath = fileHelper.pathHelper.getPath(currentFile.absolutePath.replaceXmlTxtSuffix())
+                    val newFilePath = fileHelper.pathHelper.getPath(currentFile.absolutePath.replaceXmlTxtSuffix())
 
-                relations.clear()
-                projectEditor.dataModelList.forEach { dataModel ->
-                    dataModel.relationList?.filter { it.relationType == RelationType.MANY_TO_ONE }?.forEach { relation ->
-                        relations.add(TemplateRelationFiller(relation_source = relation.source, relation_target = relation.target, relation_name = relation.name.condensePropertyName()))
-                    }
-                }
-                data[RELATIONS] = relations
-
-                if (currentFile.isWithTemplateName()) {
-
-                    for (tableName in tableNames) { // file will be duplicated
-
-                        if (newFilePath.contains(fileHelper.pathHelper.navigationPath())) {
-                            val isTableInNavigation = tableNamesForNavigation.find { it.name == tableName.name }
-                            if (isTableInNavigation == null) {
-                                continue
+                    relations.clear()
+                    projectEditor.dataModelList.forEach { dataModel ->
+                        dataModel.relationList?.filter { it.relationType == RelationType.MANY_TO_ONE }
+                            ?.forEach { relation ->
+                                relations.add(TemplateRelationFiller(relation_source = relation.source,
+                                    relation_target = relation.target,
+                                    relation_name = relation.name.condensePropertyName()))
                             }
-                        }
+                    }
+                    data[RELATIONS] = relations
 
-                        data[TABLENAME] = tableName.name
-                        data[TABLENAME_LOWERCASE] = tableName.name.toLowerCase()
-                        projectEditor.dataModelList.find { it.name == tableName.name }?.fields?.let { fields ->
-                            val fieldList = mutableListOf<TemplateFieldFiller>()
-                            for (field in fields) {
-                                field.fieldTypeString?.let { fieldTypeString ->
-                                    fieldList.add(
-                                            TemplateFieldFiller(
-                                                    name = field.name.condensePropertyName(),
-                                                    fieldTypeString = fieldTypeString,
-                                                    variableType = field.variableType,
-                                                    name_original = field.name
-                                            )
-                                    )
+                    if (currentFile.isWithTemplateName()) {
 
-                                } ?: kotlin.run {
-                                    println("An error occurred while parsing the fieldType of field : $field")
-                                    exitProcess(FIELD_TYPE_ERROR)
+                        for (tableName in tableNames) { // file will be duplicated
+
+                            if (newFilePath.contains(fileHelper.pathHelper.navigationPath())) {
+                                val isTableInNavigation = tableNamesForNavigation.find { it.name == tableName.name }
+                                if (isTableInNavigation == null) {
+                                    continue
                                 }
                             }
-                            data[FIELDS] = fieldList
-                            data[FIRST_FIELD] = fieldList.firstOrNull()?.name ?: ""
-                        }
+
+                            data[TABLENAME] = tableName.name
+                            data[TABLENAME_LOWERCASE] = tableName.name.toLowerCase()
+                            projectEditor.dataModelList.find { it.name == tableName.name }?.fields?.let { fields ->
+                                val fieldList = mutableListOf<TemplateFieldFiller>()
+                                for (field in fields) {
+                                    field.fieldTypeString?.let { fieldTypeString ->
+                                        fieldList.add(
+                                            TemplateFieldFiller(
+                                                name = field.name.condensePropertyName(),
+                                                fieldTypeString = fieldTypeString,
+                                                variableType = field.variableType,
+                                                name_original = field.name
+                                            )
+                                        )
+
+                                    } ?: kotlin.run {
+                                        Log.e("An error occurred while parsing the fieldType of field : $field")
+                                        exitProcess(FIELD_TYPE_ERROR)
+                                    }
+                                }
+
+                                data[FIELDS] = fieldList
+                                Log.d("FIELDS","${data[FIELDS]}")
+                                data[FIRST_FIELD] = fieldList.firstOrNull()?.name ?: ""
+                                //println("FIRST_FIELD :: ${data[FIRST_FIELD]}")
+                            }
 
                         relations.clear()
                         val relationsImport = mutableListOf<TemplateRelationFiller>() // need another list, to remove double in import section
@@ -362,8 +387,21 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                             var i = 0
                             listForm.fields?.forEach { field -> // Could also iter over specificFieldsCount as Detail form
                                 i++
+                               // data["field_${i}_defined"] = field.name.isNotEmpty()
+                               // data["field_${i}_name"] = field.name.condensePropertyName()
+                               // data["field_${i}_label"] = field.label ?: ""
+                                val key = formatFields[field.name.condensePropertyName()]
+                                if (formatFields[field.name.condensePropertyName()] != null) {
+                                    data["field_${i}_name"] =
+                                        "@{Format.${formatTypeFunctionName[key]}(${typeChoice[key]},$variableName.${field.name.condensePropertyName()}.toString())}"
+                                } else {
+                                    data["field_${i}_name"] = "@{$variableName.${field.name.condensePropertyName()}.toString()}"
+                                }
+                                if(field.name.condensePropertyName().equals("Photo")){
+                                    Log.d("Fieldname :: ${field.name.condensePropertyName()}")
+                                    data["field_${i}_name"] = "${field.name.condensePropertyName()}"
+                                }
                                 data["field_${i}_defined"] = field.name.isNotEmpty()
-                                data["field_${i}_name"] = field.name.condensePropertyName()
                                 data["field_${i}_label"] = field.label ?: ""
                             }
 
@@ -447,7 +485,24 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                    if (specificFieldsCount == 0) { // template with no specific field
                                        for (i in fieldList.indices) {
                                            if (fieldList[i].name.isNotEmpty()) {
-                                               formFieldList.add(createFormField(fieldList[i], i + 1))
+                                               // formFieldList.add(createFormField(fieldList[i], i + 1))
+
+                                                val key = fieldList[i].name.condensePropertyName()
+                                                if (formatFields[key] != null) {
+                                                    var customFormat =
+                                                        "@{Format.${formatTypeFunctionName[formatFields[key]]}(${typeChoice[formatFields[key]]},$variableName.${key}.toString()).toString()}"
+                                                    formFieldList.add(createFormField(customFormat, fieldList[i], i + 1))
+                                                } else {
+                                                // formFieldList.add(createFormField("@{${variableName}.${fieldList[i].name.condensePropertyName()}.toString()}",fieldList[i],i + 1))
+                                                    // println("ImageList 1:: ${fieldList[i].name.condensePropertyName()}")
+                                                    if (fieldList[i].name.condensePropertyName().equals("Photo")){
+                                                        //println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+                                                        //println("ImageList :: ${fieldList[i].name.condensePropertyName()}")
+                                                        formFieldList.add(createFormField(fieldList[i],i + 1))
+                                                    }else{
+                                                        formFieldList.add(createFormField("@{${variableName}.${fieldList[i].name.condensePropertyName()}.toString()}",fieldList[i],i + 1))
+                                                    }
+                                                }
                                            } else {
                                                // you can get null fields in json file
                                                // occurs when you select a form, and then select back Blank form
@@ -517,7 +572,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         }
         newFile.parentFile.mkdirs()
         if (!newFile.createNewFile()) {
-            println("An error occurred while creating new file : $newFile")
+            Log.e("An error occurred while creating new file : $newFile")
             exitProcess(FILE_CREATION_ERROR)
         }
         newFile.writeText(template.execute(data))
@@ -535,7 +590,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         val queriesFile = File(fileHelper.pathHelper.assetsPath(), QUERIES_FILENAME)
         queriesFile.parentFile.mkdirs()
         if (!queriesFile.createNewFile()) {
-            println("An error occurred while creating new file : $queriesFile")
+            Log.e("An error occurred while creating new file : $queriesFile")
             exitProcess(FILE_CREATION_ERROR)
         }
         queriesFile.writeText(gson.toJson(queries))
@@ -545,7 +600,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         val appInfoFile = File(fileHelper.pathHelper.assetsPath(), APP_INFO_FILENAME)
         appInfoFile.parentFile.mkdirs()
         if (!appInfoFile.createNewFile()) {
-            println("An error occurred while creating new file : $appInfoFile")
+            Log.e("An error occurred while creating new file : $appInfoFile")
             exitProcess(FILE_CREATION_ERROR)
         }
         appInfoFile.writeText(gson.toJson(projectEditor.getAppInfo()))
@@ -564,7 +619,9 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
         val variableType: String
         val variableFieldPath: String
-        val variableName: String
+        val formatPath: String = "<import type=\"com.qmobile.qmobileui.utils.Format\" />\n"
+        val typeChoicePath: String = "<import type=\"com.qmobile.qmobileui.utils.TypeChoice\" />\n"
+
         if (formType == FormType.LIST) {
             variableType = "{{prefix}}.{{company}}.{{app_name}}.data.model.entity.{{tableName}}"
             variableFieldPath = "entityData"
@@ -590,23 +647,24 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
             .replace("__BUTTON_ID__", "{{tableName_lowercase}}_field_button_{{viewId}}")
             .replace("android:text=\"__LABEL__\"", "android:text=\"{{label}}\"")
             .replace("android:text=\"__BUTTON__\"", "android:text=\"{{label}}\"")
-            .replace("android:text=\"__TEXT__\"", "android:text=\"@{${variableFieldPath}.{{name}}.toString()}\"")
+            .replace("android:text=\"__TEXT__\"", "android:text=\"{{name}}\"")
 
         var regex = ("(\\h*)app:imageUrl=\"__IMAGE__\"").toRegex()
         newFormText = regex.replace(newFormText) { matchResult ->
             val indent = matchResult.destructured.component1()
             "${indent}app:imageFieldName='@{\"{{name}}\"}'\n" +
-            "${indent}app:imageKey=\"@{${variableFieldPath}.__KEY}\"\n" +
-            "${indent}app:imageTableName='@{\"{{tableName}}\"}'\n" +
-            "${indent}app:imageUrl=\"@{${variableFieldPath}.{{name}}.__deferred.uri}\""
+                    "${indent}app:imageKey=\"@{${variableFieldPath}.__KEY}\"\n" +
+                    "${indent}app:imageTableName='@{\"{{tableName}}\"}'\n" +
+                    "${indent}app:imageUrl=\"@{${variableFieldPath}.{{name}}.__deferred.uri}\""
         }
 
         regex = ("(\\h*)<!--ENTITY_VARIABLE-->").toRegex()
         newFormText = regex.replace(newFormText) { matchResult ->
             val indent = matchResult.destructured.component1()
-            "${indent}<variable\n" +
-            "${indent}\tname=\"${variableName}\"\n" +
-            "${indent}\ttype=\"${variableType}\" />"
+            "${indent}$formatPath" + "${indent}$typeChoicePath" +
+                    "${indent}<variable\n" +
+                    "${indent}\tname=\"${variableName}\"\n" +
+                    "${indent}\ttype=\"${variableType}\"/>"
         }
 
         regex = ("__SPECIFIC_ID_(\\d+)__").toRegex()
@@ -626,8 +684,9 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
             val indent = matchResult.destructured.component1()
             val id = matchResult.destructured.component2()
             "${indent}{{#field_${id}_defined}}\n" +
-            "${indent}android:text=\"@{${variableFieldPath}.{{field_${id}_name}}.toString()}\"\n" +
-            "${indent}{{/field_${id}_defined}}"
+                    "${indent}android:text=\"{{field_${id}_name}}\"\n" +
+                    "${indent}{{/field_${id}_defined}}"
+
         }
 
         regex = ("(\\h*)android:progress=\"__PROGRESS_(\\d+)__\"").toRegex()
@@ -646,6 +705,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
             "${indent}{{#field_${id}_defined}}\n" +
                     "${indent}android:text=\"{{field_${id}_label}}\"\n" +
                     "${indent}{{/field_${id}_defined}}"
+
         }
 
         regex = ("(\\h*)app:imageUrl=\"__IMAGE_(\\d+)__\"").toRegex()
@@ -653,14 +713,14 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
             val indent = matchResult.destructured.component1()
             val id = matchResult.destructured.component2()
             "${indent}{{#field_${id}_defined}}\n" +
-            "${indent}app:imageFieldName='@{\"{{field_${id}_name}}\"}'\n" +
-            "${indent}app:imageKey=\"@{${variableFieldPath}.__KEY}\"\n" +
-            "${indent}app:imageTableName='@{\"{{tableName}}\"}'\n" +
-            "${indent}app:imageUrl=\"@{${variableFieldPath}.{{field_${id}_name}}.__deferred.uri}\"\n" +
-            "${indent}{{/field_${id}_defined}}\n" +
-            "${indent}{{^field_${id}_defined}}\n" +
-            "${indent}app:imageDrawable=\"@{@drawable/ic_placeholder}\"\n" +
-            "${indent}{{/field_${id}_defined}}"
+                    "${indent}app:imageFieldName='@{\"{{field_${id}_name}}\"}'\n" +
+                    "${indent}app:imageKey=\"@{${variableFieldPath}.__KEY}\"\n" +
+                    "${indent}app:imageTableName='@{\"{{tableName}}\"}'\n" +
+                    "${indent}app:imageUrl=\"@{${variableFieldPath}.{{field_${id}_name}}.__deferred.uri}\"\n" +
+                    "${indent}{{/field_${id}_defined}}\n" +
+                    "${indent}{{^field_${id}_defined}}\n" +
+                    "${indent}app:imageDrawable=\"@{@drawable/ic_placeholder}\"\n" +
+                    "${indent}{{/field_${id}_defined}}"
         }
 
         return newFormText
