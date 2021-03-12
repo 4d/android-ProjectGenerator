@@ -44,7 +44,9 @@ fun JSONObject.getDataModelList(): List<DataModel> {
                 newDataModel.id = keyDataModel.toString()
                 newDataModelJSONObject.getSafeObject(EMPTY_KEY)?.getSafeString(LABEL_KEY)?.let { newDataModel.label = it }
                 newDataModelJSONObject.getSafeObject(EMPTY_KEY)?.getSafeString(SHORTLABEL_KEY)?.let { newDataModel.shortLabel = it }
-                newDataModelJSONObject.getSafeObject(EMPTY_KEY)?.getSafeString(ICON_KEY)?.let { newDataModel.iconPath = it }
+                newDataModelJSONObject.getSafeObject(EMPTY_KEY)?.getSafeString(ICON_KEY)?.let {
+                    newDataModel.iconPath = it.replace(".+/".toRegex(), "").removeSuffix(".svg") // only keeping icon name
+                }
                 newDataModelJSONObject.getSafeObject(EMPTY_KEY)?.getSafeObject(FILTER_KEY)?.let {
                     if (it.getSafeBoolean(VALIDATED_KEY) == true)
                         newDataModel.query = it.getSafeString(STRING_KEY)
