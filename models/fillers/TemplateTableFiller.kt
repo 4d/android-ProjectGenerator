@@ -1,1 +1,1 @@
-data class TemplateTableFiller(val name: String)
+data class TemplateTableFiller(val name: String, val name_original: String)
