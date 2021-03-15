@@ -122,29 +122,29 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         projectEditor.dataModelList.forEach { dataModel ->
 
             dataModel.relationList?.filter { it.relationType == RelationType.MANY_TO_ONE }?.forEach { relation ->
-                dataModelRelationList.add(TemplateRelationFiller(relation_source = relation.source,
-                    relation_target = relation.target,
-                    relation_name = relation.name.condensePropertyName()))
+                dataModelRelationList.add(TemplateRelationFiller(relation_source = relation.source.condenseSpaces(),
+                    relation_target = relation.target.condenseSpaces(),
+                    relation_name = relation.name.condenseSpaces()))
             }
 
-            tableNames.add(TemplateTableFiller(name = dataModel.name))
+            tableNames.add(TemplateTableFiller(name = dataModel.name.condenseSpaces(), name_original = dataModel.name))
 
             tableNames_lowercase.add(
                 TemplateLayoutFiller(
-                    name = dataModel.name,
-                    nameLowerCase = dataModel.name.toLowerCase(),
-                    nameCamelCase = dataModel.name.capitalizeWords(),
+                    name = dataModel.name.condenseSpaces(),
+                    nameLowerCase = dataModel.name.toLowerCase().condenseSpaces(),
+                    nameCamelCase = dataModel.name.capitalizeWords().condenseSpaces(),
                     hasIcon = (dataModel.iconPath != null && dataModel.iconPath != ""),
                     icon = dataModel.iconPath ?: ""))
 
-            entityClassesString += "${dataModel.name}::class, "
-            Log.d("ProjectDataModelLis  ${entityClassesString}:: ${dataModel.name}")
+            entityClassesString += "${dataModel.name.condenseSpaces()}::class, "
+            Log.d("ProjectDataModelLis  ${entityClassesString}:: ${dataModel.name.condenseSpaces()}")
         }
 
         val tableNames_without_relations = mutableListOf<TemplateTableFiller>()
 
         tableNames.forEach { tableName ->
-            if (!dataModelRelationList.map { it.relation_source }.contains(tableName.name))
+            if (!dataModelRelationList.map { it.relation_source.condenseSpaces() }.contains(tableName.name))
                 tableNames_without_relations.add(tableName)
         }
 
@@ -158,9 +158,9 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
         val typesAndTables = mutableListOf<TemplateTableFiller>()
         typesAndTables.addAll(tableNames)
-        typesAndTables.add(TemplateTableFiller(name = "Photo"))
-        typesAndTables.add(TemplateTableFiller(name = "Date"))
-        typesAndTables.add(TemplateTableFiller(name = "Time"))
+        typesAndTables.add(TemplateTableFiller(name = "Photo", name_original = "Photo"))
+        typesAndTables.add(TemplateTableFiller(name = "Date", name_original = "Date"))
+        typesAndTables.add(TemplateTableFiller(name = "Time", name_original = "Time"))
         data[TYPES_AND_TABLES] = typesAndTables
 
 
@@ -173,9 +173,9 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
                 tableNamesForNavigation.add(
                     TemplateLayoutFiller(
-                        name = dataModel.name,
-                        nameLowerCase = dataModel.name.toLowerCase(),
-                        nameCamelCase = dataModel.name.capitalizeWords(),
+                        name = dataModel.name.condenseSpaces(),
+                        nameLowerCase = dataModel.name.toLowerCase().condenseSpaces(),
+                        nameCamelCase = dataModel.name.capitalizeWords().condenseSpaces(),
                         hasIcon = (dataModel.iconPath != null && dataModel.iconPath != ""),
                         icon = dataModel.iconPath ?: ""))
 
@@ -186,7 +186,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
         // Specifying if list layout is table or collection (LinearLayout or GridLayout)
         tableNamesForNavigation.map { it.name }.forEach { tableName ->
-            val listFormName = projectEditor.listFormList.find { listform -> listform.dataModel.name == tableName }?.name
+            val listFormName = projectEditor.listFormList.find { listform -> listform.dataModel.name.condenseSpaces() == tableName.condenseSpaces() }?.name
             val formPath = fileHelper.pathHelper.getFormPath(listFormName, FormType.LIST)
             tableNamesForLayoutType.add(TemplateLayoutTypeFiller(name = tableName, layout_manager_type = getLayoutManagerType(formPath)))
         }
@@ -218,9 +218,9 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                     projectEditor.dataModelList.forEach { dataModel ->
                         dataModel.relationList?.filter { it.relationType == RelationType.MANY_TO_ONE }
                             ?.forEach { relation ->
-                                relations.add(TemplateRelationFiller(relation_source = relation.source,
-                                    relation_target = relation.target,
-                                    relation_name = relation.name.condensePropertyName()))
+                                relations.add(TemplateRelationFiller(relation_source = relation.source.condenseSpaces(),
+                                    relation_target = relation.target.condenseSpaces(),
+                                    relation_name = relation.name.condenseSpaces()))
                             }
                     }
                     data[RELATIONS] = relations
@@ -236,15 +236,15 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                 }
                             }
 
-                            data[TABLENAME] = tableName.name
-                            data[TABLENAME_LOWERCASE] = tableName.name.toLowerCase()
-                            projectEditor.dataModelList.find { it.name == tableName.name }?.fields?.let { fields ->
+                            data[TABLENAME] = tableName.name.condenseSpaces()
+                            data[TABLENAME_LOWERCASE] = tableName.name.toLowerCase().condenseSpaces()
+                            projectEditor.dataModelList.find { it.name.condenseSpaces() == tableName.name.condenseSpaces() }?.fields?.let { fields ->
                                 val fieldList = mutableListOf<TemplateFieldFiller>()
                                 for (field in fields) {
                                     field.fieldTypeString?.let { fieldTypeString ->
                                         fieldList.add(
                                             TemplateFieldFiller(
-                                                name = field.name.condensePropertyName(),
+                                                name = field.name.condenseSpaces(),
                                                 fieldTypeString = fieldTypeString,
                                                 variableType = field.variableType,
                                                 name_original = field.name
@@ -266,17 +266,23 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                         relations.clear()
                         val relationsImport = mutableListOf<TemplateRelationFiller>() // need another list, to remove double in import section
 
-                        projectEditor.dataModelList.find { it.name == tableName.name }?.relationList?.filter { it.relationType == RelationType.MANY_TO_ONE }?.forEach { relation ->
+                        projectEditor.dataModelList.find { it.name.condenseSpaces() == tableName.name.condenseSpaces() }?.relationList?.filter { it.relationType == RelationType.MANY_TO_ONE }?.forEach { relation ->
 
-                            relations.add(TemplateRelationFiller(relation_source = relation.source, relation_target = relation.target, relation_name = relation.name.condensePropertyName()))
+                            relations.add(TemplateRelationFiller(
+                                relation_source = relation.source.condenseSpaces(),
+                                relation_target = relation.target.condenseSpaces(),
+                                relation_name = relation.name.condenseSpaces()))
 
                             var isAlreadyImported = false
                             for (relationImport in relationsImport) {
-                                if (relationImport.relation_source == relation.source && relationImport.relation_target == relation.target)
+                                if (relationImport.relation_source == relation.source.condenseSpaces() && relationImport.relation_target == relation.target.condenseSpaces())
                                     isAlreadyImported = true
                             }
                             if (!isAlreadyImported)
-                                relationsImport.add(TemplateRelationFiller(relation_source = relation.source, relation_target = relation.target, relation_name = relation.name.condensePropertyName())) // name is unused
+                                relationsImport.add(TemplateRelationFiller(
+                                    relation_source = relation.source.condenseSpaces(),
+                                    relation_target = relation.target.condenseSpaces(),
+                                    relation_name = relation.name.condenseSpaces())) // name is unused
                         }
 
                         data[RELATIONS] = relations
@@ -320,7 +326,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
                             data[RELATION_SOURCE] = relation.source
                             data[RELATION_TARGET] = relation.target
-                            data[RELATION_NAME] = relation.name.condensePropertyName()
+                            data[RELATION_NAME] = relation.name.condenseSpaces()
                             data[RELATION_SAME_TYPE] = relation.source == relation.target
 
                             val replacedPath = newFilePath.replace(TEMPLATE_RELATION_ENTITY_PLACEHOLDER, "${relation.source}And${relation.target}")
@@ -348,6 +354,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
             println("MustacheHelper : listform.name = ${listForm.name}")
             println("MustacheHelper : listform.datamodel.name = ${listForm.dataModel.name}")
+            println("MustacheHelper : listform.datamodel.name.condenseSpaces() = ${listForm.dataModel.name.condenseSpaces()}")
             println("MustacheHelper : listform.fields size = ${listForm.fields?.size}")
 
             var formPath = fileHelper.pathHelper.getFormPath(listForm.name, FormType.LIST)
@@ -381,8 +388,8 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                             val newFormText = replaceTemplateText(oldFormText, FormType.LIST)
                             template = compiler.compile(newFormText)
 
-                            data[TABLENAME_LOWERCASE] = listForm.dataModel.name.toLowerCase()
-                            data[TABLENAME] = listForm.dataModel.name
+                            data[TABLENAME_LOWERCASE] = listForm.dataModel.name.toLowerCase().condenseSpaces()
+                            data[TABLENAME] = listForm.dataModel.name.condenseSpaces()
 
                             var i = 0
                             listForm.fields?.forEach { field -> // Could also iter over specificFieldsCount as Detail form
@@ -390,22 +397,22 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                // data["field_${i}_defined"] = field.name.isNotEmpty()
                                // data["field_${i}_name"] = field.name.condensePropertyName()
                                // data["field_${i}_label"] = field.label ?: ""
-                                val key = formatFields[field.name.condensePropertyName()]
-                                if (formatFields[field.name.condensePropertyName()] != null) {
+                                val key = formatFields[field.name.condenseSpaces()]
+                                if (formatFields[field.name.condenseSpaces()] != null) {
                                     data["field_${i}_name"] =
-                                        "@{Format.${formatTypeFunctionName[key]}(${typeChoice[key]},$variableName.${field.name.condensePropertyName()}.toString())}"
+                                        "@{Format.${formatTypeFunctionName[key]}(${typeChoice[key]},$variableName.${field.name.condenseSpaces()}.toString())}"
                                 } else {
-                                    data["field_${i}_name"] = "@{$variableName.${field.name.condensePropertyName()}.toString()}"
+                                    data["field_${i}_name"] = "@{$variableName.${field.name.condenseSpaces()}.toString()}"
                                 }
-                                if(field.name.condensePropertyName().equals("Photo")){
-                                    Log.d("Fieldname :: ${field.name.condensePropertyName()}")
-                                    data["field_${i}_name"] = "${field.name.condensePropertyName()}"
+                                if(field.name.condenseSpaces().equals("Photo")){
+                                    Log.d("Fieldname :: ${field.name.condenseSpaces()}")
+                                    data["field_${i}_name"] = "${field.name.condenseSpaces()}"
                                 }
                                 data["field_${i}_defined"] = field.name.isNotEmpty()
                                 data["field_${i}_label"] = field.label ?: ""
                             }
 
-                            val newFilePath = fileHelper.pathHelper.getRecyclerViewItemPath(listForm.dataModel.name)
+                            val newFilePath = fileHelper.pathHelper.getRecyclerViewItemPath(listForm.dataModel.name.condenseSpaces())
                             applyTemplate(newFilePath)
 
                             // cleaning data for other templates
@@ -469,8 +476,8 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
                            template = compiler.compile(newFormText)
 
-                           data[TABLENAME_LOWERCASE] = detailForm.dataModel.name.toLowerCase()
-                           data[TABLENAME] = detailForm.dataModel.name
+                           data[TABLENAME_LOWERCASE] = detailForm.dataModel.name.toLowerCase().condenseSpaces()
+                           data[TABLENAME] = detailForm.dataModel.name.condenseSpaces()
 
                            val formFieldList = mutableListOf<TemplateFormFieldFiller>()
 
@@ -487,7 +494,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                            if (fieldList[i].name.isNotEmpty()) {
                                                // formFieldList.add(createFormField(fieldList[i], i + 1))
 
-                                                val key = fieldList[i].name.condensePropertyName()
+                                                val key = fieldList[i].name.condenseSpaces()
                                                 if (formatFields[key] != null) {
                                                     var customFormat =
                                                         "@{Format.${formatTypeFunctionName[formatFields[key]]}(${typeChoice[formatFields[key]]},$variableName.${key}.toString()).toString()}"
@@ -495,12 +502,12 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                                 } else {
                                                 // formFieldList.add(createFormField("@{${variableName}.${fieldList[i].name.condensePropertyName()}.toString()}",fieldList[i],i + 1))
                                                     // println("ImageList 1:: ${fieldList[i].name.condensePropertyName()}")
-                                                    if (fieldList[i].name.condensePropertyName().equals("Photo")){
+                                                    if (fieldList[i].name.condenseSpaces().equals("Photo")){
                                                         //println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
                                                         //println("ImageList :: ${fieldList[i].name.condensePropertyName()}")
                                                         formFieldList.add(createFormField(fieldList[i],i + 1))
                                                     }else{
-                                                        formFieldList.add(createFormField("@{${variableName}.${fieldList[i].name.condensePropertyName()}.toString()}",fieldList[i],i + 1))
+                                                        formFieldList.add(createFormField("@{${variableName}.entity.${fieldList[i].name.condenseSpaces()}.toString()}",fieldList[i],i + 1))
                                                     }
                                                 }
                                            } else {
@@ -513,7 +520,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                        for (i in 0 until specificFieldsCount) {
                                            println("fieldList[i] = ${fieldList[i]}")
                                            data["field_${i + 1}_defined"] = fieldList[i].name.isNotEmpty()
-                                           data["field_${i + 1}_name"] = fieldList[i].name.condensePropertyName()
+                                           data["field_${i + 1}_name"] = fieldList[i].name.condenseSpaces()
                                            data["field_${i + 1}_label"] = fieldList[i].label ?: ""
                                        }
 
@@ -542,7 +549,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                data[FORM_FIELDS] = formFieldList
                            }
 
-                           val newFilePath = fileHelper.pathHelper.getDetailFormPath(detailForm.dataModel.name)
+                           val newFilePath = fileHelper.pathHelper.getDetailFormPath(detailForm.dataModel.name.condenseSpaces())
                            applyTemplate(newFilePath)
 
                            // cleaning data for other templates
@@ -582,7 +589,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         val queryList = mutableListOf<Query>()
         projectEditor.dataModelList.forEach { dataModel ->
             dataModel.query?.let { query ->
-                queryList.add(Query(dataModel.name, query))
+                queryList.add(Query(dataModel.name.condenseSpaces(), query))
             }
         }
         val queries = Queries(queryList)

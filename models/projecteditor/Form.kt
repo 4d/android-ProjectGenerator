@@ -5,7 +5,7 @@ data class Form(
 )
 
 fun createFormField(field: Field, i: Int): TemplateFormFieldFiller {
-    return TemplateFormFieldFiller(name = field.name.condensePropertyName(), label = field.label
+    return TemplateFormFieldFiller(name = field.name.condenseSpaces(), label = field.label
             ?: field.name, viewId = i, isRelation = field.inverseName != null, isImage = field.fieldType == 3)
 }
 
