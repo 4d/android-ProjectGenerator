@@ -28,6 +28,12 @@ fun JSONObject.getFormList(dataModelList: List<DataModel>, formType: FormType): 
                 formList.add(form)
             }
         }
+    } ?: kotlin.run {
+        dataModelList.filter { it.isSlave == false }.forEach { dataModel ->
+            println("adding empty form for dataModel : ${dataModel.name}")
+            val form = Form(dataModel = dataModel)
+            formList.add(form)
+        }
     }
 
     for (form in formList) {

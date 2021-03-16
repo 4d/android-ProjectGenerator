@@ -12,6 +12,7 @@ import ProjectEditorConstants.FLOAT_TYPE
 import ProjectEditorConstants.INT_TYPE
 import ProjectEditorConstants.NAME_KEY
 import ProjectEditorConstants.ORGANIZATION_KEY
+import ProjectEditorConstants.PACKAGE_KEY
 import ProjectEditorConstants.PATH_KEY
 import ProjectEditorConstants.PHOTO_TYPE
 import ProjectEditorConstants.PRODUCTION_KEY
@@ -82,6 +83,7 @@ class ProjectEditor(projectEditorFile: File) {
             "companyWithCaps" -> jsonObj.getSafeObject(PROJECT_KEY)?.getSafeObject(ORGANIZATION_KEY)
                 ?.getSafeString(NAME_KEY)
             "appNameWithCaps" -> jsonObj.getSafeObject(PROJECT_KEY)?.getSafeObject(PRODUCT_KEY)?.getSafeString(NAME_KEY)
+            "package" ->  jsonObj.getSafeString(PACKAGE_KEY)
             "productionUrl" -> jsonObj.getSafeObject(PROJECT_KEY)?.getSafeObject(SERVER_KEY)?.getSafeObject(URLS_KEY)?.getSafeString(PRODUCTION_KEY)
             "remoteUrl" -> jsonObj.getSafeString(REMOTE_URL_KEY)
             "teamId" -> jsonObj.getSafeObject(PROJECT_KEY)?.getSafeObject(ORGANIZATION_KEY)?.getSafeString(TEAMID_KEY)

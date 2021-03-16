@@ -1,5 +1,4 @@
 import DefaultValues.DEFAULT_AUTHOR
-import DefaultValues.DEFAULT_PREFIX
 import DefaultValues.DEFAULT_REMOTE_URL
 import DefaultValues.LAYOUT_FILE
 import ExitCodes.COPY_TEMPLATE_FILE_ERROR
@@ -10,11 +9,9 @@ import ExitCodes.MISSING_ANDROID_SDK_PATH
 import FileHelperConstants.APP_INFO_FILENAME
 import FileHelperConstants.QUERIES_FILENAME
 import MustacheConstants.ANDROID_SDK_PATH
-import MustacheConstants.APP_NAME
 import MustacheConstants.APP_NAME_WITH_CAPS
 import MustacheConstants.AUTHOR
 import MustacheConstants.CACHE_4D_SDK_PATH
-import MustacheConstants.COMPANY
 import MustacheConstants.COMPANY_HEADER
 import MustacheConstants.DATE_DAY
 import MustacheConstants.DATE_MONTH
@@ -23,7 +20,7 @@ import MustacheConstants.ENTITY_CLASSES
 import MustacheConstants.FIELDS
 import MustacheConstants.FIRST_FIELD
 import MustacheConstants.FORM_FIELDS
-import MustacheConstants.PREFIX
+import MustacheConstants.PACKAGE
 import MustacheConstants.RELATIONS
 import MustacheConstants.RELATIONS_IMPORT
 import MustacheConstants.RELATION_NAME
@@ -81,9 +78,10 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         data[DATE_DAY] = Calendar.getInstance().get(Calendar.DAY_OF_MONTH).toString()
         data[DATE_MONTH] = (Calendar.getInstance().get(Calendar.MONTH) + 1).toString()
         data[DATE_YEAR] = Calendar.getInstance().get(Calendar.YEAR).toString()
-        data[PREFIX] = DEFAULT_PREFIX
-        data[COMPANY] = fileHelper.pathHelper.companyCondensed
-        data[APP_NAME] = fileHelper.pathHelper.appNameCondensed
+//        data[PREFIX] = DEFAULT_PREFIX
+//        data[COMPANY] = fileHelper.pathHelper.companyCondensed
+//        data[APP_NAME] = fileHelper.pathHelper.appNameCondensed
+        data[PACKAGE] = fileHelper.pathHelper.pkg
         data[APP_NAME_WITH_CAPS] = fileHelper.pathHelper.appNameWithCaps
         formatFields = projectEditor.formatFields
 
@@ -507,7 +505,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                                         //println("ImageList :: ${fieldList[i].name.condensePropertyName()}")
                                                         formFieldList.add(createFormField(fieldList[i],i + 1))
                                                     }else{
-                                                        formFieldList.add(createFormField("@{${variableName}.entity.${fieldList[i].name.condenseSpaces()}.toString()}",fieldList[i],i + 1))
+                                                        formFieldList.add(createFormField("@{${variableName}.${fieldList[i].name.condenseSpaces()}.toString()}",fieldList[i],i + 1))
                                                     }
                                                 }
                                            } else {
@@ -630,11 +628,11 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         val typeChoicePath: String = "<import type=\"com.qmobile.qmobileui.utils.TypeChoice\" />\n"
 
         if (formType == FormType.LIST) {
-            variableType = "{{prefix}}.{{company}}.{{app_name}}.data.model.entity.{{tableName}}"
+            variableType = "{{package}}.data.model.entity.{{tableName}}"
             variableFieldPath = "entityData"
             variableName = "entityData"
         } else {
-            variableType = "{{prefix}}.{{company}}.{{app_name}}.viewmodel.entity.EntityViewModel{{tableName}}"
+            variableType = "{{package}}.viewmodel.entity.EntityViewModel{{tableName}}"
             variableFieldPath = "viewModel.entity"
             variableName = "viewModel"
         }

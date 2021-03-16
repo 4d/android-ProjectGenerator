@@ -13,7 +13,7 @@
 
 import DefaultValues.DEFAULT_APPLICATION
 import DefaultValues.DEFAULT_COMPANY
-import DefaultValues.DEFAULT_PREFIX
+import DefaultValues.DEFAULT_PACKAGE
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.prompt
@@ -78,9 +78,9 @@ class Main : CliktCommand() {
                 templateFormsPath = TEMPLATE_FORMS,
                 hostDb = HOST_DB,
                 filesToCopy = FILES_TO_COPY,
-                prefix = DEFAULT_PREFIX,
                 companyWithCaps = projectEditor.findJsonString("companyWithCaps") ?: DEFAULT_COMPANY,
-                appNameWithCaps = projectEditor.findJsonString("appNameWithCaps") ?: DEFAULT_APPLICATION
+                appNameWithCaps = projectEditor.findJsonString("appNameWithCaps") ?: DEFAULT_APPLICATION,
+                pkg = projectEditor.findJsonString("package") ?: DEFAULT_PACKAGE
         )
 
         val fileHelper = FileHelper(pathHelper)

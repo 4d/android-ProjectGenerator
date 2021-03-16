@@ -3,7 +3,6 @@ import DefaultValues.DEFAULT_LIST_FORM
 import ExitCodes.MISSING_TARGET_DIR
 import PathHelperConstants.APP_PATH_KEY
 import PathHelperConstants.ASSETS_PATH_KEY
-import PathHelperConstants.COMPANY_PH
 import PathHelperConstants.DETAIL_FORMS_KEY
 import PathHelperConstants.DETAIL_FORM_PREFIX
 import PathHelperConstants.HOST_FORMS
@@ -12,8 +11,8 @@ import PathHelperConstants.LAYOUT_PATH_KEY
 import PathHelperConstants.LIST_FORMS_KEY
 import PathHelperConstants.MAIN_PATH_KEY
 import PathHelperConstants.NAVIGATION_PATH_KEY
+import PathHelperConstants.PACKAGE_JOINED_PH
 import PathHelperConstants.PACKAGE_PH
-import PathHelperConstants.PREFIX_PH
 import PathHelperConstants.RECYCLER_VIEW_ITEM_PREFIX
 import PathHelperConstants.RES_PATH_KEY
 import PathHelperConstants.SRC_PATH_KEY
@@ -27,13 +26,13 @@ class PathHelper(
         val templateFormsPath: String,
         val hostDb: String,
         val filesToCopy: String,
-        val prefix: String,
         val companyWithCaps: String,
-        val appNameWithCaps: String
+        val appNameWithCaps: String,
+        val pkg: String
 ) {
 
-    val companyCondensed = companyWithCaps.condense()
-    val appNameCondensed = appNameWithCaps.condense()
+//    val companyCondensed = companyWithCaps.condense()
+//    val appNameCondensed = appNameWithCaps.condense()
 
     fun getPath(currentPath: String): String {
         val path = targetDirPath + replacePath(currentPath)
@@ -46,7 +45,8 @@ class PathHelper(
     }
 
     fun replaceDirectoriesPath(path: String): String {
-        return path.replace(PREFIX_PH, prefix).replace(COMPANY_PH, companyCondensed).replace(PACKAGE_PH, appNameCondensed)
+        return path.replace(PACKAGE_PH, pkg.replace(".", File.separator))
+            .replace(PACKAGE_JOINED_PH, pkg) // for buildSrc
     }
 
     private fun replacePath(currentPath: String): String {
@@ -106,12 +106,13 @@ class PathHelper(
 
     fun getDetailFormPath(tableName: String) = layoutPath + File.separator + DETAIL_FORM_PREFIX + tableName.toLowerCase().addXmlSuffix()
 
-    fun getTargetPath(dir: String) = srcPath + File.separator +
-            dir + File.separator +
-            JAVA_PATH_KEY + File.separator +
-            PREFIX_PH + File.separator +
-            COMPANY_PH + File.separator +
-            PACKAGE_PH
+    fun getTargetPath(dir: String): String {
+        val path = srcPath + File.separator +
+                dir + File.separator +
+                JAVA_PATH_KEY + File.separator +
+                PACKAGE_PH
+        return replaceDirectoriesPath(path)
+    }
 
     private fun isWindowsOS(): Boolean = System.getProperty("os.name").contains("Windows")
 
