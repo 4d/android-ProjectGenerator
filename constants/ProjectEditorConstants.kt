@@ -7,6 +7,7 @@ object ProjectEditorConstants {
     const val PROJECT_KEY = "project"
     const val DATAMODEL_KEY = "dataModel"
     const val NAME_KEY = "name"
+    const val PACKAGE_KEY = "package"
     const val EMPTY_KEY = ""
     const val LABEL_KEY = "label"
     const val SHORTLABEL_KEY = "shortLabel"
