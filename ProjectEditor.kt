@@ -53,21 +53,23 @@ class ProjectEditor(projectEditorFile: File) {
         retrieveJSONObject(jsonString)?.let {
             jsonObj = it
 
-            dataModelList = jsonObj.getDataModelList()
+            navigationTableList = jsonObj.getNavigationTableList()
+            Log.d("> Navigation tables list successfully read.")
 
+            dataModelList = jsonObj.getDataModelList()
             Log.d("> DataModels list successfully read.")
 
             getSearchableColums(jsonObj)
-            setFormatFields()
+            Log.d("> Searchable fields successfully read.")
 
-            listFormList = jsonObj.getFormList(dataModelList, FormType.LIST)
+            setFormatFields()
+            Log.d("> Format fields successfully read.")
+
+            listFormList = jsonObj.getFormList(dataModelList, FormType.LIST, navigationTableList)
             Log.d("> List forms list successfully read.")
 
-            detailFormList = jsonObj.getFormList(dataModelList, FormType.DETAIL)
+            detailFormList = jsonObj.getFormList(dataModelList, FormType.DETAIL, navigationTableList)
             Log.d("> Detail forms list successfully read.")
-
-            navigationTableList = jsonObj.getNavigationTableList()
-            Log.d("> Navigation tables list successfully read.")
 
         } ?: kotlin.run {
             Log.e("Could not read global json object from file ${projectEditorFile.name}")

@@ -6,7 +6,7 @@ import ProjectEditorConstants.PHOTO_TYPE
 import ProjectEditorConstants.PROJECT_KEY
 import org.json.JSONObject
 
-fun JSONObject.getFormList(dataModelList: List<DataModel>, formType: FormType): List<Form> {
+fun JSONObject.getFormList(dataModelList: List<DataModel>, formType: FormType, navigationTableList: List<String>): List<Form> {
     val formList = mutableListOf<Form>()
     val formTypeKey = if (formType == FormType.LIST) LIST_KEY else DETAIL_KEY
     val forms = this.getSafeObject(PROJECT_KEY)?.getSafeObject(formTypeKey)
@@ -29,10 +29,13 @@ fun JSONObject.getFormList(dataModelList: List<DataModel>, formType: FormType): 
             }
         }
     } ?: kotlin.run {
-        dataModelList.filter { it.isSlave == false }.forEach { dataModel ->
-            println("adding empty form for dataModel : ${dataModel.name}")
-            val form = Form(dataModel = dataModel)
-            formList.add(form)
+
+        dataModelList.forEach { dataModel ->
+            if (navigationTableList.contains(dataModel.id)) {
+                println("adding empty form for dataModel : ${dataModel.name}")
+                val form = Form(dataModel = dataModel)
+                formList.add(form)
+            }
         }
     }
 
@@ -66,51 +69,6 @@ fun JSONObject.getFormList(dataModelList: List<DataModel>, formType: FormType): 
         }
     }
 
-
-    // Check for missing forms
-    /*dataModelList.filter { it.isSlave == false }.forEach { dataModel ->
-        println("datamodel . name = ${dataModel.name}")
-        val dataModelHasAnAssociatedForm = formList.find { it.dataModel.name == dataModel.name }
-
-        println("dataModelHasAnAssociatedForm.name = ${dataModelHasAnAssociatedForm?.name}")
-        if (dataModelHasAnAssociatedForm?.name == null) { // no form was given for this dataModel
-            println("dataModelHasAnAssociatedForm = null")
-            val form = Form(dataModel = dataModel)
-            val fields = mutableListOf<Field>()
-            dataModel.fields?.forEach {
-//                println("field = $it")
-                if (!isPrivateRelationField(it.name) && it.isSlave == false) {
-                    // if Simple Table (default list form, avoid photo and relations)
-                    if (formType == FormType.LIST && (it.inverseName != null || it.fieldTypeString == PHOTO_TYPE)) {
-                        // don't add this field
-                    } else {
-                        println("adding field to an undeclared form name = $it")
-                        fields.add(it)
-                    }
-                }
-            }
-            form.fields = fields
-            println("adding form : $form")
-            formList.add(form)
-        } else if (dataModelHasAnAssociatedForm.fields.isNullOrEmpty()) { // no field was given in the form, but form already created - wrong, instead :
-            // default forms
-            println("dataModelHasAnAssociatedForm fields nullOrEmpty")
-            val fields = mutableListOf<Field>()
-            dataModel.fields?.forEach {
-//                println("field = $it")
-                if (!isPrivateRelationField(it.name) && it.isSlave == false) {
-                    // if Simple Table (default list form, avoid photo and relations)
-                    if (formType == FormType.LIST && (it.inverseName != null || it.fieldTypeString == PHOTO_TYPE)) {
-                        // don't add this field
-                    } else {
-                        println("adding field to a declared form name = $it")
-//                        fields.add(it)
-                    }
-                }
-            }
-            dataModelHasAnAssociatedForm.fields = fields
-        }
-    }*/
     for (form in formList) {
         println("form (after checking missing forms) : ${form.name}")
         form.fields?.let {
@@ -119,8 +77,4 @@ fun JSONObject.getFormList(dataModelList: List<DataModel>, formType: FormType): 
         }
     }
     return formList
-}
-
-fun setDefaultForm() {
-
 }
