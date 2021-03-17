@@ -25,7 +25,8 @@ kscript --package main.kt
 or use `compiler.sh` which copy it to the component script directory.
 
 Component path is defined by:
-- `PJGEN_PATH` env variable: absolute path to a script dir where the jar must be moved
+
+- `PJGEN_PATH` env variable: absolute path to a script dir where the jar must be moved (ex: export PJGEN_PATH="/Applications/4D.app/Contents/Resources/Internal User Components/4D Mobile App.4dbase/Resources/scripts/")
 - or `PERFORCE_PATH` env variable: to copy it to a specific perforce repo (must provide root path, path before 4eDimension)
 - or if not env variable defined, expect that you are in perforce code, and script will use the relative path
 
