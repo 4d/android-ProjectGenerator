@@ -141,6 +141,8 @@ class PathHelper(
     fun getDefaultTemplateListFormPath() = listFormTemplatesPath + File.separator + DEFAULT_LIST_FORM
     fun getDefaultTemplateDetailFormPath() = detailFormTemplatesPath + File.separator + DEFAULT_DETAIL_FORM
 
+    fun isDefaultTemplateListFormPath(formPath: String) = formPath == getDefaultTemplateListFormPath()
+
     fun getTemplateListFormPath(formName: String): String {
         var templatePath = ""
         if (formName.startsWith("/")) {

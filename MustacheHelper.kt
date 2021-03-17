@@ -396,7 +396,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                // data["field_${i}_name"] = field.name.condensePropertyName()
                                // data["field_${i}_label"] = field.label ?: ""
 
-                                if (field.inverseName != null) { // is relation
+                                if ((field.inverseName != null) || (fileHelper.pathHelper.isDefaultTemplateListFormPath(formPath) && field.fieldType == 3)) { // is relation or image in default template
 
                                     data["field_${i}_defined"] = false
                                     data["field_${i}_label"] = field.label ?: ""
