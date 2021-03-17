@@ -400,7 +400,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                     data["field_${i}_name"] =
                                         "@{Format.${formatTypeFunctionName[key]}(${typeChoice[key]},$variableName.${field.name.condenseSpaces()}.toString())}"
                                 } else {
-                                    data["field_${i}_name"] = "@{$variableName.${field.name.condenseSpaces()}.toString()}"
+                                    data["field_${i}_name"] = "${field.name.condenseSpaces()}"
                                 }
                                 if(field.name.condenseSpaces().equals("Photo")){
                                     Log.d("Fieldname :: ${field.name.condenseSpaces()}")

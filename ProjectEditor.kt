@@ -175,12 +175,14 @@ class ProjectEditor(projectEditorFile: File) {
                     for (ind in 0 until fieldJSONArray.length()){
                         val jsonColumnObject = fieldJSONObject.getJSONObject(fieldJSONArray[ind] as String)
                         if (jsonColumnObject.has("format")){
-                            formatFields.put(jsonColumnObject["name"].toString(),jsonColumnObject["format"].toString())
-                            // println("check >>${jsonColumnObject["name"]} -  ${jsonColumnObject["format"]}")
+                            if (jsonColumnObject.has("name")){
+                                formatFields.put(jsonColumnObject["name"].toString(),jsonColumnObject["format"].toString())
+                               // Log.d("check >>${jsonColumnObject["name"]} -  ${jsonColumnObject["format"]}")
+                            }
                         }
                     }
                 }
-                //println(dataModeArray)
+                println(dataModeArray)
             }
         }
     }
