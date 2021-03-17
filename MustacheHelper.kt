@@ -395,19 +395,30 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                // data["field_${i}_defined"] = field.name.isNotEmpty()
                                // data["field_${i}_name"] = field.name.condensePropertyName()
                                // data["field_${i}_label"] = field.label ?: ""
-                                val key = formatFields[field.name.condenseSpaces()]
-                                if (formatFields[field.name.condenseSpaces()] != null) {
-                                    data["field_${i}_name"] =
-                                        "@{Format.${formatTypeFunctionName[key]}(${typeChoice[key]},$variableName.${field.name.condenseSpaces()}.toString())}"
-                                } else {
-                                    data["field_${i}_name"] = "${field.name.condenseSpaces()}"
+
+                                if (field.inverseName != null) { // is relation
+
+                                    data["field_${i}_defined"] = false
+                                    data["field_${i}_label"] = field.label ?: ""
+                                    data["field_${i}_name"] = ""
+
+                                } else { // not a relation
+
+                                    val key = formatFields[field.name.condenseSpaces()]
+                                    if (formatFields[field.name.condenseSpaces()] != null) {
+                                        data["field_${i}_name"] =
+                                            "@{Format.${formatTypeFunctionName[key]}(${typeChoice[key]},$variableName.${field.name.condenseSpaces()}.toString())}"
+                                    } else {
+                                        data["field_${i}_name"] = "${field.name.condenseSpaces()}"
+                                    }
+                                    if (field.name.condenseSpaces().equals("Photo")) {
+                                        Log.d("Fieldname :: ${field.name.condenseSpaces()}")
+                                        data["field_${i}_name"] = "${field.name.condenseSpaces()}"
+                                    }
+
+                                    data["field_${i}_defined"] = field.name.isNotEmpty()
+                                    data["field_${i}_label"] = field.label ?: ""
                                 }
-                                if(field.name.condenseSpaces().equals("Photo")){
-                                    Log.d("Fieldname :: ${field.name.condenseSpaces()}")
-                                    data["field_${i}_name"] = "${field.name.condenseSpaces()}"
-                                }
-                                data["field_${i}_defined"] = field.name.isNotEmpty()
-                                data["field_${i}_label"] = field.label ?: ""
                             }
 
                             val newFilePath = fileHelper.pathHelper.getRecyclerViewItemPath(listForm.dataModel.name.condenseSpaces())
