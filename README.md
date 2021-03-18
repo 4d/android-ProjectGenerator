@@ -16,6 +16,37 @@ kscript main.kt \
     --host-db "<path_to_host_database>"
 ```
 
+## Test using command line
+
+You could use `test.sh`
+
+### configure
+
+This script need the 4D Mobile App component. It will find it by default in `/Applications/4D.app/Contents/Resources/Internal User Components/4D Mobile App.4dbase`
+but you could define env var `PERFORCE_PATH` to use the most recent source from perforce
+
+```bash
+export PERFORCE_PATH=$HOME/Perforce
+```
+
+### use it
+
+```bash
+./test.sh /path/to/your/4d/host/database /path/to/some/file/like/lastAndroidBuild.4dmobile
+```
+
+if no `.4dmobile` file defined, it will use the last one generated in `$HOME/Library/Caches/com.4d.mobile/lastAndroidBuild.4dmobile`
+
+```bash
+./test.sh /path/to/your/4d/database
+```
+
+then if you do not provide the database it will try to use the `4D Mobile App.4dbase` (in perforce or 4D.app)
+
+```bash
+./test.sh
+```
+
 ## Build
 
 ```shell
