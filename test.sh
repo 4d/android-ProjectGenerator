@@ -12,6 +12,11 @@ if [ -z "$projectFile" ]; then
    fi
 fi
 
+if [ -z "$JAVA_HOME" ]; then
+    # use android studio by default
+    export JAVA_HOME="/Applications/Android Studio.app/Contents/jre/jdk/Contents/Home"
+fi
+
 # if no project file, use the cached one
 if [ -z "$projectFile" ]; then
    projectFile=$HOME/Library/Caches/com.4d.mobile/lastAndroidBuild.4dmobile
