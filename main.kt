@@ -58,14 +58,14 @@ class Main : CliktCommand() {
 
     override fun run() {
         Log.d("Parameters checked.")
-        Log.d("Starting procedure...")
+        Log.i("Starting procedure...")
         start()
-        Log.d("Procedure complete.")
+        Log.i("Procedure complete.")
     }
 
     private fun start() {
 
-       Log.d("Start reading project editor json file ${projectEditorJson.name}...")
+        Log.d("e ${projectEditorJson.name}...")
 
         val projectEditor = ProjectEditor(projectEditorJson)
 
@@ -98,7 +98,7 @@ class Main : CliktCommand() {
 
         fileHelper.createPathDirectories()
 
-        Log.d("Start applying Mustache templating...")
+        Log.i("Start applying Mustache templating...")
 
         mustacheHelper.applyTemplates()
 
@@ -106,16 +106,18 @@ class Main : CliktCommand() {
 
         mustacheHelper.applyDetailFormTemplate()
 
-        Log.d("Mustache templating done.")
+        Log.i("Mustache templating done.")
         Log.v("-------------------------")
 
         mustacheHelper.makeQueries()
 
-        Log.d("Queries file successfully generated.")
+        Log.i("Queries file successfully generated.")
 
         mustacheHelper.makeAppInfo()
 
-        Log.d("AppInfo file successfully generated.")
+        Log.i("AppInfo file successfully generated.")
+
+        Log.d("Output: ${projectEditor.findJsonString("targetDirPath")}")
     }
 }
 

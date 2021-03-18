@@ -28,16 +28,16 @@ class FileHelper(val pathHelper: PathHelper) {
         val sourceFolder = File(pathHelper.filesToCopy)
         val targetFolder = File(pathHelper.targetDirPath)
         if (targetFolder.exists()) {
-            println("SDK files already exist in target path, will try to delete previous build files.")
+            Log.d("SDK files already exist in target path ${pathHelper.targetDirPath}, will try to delete previous build files.")
             if (targetFolder.deleteRecursively()) {
-                println("Old project files successfully deleted.")
+                Log.d("Old project files successfully deleted.")
             } else {
-                println("Could not delete old project files.")
+                Log.w("Could not delete old project files.")
             }
         }
         targetFolder.mkdir()
         if (!sourceFolder.copyRecursively(target = targetFolder, overwrite = true)) {
-            println("An error occurred while copying files with target folder : ${targetFolder.absolutePath}")
+            Log.e("An error occurred while copying files with target folder : ${targetFolder.absolutePath}")
             exitProcess(COPY_FILE_ERROR)
         }
 

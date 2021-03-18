@@ -378,7 +378,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                     .filter { file -> !file.isHidden && file.isFile && currentFolder.absolutePath.contains(file.parent) }
                     .forEach { currentFile ->
 
-                        println(" > Processed template file : $currentFile")
+                        Log.i(" > Processed template file : $currentFile")
 
                         template = compiler.compile("{{>${currentFile.name}}}")
 
@@ -433,9 +433,9 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                             }
                         } else { // any file to copy in project
                             val newFile = File(fileHelper.pathHelper.getLayoutTemplatePath(currentFile.absolutePath, formPath))
-                            println("File to copy : ${currentFile.absolutePath}; target : ${newFile.absolutePath}")
+                            Log.i("File to copy : ${currentFile.absolutePath}; target : ${newFile.absolutePath}")
                             if (!currentFile.copyRecursively(target = newFile, overwrite = true)) {
-                                println("An error occurred while copying template files with target : ${newFile.absolutePath}")
+                                Log.e("An error occurred while copying template files with target : ${newFile.absolutePath}")
                                 exitProcess(COPY_TEMPLATE_FILE_ERROR)
                             }
                         }
@@ -476,7 +476,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                    .filter { file -> !file.isHidden && file.isFile && currentFolder.absolutePath.contains(file.parent) }
                    .forEach { currentFile ->
 
-                       println(" > Processed template file : $currentFile")
+                       Log.i(" > Processed template file : $currentFile")
 
                        template = compiler.compile("{{>${currentFile.name}}}")
 

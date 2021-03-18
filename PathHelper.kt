@@ -52,7 +52,7 @@ class PathHelper(
     private fun replacePath(currentPath: String): String {
         val paths = currentPath.replaceIfWindowsPath().split(Regex(templateFilesPath))
         if (paths.size < 2) {
-            println("Couldn't find target directory with path : $currentPath")
+            Log.e("Couldn't find target directory with path : $currentPath")
             exitProcess(MISSING_TARGET_DIR)
         }
         return replaceDirectoriesPath(paths[1])
@@ -61,7 +61,7 @@ class PathHelper(
     private fun replaceLayoutTemplatePath(currentPath: String, formPath: String): String {
         val paths = currentPath.replaceIfWindowsPath().split(Regex(formPath))
         if (paths.size < 2) {
-            println("Couldn't find target directory with path : $currentPath")
+            Log.e("Couldn't find target directory with path : $currentPath")
             exitProcess(MISSING_TARGET_DIR)
         }
         return replaceDirectoriesPath(paths[1])
