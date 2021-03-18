@@ -70,6 +70,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
     private val typeChoice = Key.getKeys()
     private val formatTypeFunctionName = Key.getFormatTypeFunctionName()
     private lateinit var variableName: String
+    private lateinit var variableFieldPath: String
 
     init {
         Log.plantTree(this::class.java.canonicalName)
@@ -506,18 +507,10 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                                 val key = fieldList[i].name.condenseSpaces()
                                                 if (formatFields[key] != null) {
                                                     var customFormat =
-                                                        "@{Format.${formatTypeFunctionName[formatFields[key]]}(${typeChoice[formatFields[key]]},$variableName.${key}.toString()).toString()}"
+                                                        "@{Format.${formatTypeFunctionName[formatFields[key]]}(${typeChoice[formatFields[key]]},$variableFieldPath.${key}.toString()).toString()}"
                                                     formFieldList.add(createFormField(customFormat, fieldList[i], i + 1))
                                                 } else {
-                                                // formFieldList.add(createFormField("@{${variableName}.${fieldList[i].name.condensePropertyName()}.toString()}",fieldList[i],i + 1))
-                                                    // println("ImageList 1:: ${fieldList[i].name.condensePropertyName()}")
-                                                    if (fieldList[i].name.condenseSpaces().equals("Photo")){
-                                                        //println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
-                                                        //println("ImageList :: ${fieldList[i].name.condensePropertyName()}")
-                                                        formFieldList.add(createFormField(fieldList[i],i + 1))
-                                                    }else{
-                                                        formFieldList.add(createFormField("@{${variableName}.${fieldList[i].name.condenseSpaces()}.toString()}",fieldList[i],i + 1))
-                                                    }
+                                                    formFieldList.add(createFormField(fieldList[i],i + 1))
                                                 }
                                            } else {
                                                // you can get null fields in json file
@@ -634,7 +627,6 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
     fun replaceTemplateText(oldFormText: String, formType: FormType): String {
 
         val variableType: String
-        val variableFieldPath: String
         val formatPath: String = "<import type=\"com.qmobile.qmobileui.utils.Format\" />\n"
         val typeChoicePath: String = "<import type=\"com.qmobile.qmobileui.utils.TypeChoice\" />\n"
 
