@@ -364,11 +364,11 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
             if (File(formPath).exists()) {
                 if (!fileHelper.pathHelper.appFolderExistsInTemplate(formPath)) {
-                    println("WARNING : AN IOS TEMPLATE WAS GIVEN FOR THE LIST FORM $formPath")
+                    Log.w("WARNING : AN IOS TEMPLATE WAS GIVEN FOR THE LIST FORM $formPath")
                     formPath = fileHelper.pathHelper.getDefaultTemplateListFormPath()
                 }
             } else {
-                println("WARNING : MISSING LIST FORM TEMPLATE $formPath")
+                Log.w("WARNING : MISSING LIST FORM TEMPLATE $formPath")
                 formPath = fileHelper.pathHelper.getDefaultTemplateListFormPath()
             }
 
