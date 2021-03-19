@@ -10,6 +10,7 @@ object MustacheConstants {
     const val DATE_MONTH = "date_month"
     const val DATE_YEAR = "date_year"
     const val TABLENAME = "tableName"
+    const val TABLENAME_ORIGINAL = "tableName_original"
     const val TABLENAME_LOWERCASE = "tableName_lowercase"
     const val TABLENAMES = "tableNames"
     const val TABLENAMES_LAYOUT = "tableNames_layout"

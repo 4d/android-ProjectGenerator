@@ -37,6 +37,7 @@ import MustacheConstants.TABLENAMES_RELATIONS
 import MustacheConstants.TABLENAMES_RELATIONS_DISTINCT
 import MustacheConstants.TABLENAMES_WITHOUT_RELATIONS
 import MustacheConstants.TABLENAME_LOWERCASE
+import MustacheConstants.TABLENAME_ORIGINAL
 import MustacheConstants.TYPES_AND_TABLES
 import PathHelperConstants.TEMPLATE_PLACEHOLDER
 import PathHelperConstants.TEMPLATE_RELATION_DAO_PLACEHOLDER
@@ -131,6 +132,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
             tableNames_lowercase.add(
                 TemplateLayoutFiller(
                     name = dataModel.name.condenseSpaces(),
+                    name_original = dataModel.name,
                     nameLowerCase = dataModel.name.toLowerCase().condenseSpaces(),
                     nameCamelCase = dataModel.name.capitalizeWords().condenseSpaces(),
                     hasIcon = (dataModel.iconPath != null && dataModel.iconPath != ""),
@@ -173,6 +175,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                 tableNamesForNavigation.add(
                     TemplateLayoutFiller(
                         name = dataModel.name.condenseSpaces(),
+                        name_original = dataModel.name,
                         nameLowerCase = dataModel.name.toLowerCase().condenseSpaces(),
                         nameCamelCase = dataModel.name.capitalizeWords().condenseSpaces(),
                         hasIcon = (dataModel.iconPath != null && dataModel.iconPath != ""),
@@ -236,6 +239,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                             }
 
                             data[TABLENAME] = tableName.name.condenseSpaces()
+                            data[TABLENAME_ORIGINAL] = tableName.name
                             data[TABLENAME_LOWERCASE] = tableName.name.toLowerCase().condenseSpaces()
                             projectEditor.dataModelList.find { it.name.condenseSpaces() == tableName.name.condenseSpaces() }?.fields?.let { fields ->
                                 val fieldList = mutableListOf<TemplateFieldFiller>()
@@ -655,7 +659,6 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
             .replace("__BUTTON_ID__", "{{tableName_lowercase}}_field_button_{{viewId}}")
             .replace("android:text=\"__LABEL__\"", "android:text=\"{{label}}\"")
             .replace("android:text=\"__BUTTON__\"", "android:text=\"{{label}}\"")
-            .replace("android:text=\"__TEXT__\"", "android:text=\"{{name}}\"")
 
         var regex = ("(\\h*)app:imageUrl=\"__IMAGE__\"").toRegex()
         newFormText = regex.replace(newFormText) { matchResult ->
@@ -664,6 +667,12 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                     "${indent}app:imageKey=\"@{${variableFieldPath}.__KEY}\"\n" +
                     "${indent}app:imageTableName='@{\"{{tableName}}\"}'\n" +
                     "${indent}app:imageUrl=\"@{${variableFieldPath}.{{name}}.__deferred.uri}\""
+        }
+
+        regex = ("(\\h*)android:text=\"__TEXT__\"").toRegex()
+        newFormText = regex.replace(newFormText) { matchResult ->
+            val indent = matchResult.destructured.component1()
+            "${indent}android:text=\"@{${variableFieldPath}.{{name}}.toString()}\""
         }
 
         regex = ("(\\h*)<!--ENTITY_VARIABLE-->").toRegex()
