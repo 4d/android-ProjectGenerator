@@ -73,4 +73,5 @@ if [ "$status" -eq 0 ]; then
     echo "✅ success"
 else
     >&2 echo "❌ failure"
+    exit $status
 fi
