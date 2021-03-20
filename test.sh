@@ -6,9 +6,9 @@ cmd=$(basename $0)
 
 # if we pass only 4dmobile and not component path we use it
 if [ -z "$projectFile" ]; then
-   if [[ $componentPath == *".4dmobile" ]]; then
-     componentPath=""
+   if [[ $componentPath == *".4dmobile" || $componentPath == *".4dmobileapp"  ]]; then
      projectFile=$componentPath
+     componentPath=""
    fi
 fi
 
