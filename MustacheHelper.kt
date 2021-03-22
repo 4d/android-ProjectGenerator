@@ -124,18 +124,20 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         Log.d("> Cache 4D SDK = ${data[CACHE_4D_SDK_PATH]}")
 
         projectEditor.findJsonString("backgroundColor")?.let {
-            // WIP
-            /*println("backgroundColor = $it")
+            println("backgroundColor = $it")
             val backgroundColor: Int = Color.parseColor(it)
-            println("backgroundColor = $backgroundColor")
-            val darker08 = toHexString(manipulateColor(backgroundColor, 0.8f))
-            val darker04 = toHexString(manipulateColor(backgroundColor, 0.4f))
-            val lighter12 = toHexString(manipulateColor(backgroundColor, 1.2f))
-            val lighter16 = toHexString(manipulateColor(backgroundColor, 1.6f))
+            val darker08 = toHexString(manipulateColor(backgroundColor, 0.8f)) // darker +
+            val darker06 = toHexString(manipulateColor(backgroundColor, 0.6f)) // darker ++
+            val darker04 = toHexString(manipulateColor(backgroundColor, 0.4f)) // darker +++
+            val lighter12 = toHexString(manipulateColor(backgroundColor, 1.2f)) // lighter +
+            val lighter14 = toHexString(manipulateColor(backgroundColor, 1.4f)) // lighter ++
+            val lighter16 = toHexString(manipulateColor(backgroundColor, 1.6f)) // lighter +++
             println("darker08 = $darker08")
+            println("darker06 = $darker06")
             println("darker04 = $darker04")
             println("lighter12 = $lighter12")
-            println("lighter16 = $lighter16")*/
+            println("lighter14 = $lighter14")
+            println("lighter16 = $lighter16")
         }
 
         projectEditor.findJsonString("foregroundColor")?.let {
