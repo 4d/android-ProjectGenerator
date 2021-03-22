@@ -48,8 +48,17 @@ import com.samskivert.mustache.Mustache
 import com.samskivert.mustache.Template
 import java.io.File
 import java.io.FileReader
+import java.lang.IllegalArgumentException
+import java.lang.Integer.toHexString
 import java.util.*
+import kotlin.math.min
+import kotlin.math.roundToInt
 import kotlin.system.exitProcess
+import java.nio.file.Paths
+
+
+
+
 
 class MustacheHelper(private val fileHelper: FileHelper, private val projectEditor: ProjectEditor) {
 
@@ -113,6 +122,25 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
             exitProcess(MISSING_ANDROID_CACHE_SDK_PATH)
         }
         Log.d("> Cache 4D SDK = ${data[CACHE_4D_SDK_PATH]}")
+
+        projectEditor.findJsonString("backgroundColor")?.let {
+            // WIP
+            /*println("backgroundColor = $it")
+            val backgroundColor: Int = Color.parseColor(it)
+            println("backgroundColor = $backgroundColor")
+            val darker08 = toHexString(manipulateColor(backgroundColor, 0.8f))
+            val darker04 = toHexString(manipulateColor(backgroundColor, 0.4f))
+            val lighter12 = toHexString(manipulateColor(backgroundColor, 1.2f))
+            val lighter16 = toHexString(manipulateColor(backgroundColor, 1.6f))
+            println("darker08 = $darker08")
+            println("darker04 = $darker04")
+            println("lighter12 = $lighter12")
+            println("lighter16 = $lighter16")*/
+        }
+
+        projectEditor.findJsonString("foregroundColor")?.let {
+            // TO BE IMPLEMENTED
+        }
 
         var entityClassesString = ""
 
