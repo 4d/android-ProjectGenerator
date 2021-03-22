@@ -72,8 +72,17 @@ class Main : CliktCommand() {
         Log.d("Reading project editor json file done.")
         Log.v("--------------------------------------")
 
+        var targetDirPath = ""
+        projectEditor.findJsonString("targetDirPath")?.let {
+            targetDirPath = it
+        } ?: run {
+            val targetDirPathFromEnv = System.getenv("TARGET_PATH")
+            if (!targetDirPathFromEnv.isNullOrEmpty())
+                targetDirPath = targetDirPathFromEnv
+        }
+
         val pathHelper = PathHelper(
-                targetDirPath = projectEditor.findJsonString("targetDirPath")?.removeSuffix("/") ?: "",
+                targetDirPath = targetDirPath.removeSuffix("/"),
                 templateFilesPath = TEMPLATE_FILES,
                 templateFormsPath = TEMPLATE_FORMS,
                 hostDb = HOST_DB,
