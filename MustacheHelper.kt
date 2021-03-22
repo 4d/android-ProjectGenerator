@@ -60,17 +60,9 @@ import com.samskivert.mustache.Mustache
 import com.samskivert.mustache.Template
 import java.io.File
 import java.io.FileReader
-import java.lang.IllegalArgumentException
 import java.lang.Integer.toHexString
 import java.util.*
-import kotlin.math.min
-import kotlin.math.roundToInt
 import kotlin.system.exitProcess
-import java.nio.file.Paths
-
-
-
-
 
 class MustacheHelper(private val fileHelper: FileHelper, private val projectEditor: ProjectEditor) {
 
