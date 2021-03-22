@@ -101,16 +101,41 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         projectEditor.findJsonString("androidSdk")?.let {
             data[ANDROID_SDK_PATH] = it
         } ?: run {
-            Log.e("Missing Android SDK path")
-            exitProcess(MISSING_ANDROID_SDK_PATH)
+            val androidHome = System.getenv("ANDROID_HOME")
+            if (!androidHome.isNullOrEmpty()) {
+                if (File(androidHome).exists()) {
+                    data[ANDROID_SDK_PATH] = androidHome
+                }
+            }
+
+            if (data[ANDROID_SDK_PATH] == null) {
+                val commonSdkPath = "~/Library/Android/sdk"
+                if (File(commonSdkPath).exists()) {
+                    data[ANDROID_SDK_PATH] = commonSdkPath
+                } else {
+                    Log.e("Missing Android SDK path")
+                    exitProcess(MISSING_ANDROID_SDK_PATH)
+                }
+            } else {
+                // already defined
+            }
         }
         Log.d("> Android SDK = ${data[ANDROID_SDK_PATH]}")
 
         projectEditor.findJsonString("cache4dSdk")?.let {
             data[CACHE_4D_SDK_PATH] = it
         } ?: run {
-            Log.e("Missing 4D Mobile cache SDK path")
-            exitProcess(MISSING_ANDROID_CACHE_SDK_PATH)
+            val qmobileHome = System.getenv("QMOBILE_HOME")
+            if (!qmobileHome.isNullOrEmpty()) {
+                if (File(qmobileHome).exists()) {
+                    data[CACHE_4D_SDK_PATH] = qmobileHome
+                }
+            }
+
+            if (data[CACHE_4D_SDK_PATH] == null) {
+                Log.e("Missing 4D Mobile cache SDK path")
+                exitProcess(MISSING_ANDROID_CACHE_SDK_PATH)
+            }
         }
         Log.d("> Cache 4D SDK = ${data[CACHE_4D_SDK_PATH]}")
 
