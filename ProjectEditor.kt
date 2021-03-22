@@ -1,14 +1,17 @@
 import DefaultValues.DEFAULT_REMOTE_URL
 import ExitCodes.PROJECT_EDITOR_JSON_EMPTY
 import ProjectEditorConstants.AUTHENTICATION_KEY
+import ProjectEditorConstants.BACKGROUND_COLOR
 import ProjectEditorConstants.BOOLEAN_TYPE
 import ProjectEditorConstants.CACHE_4D_SDK_KEY
+import ProjectEditorConstants.COLORS
 import ProjectEditorConstants.DATAMODEL_KEY
 import ProjectEditorConstants.DATASOURCE_KEY
 import ProjectEditorConstants.DEVELOPER_KEY
 import ProjectEditorConstants.EMAIL_KEY
 import ProjectEditorConstants.EMPTY_TYPE
 import ProjectEditorConstants.FLOAT_TYPE
+import ProjectEditorConstants.FOREGROUND_COLOR
 import ProjectEditorConstants.INT_TYPE
 import ProjectEditorConstants.NAME_KEY
 import ProjectEditorConstants.ORGANIZATION_KEY
@@ -91,6 +94,8 @@ class ProjectEditor(projectEditorFile: File) {
             "teamId" -> jsonObj.getSafeObject(PROJECT_KEY)?.getSafeObject(ORGANIZATION_KEY)?.getSafeString(TEAMID_KEY)
             "embeddedData" -> jsonObj.getSafeObject(PROJECT_KEY)?.getSafeObject(DATASOURCE_KEY)
                 ?.getSafeString(SOURCE_KEY)
+            "backgroundColor" -> jsonObj.getSafeObject(COLORS)?.getSafeString(BACKGROUND_COLOR)
+            "foregroundColor" -> jsonObj.getSafeObject(COLORS)?.getSafeString(FOREGROUND_COLOR)
             else -> return null
         }
     }

@@ -27,6 +27,7 @@
 //INCLUDE models/projecteditor/Relation.kt
 //INCLUDE models/projecteditor/RelationType.kt
 //INCLUDE models/projecteditor/VariableType.kt
+//INCLUDE utils/Color.kt
 //INCLUDE utils/StringHelper.kt
 //INCLUDE utils/JSONExt.kt
 //INCLUDE utils/JSONExtDataModel.kt

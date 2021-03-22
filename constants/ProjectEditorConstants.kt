@@ -45,6 +45,9 @@ object ProjectEditorConstants {
     const val TEAMID_KEY = "teamId"
     const val AUTHENTICATION_KEY = "authentication"
     const val EMAIL_KEY = "email"
+    const val COLORS = "colors"
+    const val BACKGROUND_COLOR = "backgroundColor"
+    const val FOREGROUND_COLOR = "foregroundColor"
 
     /**
      * TYPE STRING PARSING

@@ -12,6 +12,14 @@ import MustacheConstants.ANDROID_SDK_PATH
 import MustacheConstants.APP_NAME_WITH_CAPS
 import MustacheConstants.AUTHOR
 import MustacheConstants.CACHE_4D_SDK_PATH
+import MustacheConstants.COLORS_DEFINED
+import MustacheConstants.COLOR_PRIMARY_DARKER
+import MustacheConstants.COLOR_PRIMARY_DARKER_PLUS
+import MustacheConstants.COLOR_PRIMARY_DARKER_PLUS_PLUS
+import MustacheConstants.COLOR_PRIMARY_LIGHTER
+import MustacheConstants.COLOR_PRIMARY_LIGHTER_PLUS
+import MustacheConstants.COLOR_PRIMARY_LIGHTER_PLUS_PLUS
+import MustacheConstants.COLOR_PRIMARY_NEUTRAL
 import MustacheConstants.COMPANY_HEADER
 import MustacheConstants.DATE_DAY
 import MustacheConstants.DATE_MONTH
@@ -38,6 +46,10 @@ import MustacheConstants.TABLENAMES_RELATIONS_DISTINCT
 import MustacheConstants.TABLENAMES_WITHOUT_RELATIONS
 import MustacheConstants.TABLENAME_LOWERCASE
 import MustacheConstants.TABLENAME_ORIGINAL
+import MustacheConstants.THEME_COLOR_ON_PRIMARY
+import MustacheConstants.THEME_COLOR_PRIMARY
+import MustacheConstants.THEME_COLOR_PRIMARY_DARKER
+import MustacheConstants.THEME_COLOR_PRIMARY_LIGHTER
 import MustacheConstants.TYPES_AND_TABLES
 import PathHelperConstants.TEMPLATE_PLACEHOLDER
 import PathHelperConstants.TEMPLATE_RELATION_DAO_PLACEHOLDER
@@ -48,6 +60,7 @@ import com.samskivert.mustache.Mustache
 import com.samskivert.mustache.Template
 import java.io.File
 import java.io.FileReader
+import java.lang.Integer.toHexString
 import java.util.*
 import kotlin.system.exitProcess
 
@@ -138,6 +151,39 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
             }
         }
         Log.d("> Cache 4D SDK = ${data[CACHE_4D_SDK_PATH]}")
+
+        projectEditor.findJsonString("backgroundColor")?.let {
+            println("backgroundColor = $it")
+            data[COLORS_DEFINED] = true
+            data[COLOR_PRIMARY_NEUTRAL] = it
+
+            val backgroundColor: Int = Color.parseColor(it)
+            data[COLOR_PRIMARY_DARKER] =  "#" + toHexString(manipulateColor(backgroundColor, 0.8f)).toUpperCase() // darker +
+            data[COLOR_PRIMARY_DARKER_PLUS] = "#" + toHexString(manipulateColor(backgroundColor, 0.6f)).toUpperCase() // darker ++
+            data[COLOR_PRIMARY_DARKER_PLUS_PLUS] = "#" + toHexString(manipulateColor(backgroundColor, 0.4f)).toUpperCase() // darker +++
+            data[COLOR_PRIMARY_LIGHTER] = "#" + toHexString(manipulateColor(backgroundColor, 1.2f)).toUpperCase() // lighter +
+            data[COLOR_PRIMARY_LIGHTER_PLUS] = "#" + toHexString(manipulateColor(backgroundColor, 1.4f)).toUpperCase() // lighter ++
+            data[COLOR_PRIMARY_LIGHTER_PLUS_PLUS] = "#" + toHexString(manipulateColor(backgroundColor, 1.6f)).toUpperCase() // lighter +++
+
+            data[THEME_COLOR_PRIMARY] = "@color/primary_neutral"
+            data[THEME_COLOR_PRIMARY_DARKER] = "@color/primary_darker_3"
+            data[THEME_COLOR_PRIMARY_LIGHTER] = "@color/primary_lighter_3"
+        } ?: run {
+            data[COLORS_DEFINED] = false
+            data[THEME_COLOR_PRIMARY] = "@color/cyan_900"
+            data[THEME_COLOR_PRIMARY_DARKER] = "@color/cyan_dark"
+            data[THEME_COLOR_PRIMARY_LIGHTER] = "@color/cyan_light"
+        }
+
+        projectEditor.findJsonString("foregroundColor")?.let {
+            if (data[COLORS_DEFINED] == true) {
+                data[THEME_COLOR_ON_PRIMARY] = it
+            } else {
+                data[THEME_COLOR_ON_PRIMARY] = "@color/white"
+            }
+        } ?: run {
+            data[THEME_COLOR_ON_PRIMARY] = "@color/white"
+        }
 
         var entityClassesString = ""
 
