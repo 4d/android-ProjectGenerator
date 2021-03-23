@@ -35,3 +35,4 @@
 //INCLUDE utils/JSONExtForm.kt
 //INCLUDE utils/JSONExtNavigation.kt
 //INCLUDE utils/Log.kt
+//INCLUDE utils/XmlTemplateFixer.kt

@@ -583,8 +583,10 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                                 if (formatFields[key] != null) {
                                                     var customFormat =
                                                         "@{Format.${formatTypeFunctionName[formatFields[key]]}(${typeChoice[formatFields[key]]},$variableFieldPath.${key}.toString()).toString()}"
+                                                    println("Adding free Field with format ${fieldList[i]}")
                                                     formFieldList.add(createFormField(customFormat, fieldList[i], i + 1))
                                                 } else {
+                                                    println("Adding free Field ${fieldList[i]}")
                                                     formFieldList.add(createFormField(fieldList[i],i + 1))
                                                 }
                                            } else {
@@ -595,7 +597,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                    } else { // template with specific fields
 
                                        for (i in 0 until specificFieldsCount) {
-                                           println("fieldList[i] = ${fieldList[i]}")
+                                           println("Adding specific Field ${fieldList[i]}")
                                            data["field_${i + 1}_defined"] = fieldList[i].name.isNotEmpty()
                                            data["field_${i + 1}_name"] = fieldList[i].name.condenseSpaces()
                                            data["field_${i + 1}_label"] = fieldList[i].label ?: ""
@@ -611,6 +613,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                                println("in for loop, k = $k")
                                                println("fieldList[i] = ${fieldList[i]}")
                                                if (fieldList[i].name.isNotEmpty()) {
+                                                   println("Adding free Field in specific template ${fieldList[i]}")
                                                    formFieldList.add(createFormField(fieldList[i], k + 1))
                                                    k++
                                                } else {
@@ -694,123 +697,6 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         return Mustache.compiler().withLoader { name ->
             FileReader(File(templateFileFolder, name))
         }
-    }
-
-    fun readFileDirectlyAsText(file: File): String
-            = file.readText(Charsets.UTF_8)
-
-    fun replaceTemplateText(oldFormText: String, formType: FormType): String {
-
-        val variableType: String
-        val formatPath: String = "<import type=\"com.qmobile.qmobileui.utils.Format\" />\n"
-        val typeChoicePath: String = "<import type=\"com.qmobile.qmobileui.utils.TypeChoice\" />\n"
-
-        if (formType == FormType.LIST) {
-            variableType = "{{package}}.data.model.entity.{{tableName}}"
-            variableFieldPath = "entityData"
-            variableName = "entityData"
-        } else {
-            variableType = "{{package}}.viewmodel.entity.EntityViewModel{{tableName}}"
-            variableFieldPath = "viewModel.entity"
-            variableName = "viewModel"
-        }
-
-        var newFormText = oldFormText.replace("<!--FOR_EACH_FIELD-->", "{{#form_fields}}")
-            .replace("<!--END_FOR_EACH_FIELD-->", "{{/form_fields}}")
-            .replace("<!--IF_IS_RELATION-->", "{{#isRelation}}")
-            .replace("<!--END_IF_IS_RELATION-->", "{{/isRelation}}")
-            .replace("<!--IF_IS_NOT_RELATION-->", "{{^isRelation}}")
-            .replace("<!--END_IF_IS_NOT_RELATION-->", "{{/isRelation}}")
-            .replace("<!--IF_IS_IMAGE-->", "{{#isImage}}")
-            .replace("<!--END_IF_IS_IMAGE-->", "{{/isImage}}")
-            .replace("<!--IF_IS_NOT_IMAGE-->", "{{^isImage}}")
-            .replace("<!--END_IF_IS_NOT_IMAGE-->", "{{/isImage}}")
-            .replace("__LABEL_ID__", "{{tableName_lowercase}}_field_label_{{viewId}}")
-            .replace("__VALUE_ID__", "{{tableName_lowercase}}_field_value_{{viewId}}")
-            .replace("__BUTTON_ID__", "{{tableName_lowercase}}_field_button_{{viewId}}")
-            .replace("android:text=\"__LABEL__\"", "android:text=\"{{label}}\"")
-            .replace("android:text=\"__BUTTON__\"", "android:text=\"{{label}}\"")
-
-        var regex = ("(\\h*)app:imageUrl=\"__IMAGE__\"").toRegex()
-        newFormText = regex.replace(newFormText) { matchResult ->
-            val indent = matchResult.destructured.component1()
-            "${indent}app:imageFieldName='@{\"{{name}}\"}'\n" +
-                    "${indent}app:imageKey=\"@{${variableFieldPath}.__KEY}\"\n" +
-                    "${indent}app:imageTableName='@{\"{{tableName}}\"}'\n" +
-                    "${indent}app:imageUrl=\"@{${variableFieldPath}.{{name}}.__deferred.uri}\""
-        }
-
-        regex = ("(\\h*)android:text=\"__TEXT__\"").toRegex()
-        newFormText = regex.replace(newFormText) { matchResult ->
-            val indent = matchResult.destructured.component1()
-            "${indent}android:text=\"@{${variableFieldPath}.{{name}}.toString()}\""
-        }
-
-        regex = ("(\\h*)<!--ENTITY_VARIABLE-->").toRegex()
-        newFormText = regex.replace(newFormText) { matchResult ->
-            val indent = matchResult.destructured.component1()
-            "${indent}$formatPath" + "${indent}$typeChoicePath" +
-                    "${indent}<variable\n" +
-                    "${indent}\tname=\"${variableName}\"\n" +
-                    "${indent}\ttype=\"${variableType}\"/>"
-        }
-
-        regex = ("__SPECIFIC_ID_(\\d+)__").toRegex()
-        newFormText = regex.replace(newFormText) { matchResult ->
-            val id = matchResult.destructured.component1()
-            "{{tableName_lowercase}}_field_value_${id}"
-        }
-
-        regex = ("(\\h*)android:text=\"__BUTTON_(\\d+)__\"").toRegex()
-        newFormText = regex.replace(newFormText) { matchResult ->
-            val indent = matchResult.destructured.component1()
-            "${indent}android:text=\"{{label}}\""
-        }
-
-        regex = ("(\\h*)android:text=\"__TEXT_(\\d+)__\"").toRegex()
-        newFormText = regex.replace(newFormText) { matchResult ->
-            val indent = matchResult.destructured.component1()
-            val id = matchResult.destructured.component2()
-            "${indent}{{#field_${id}_defined}}\n" +
-                    "${indent}android:text=\"@{${variableFieldPath}.{{field_${id}_name}}.toString()}\"\n" +
-                    "${indent}{{/field_${id}_defined}}"
-        }
-
-        regex = ("(\\h*)android:progress=\"__PROGRESS_(\\d+)__\"").toRegex()
-        newFormText = regex.replace(newFormText) { matchResult ->
-            val indent = matchResult.destructured.component1()
-            val id = matchResult.destructured.component2()
-            "${indent}{{#field_${id}_defined}}\n" +
-                    "${indent}android:progress=\"@{${variableFieldPath}.{{field_${id}_name}} != null ? ${variableFieldPath}.{{field_${id}_name}} : 0}\"\n" +
-                    "${indent}{{/field_${id}_defined}}"
-        }
-
-        regex = ("(\\h*)android:text=\"__LABEL_(\\d+)__\"").toRegex()
-        newFormText = regex.replace(newFormText) { matchResult ->
-            val indent = matchResult.destructured.component1()
-            val id = matchResult.destructured.component2()
-            "${indent}{{#field_${id}_defined}}\n" +
-                    "${indent}android:text=\"{{field_${id}_label}}\"\n" +
-                    "${indent}{{/field_${id}_defined}}"
-
-        }
-
-        regex = ("(\\h*)app:imageUrl=\"__IMAGE_(\\d+)__\"").toRegex()
-        newFormText = regex.replace(newFormText) { matchResult ->
-            val indent = matchResult.destructured.component1()
-            val id = matchResult.destructured.component2()
-            "${indent}{{#field_${id}_defined}}\n" +
-                    "${indent}app:imageFieldName='@{\"{{field_${id}_name}}\"}'\n" +
-                    "${indent}app:imageKey=\"@{${variableFieldPath}.__KEY}\"\n" +
-                    "${indent}app:imageTableName='@{\"{{tableName}}\"}'\n" +
-                    "${indent}app:imageUrl=\"@{${variableFieldPath}.{{field_${id}_name}}.__deferred.uri}\"\n" +
-                    "${indent}{{/field_${id}_defined}}\n" +
-                    "${indent}{{^field_${id}_defined}}\n" +
-                    "${indent}app:imageDrawable=\"@{@drawable/ic_placeholder}\"\n" +
-                    "${indent}{{/field_${id}_defined}}"
-        }
-
-        return newFormText
     }
 
     fun getLayoutManagerType(formPath: String): String {
