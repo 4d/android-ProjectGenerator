@@ -9,6 +9,8 @@ fun String.capitalizeWords(): String = split("_").joinToString("") { it.toLowerC
 
 fun String.condenseSpaces() = this.replace("\\s".toRegex(), "")
 
+fun String.condenseSpacesCapital() = this.replace("\\s".toRegex(), "").capitalize()
+
 fun String.addXmlSuffix() = this + XML_EXT
 
 fun String.replaceXmlTxtSuffix() = if (this.endsWith(XML_TXT_EXT)) this.removeSuffix(XML_TXT_EXT).addXmlSuffix() else this
