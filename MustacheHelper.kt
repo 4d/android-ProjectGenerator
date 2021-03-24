@@ -310,7 +310,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                             }
 
                             data[TABLENAME] = tableName.name.condenseSpacesCapital()
-                            data[TABLENAME_ORIGINAL] = tableName.name
+                            data[TABLENAME_ORIGINAL] = tableName.name_original
                             data[TABLENAME_LOWERCASE] = tableName.name.toLowerCase().condenseSpaces()
                             projectEditor.dataModelList.find { it.name.condenseSpacesCapital() == tableName.name.condenseSpacesCapital() }?.fields?.let { fields ->
                                 val fieldList = mutableListOf<TemplateFieldFiller>()
