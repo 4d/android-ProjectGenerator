@@ -17,6 +17,7 @@ object PathHelperConstants {
      * PATH NAMES
      */
 
+    const val ANDROID_PATH_KEY = "android"
     const val APP_PATH_KEY = "app"
     const val SRC_PATH_KEY = "src"
     const val MAIN_PATH_KEY = "main"

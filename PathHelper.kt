@@ -1,6 +1,7 @@
 import DefaultValues.DEFAULT_DETAIL_FORM
 import DefaultValues.DEFAULT_LIST_FORM
 import ExitCodes.MISSING_TARGET_DIR
+import PathHelperConstants.ANDROID_PATH_KEY
 import PathHelperConstants.APP_PATH_KEY
 import PathHelperConstants.ASSETS_PATH_KEY
 import PathHelperConstants.DETAIL_FORMS_KEY
@@ -132,9 +133,13 @@ class PathHelper(
         }
     }
 
-    fun appFolderExistsInTemplate(formPath: String): Boolean = File(formPath + File.separator + APP_PATH_KEY).exists()
+    fun appFolderExistsInTemplate(formPath: String): Boolean = File(getAppFolderInTemplate(formPath)).exists()
 
     fun getAppFolderInTemplate(formPath: String): String {
+        val androidFormPath = formPath + File.separator + ANDROID_PATH_KEY
+        if (File(androidFormPath).exists()) {
+            return androidFormPath + File.separator + APP_PATH_KEY
+        }
         return formPath + File.separator + APP_PATH_KEY
     }
 
