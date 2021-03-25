@@ -187,13 +187,13 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
         val dataModelRelationList = mutableListOf<TemplateRelationFiller>()
 
-        //println("ProjectDataModelLis :: ${projectEditor.dataModelList}" )
         projectEditor.dataModelList.forEach { dataModel ->
 
             dataModel.relationList?.filter { it.relationType == RelationType.MANY_TO_ONE }?.forEach { relation ->
                 dataModelRelationList.add(TemplateRelationFiller(relation_source = relation.source.condenseSpacesCapital(),
                     relation_target = relation.target.condenseSpacesCapital(),
-                    relation_name = relation.name.condenseSpaces()))
+                    relation_name = relation.name.condenseSpaces()
+                ))
             }
 
             tableNames.add(TemplateTableFiller(name = dataModel.name.condenseSpacesCapital(), name_original = dataModel.name))
@@ -208,7 +208,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                     icon = dataModel.iconPath ?: ""))
 
             entityClassesString += "${dataModel.name.condenseSpacesCapital()}::class, "
-            Log.d("ProjectDataModelLis  ${entityClassesString}:: ${dataModel.name.condenseSpacesCapital()}")
+            Log.d("ProjectDataModelList  ${entityClassesString}:: ${dataModel.name.condenseSpacesCapital()}")
         }
 
         val tableNames_without_relations = mutableListOf<TemplateTableFiller>()
@@ -332,7 +332,6 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                 data[FIELDS] = fieldList
                                 Log.d("FIELDS","${data[FIELDS]}")
                                 data[FIRST_FIELD] = fieldList.firstOrNull()?.name ?: ""
-                                //println("FIRST_FIELD :: ${data[FIRST_FIELD]}")
                             }
 
                         relations.clear()
@@ -462,6 +461,14 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
                             data[TABLENAME_LOWERCASE] = listForm.dataModel.name.toLowerCase().condenseSpaces()
                             data[TABLENAME] = listForm.dataModel.name.condenseSpacesCapital()
+                            relations.clear()
+                            projectEditor.dataModelList.find { it.name.condenseSpacesCapital() == listForm.dataModel.name.condenseSpacesCapital() }?.relationList?.filter { it.relationType == RelationType.MANY_TO_ONE }?.forEach { relation ->
+                                relations.add(TemplateRelationFiller(
+                                    relation_source = relation.source.condenseSpacesCapital(),
+                                    relation_target = relation.target.condenseSpacesCapital(),
+                                    relation_name = relation.name.condenseSpaces()))
+                            }
+                            data[RELATIONS] = relations
 
                             var i = 0
                             listForm.fields?.forEach { field -> // Could also iter over specificFieldsCount as Detail form
@@ -504,6 +511,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                 data.remove("field_${j}_name")
                                 data.remove("field_${j}_label")
                             }
+                            data.remove(RELATIONS)
                         } else { // any file to copy in project
                             val newFile = File(fileHelper.pathHelper.getLayoutTemplatePath(currentFile.absolutePath, formPath))
                             Log.i("File to copy : ${currentFile.absolutePath}; target : ${newFile.absolutePath}")

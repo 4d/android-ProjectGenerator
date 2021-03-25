@@ -61,10 +61,21 @@ fun replaceTemplateText(oldFormText: String, formType: FormType): String {
     regex = ("(\\h*)<!--ENTITY_VARIABLE-->").toRegex()
     newFormText = regex.replace(newFormText) { matchResult ->
         val indent = matchResult.destructured.component1()
-        "${indent}$formatPath" + "${indent}$typeChoicePath" +
+        if (formType == FormType.LIST)
+            "${indent}$formatPath" + "${indent}$typeChoicePath\n" +
                 "${indent}<variable\n" +
                 "${indent}\tname=\"${variableName}\"\n" +
-                "${indent}\ttype=\"${variableType}\"/>"
+                "${indent}\ttype=\"${variableType}\"/>\n\n" +
+                "${indent}{{#relations}}\n" +
+                "${indent}<variable\n" +
+                "${indent}\tname=\"{{relation_name}}\"\n" +
+                "${indent}\ttype=\"{{package}}.data.model.entity.{{relation_target}}\"/>\n" +
+                "${indent}{{/relations}}"
+        else
+            "${indent}$formatPath" + "${indent}$typeChoicePath\n" +
+                    "${indent}<variable\n" +
+                    "${indent}\tname=\"${variableName}\"\n" +
+                    "${indent}\ttype=\"${variableType}\"/>"
     }
 
     regex = ("__SPECIFIC_ID_(\\d+)__").toRegex()
