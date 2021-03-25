@@ -94,9 +94,6 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         data[DATE_DAY] = Calendar.getInstance().get(Calendar.DAY_OF_MONTH).toString()
         data[DATE_MONTH] = (Calendar.getInstance().get(Calendar.MONTH) + 1).toString()
         data[DATE_YEAR] = Calendar.getInstance().get(Calendar.YEAR).toString()
-//        data[PREFIX] = DEFAULT_PREFIX
-//        data[COMPANY] = fileHelper.pathHelper.companyCondensed
-//        data[APP_NAME] = fileHelper.pathHelper.appNameCondensed
         data[PACKAGE] = fileHelper.pathHelper.pkg
         data[APP_NAME_WITH_CAPS] = fileHelper.pathHelper.appNameWithCaps
         formatFields = projectEditor.formatFields

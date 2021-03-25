@@ -4,9 +4,6 @@ object PathHelperConstants {
      * DIRECTORIES PLACEHOLDERS
      */
 
-//    const val PREFIX_PH = "__PFX__"
-//    const val COMPANY_PH = "__CPY__"
-//    const val PACKAGE_PH = "__PKG__"
     const val PACKAGE_PH = "__PKG__"
     const val PACKAGE_JOINED_PH = "__PKG_JOINED__"
     const val TEMPLATE_PLACEHOLDER = "__TEMPLATE__"

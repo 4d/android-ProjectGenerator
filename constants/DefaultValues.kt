@@ -5,7 +5,6 @@ object DefaultValues {
      */
 
     const val DEFAULT_REMOTE_URL = "http://localhost:8099"
-//    const val DEFAULT_PREFIX = "com"
     const val DEFAULT_COMPANY = "Default Company"
     const val DEFAULT_APPLICATION = "Default Application"
     const val DEFAULT_PACKAGE = "com.example.myapplication"

@@ -20,6 +20,7 @@ import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.prompt
 import com.github.ajalt.clikt.parameters.options.validate
 import java.io.File
+import kotlin.system.exitProcess
 
 class Main : CliktCommand() {
 
@@ -81,7 +82,7 @@ class Main : CliktCommand() {
             if (!targetDirPathFromEnv.isNullOrEmpty())
                 targetDirPath = targetDirPathFromEnv
         }
-        if (targetDirPath.isNullOrEmpty()) {
+        if (targetDirPath.isEmpty()) {
             Log.e("No target directory. Define env var `TARGET_PATH` or pass it in project JSON editor ")
             exitProcess(MISSING_TARGET_DIR)
         }
