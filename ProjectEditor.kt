@@ -127,10 +127,10 @@ class ProjectEditor(projectEditorFile: File) {
         )
     }
 
-    private fun getTableName(index: String): String {
-        val dataModel = jsonObj.getSafeObject(PROJECT_KEY)?.getSafeObject(DATAMODEL_KEY)?.getJSONObject(index)
+    private fun getTableName(index: String): String? {
+        val dataModel = jsonObj.getSafeObject(PROJECT_KEY)?.getSafeObject(DATAMODEL_KEY)?.getSafeObject(index)
         val newDataModelJSONObject = dataModel?.getSafeObject(ProjectEditorConstants.EMPTY_KEY)
-        return newDataModelJSONObject?.get(NAME_KEY) as String
+        return newDataModelJSONObject?.get(NAME_KEY) as? String
     }
 
     private fun getSearchableColums(datarecv: JSONObject?) {
@@ -160,8 +160,11 @@ class ProjectEditor(projectEditorFile: File) {
                         } else {
                             Log.w("No searchable Field Found")
                         }
-                        if (columns.size != 0) searchableFields.put(getTableName(jsonrecv.names()[index].toString()),
-                            columns)
+                        if (columns.size != 0) {
+                            getTableName(jsonrecv.names()[index].toString())?.let {
+                                searchableFields.put(it, columns)
+                            }
+                        }
                     }
 
                 }
