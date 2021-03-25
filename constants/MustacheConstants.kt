@@ -22,6 +22,7 @@ object MustacheConstants {
     const val FIELDS = "fields"
     const val FIRST_FIELD = "first_field"
     const val FORM_FIELDS = "form_fields"
+    const val LAYOUT_VARIABLE_ACCESSOR = "layout_variable_accessor"
 //    const val PREFIX = "prefix"
 //    const val COMPANY = "company"
 //    const val APP_NAME = "app_name"

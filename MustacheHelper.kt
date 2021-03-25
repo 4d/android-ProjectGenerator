@@ -28,6 +28,7 @@ import MustacheConstants.ENTITY_CLASSES
 import MustacheConstants.FIELDS
 import MustacheConstants.FIRST_FIELD
 import MustacheConstants.FORM_FIELDS
+import MustacheConstants.LAYOUT_VARIABLE_ACCESSOR
 import MustacheConstants.PACKAGE
 import MustacheConstants.RELATIONS
 import MustacheConstants.RELATIONS_IMPORT
@@ -601,6 +602,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                            data["field_${i + 1}_defined"] = fieldList[i].name.isNotEmpty()
                                            data["field_${i + 1}_name"] = fieldList[i].name.condenseSpaces()
                                            data["field_${i + 1}_label"] = fieldList[i].label ?: ""
+                                           data[LAYOUT_VARIABLE_ACCESSOR] = if (fieldList[i].name.contains(".")) "" else ".entity"
                                        }
 
                                        println("fieldList.size = ${fieldList.size}")
@@ -634,6 +636,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
                            // cleaning data for other templates
                            data.remove(FORM_FIELDS)
+                           data.remove(LAYOUT_VARIABLE_ACCESSOR)
                            for (i in 1 until specificFieldsCount) {
                                data.remove("field_${i}_defined")
                                data.remove("field_${i}_name")
