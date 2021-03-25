@@ -20,6 +20,14 @@ fi
 # if no project file, use the cached one
 if [ -z "$projectFile" ]; then
    projectFile=$HOME/Library/Caches/com.4d.mobile/lastAndroidBuild.4dmobile
+else
+  if [[ "$projectFile" == *".4dmobileapp" ]]; then
+     echo "Converting to 4dmobile file: $projectFile..."
+     resultFile="$(dirname $projectFile)/$(basename "$projectFile" .4dmobileapp).4dmobile" # CLEAN maybe use a temp dir and remote it after working on it
+     jq '."project"=. | {project}' "$projectFile" > "$resultFile"
+     projectFile="$resultFile"
+     echo "Converted to $projectFile"
+  fi
 fi
 
 function usage() {
