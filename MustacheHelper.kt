@@ -122,7 +122,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
             }
 
             if (data[ANDROID_SDK_PATH] == null) {
-                val commonSdkPath = "~/Library/Android/sdk"
+                val commonSdkPath = "${System.getProperty("user.home")}/Library/Android/sdk"
                 if (File(commonSdkPath).exists()) {
                     data[ANDROID_SDK_PATH] = commonSdkPath
                 } else {
