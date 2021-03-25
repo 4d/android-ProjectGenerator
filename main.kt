@@ -14,6 +14,7 @@
 import DefaultValues.DEFAULT_APPLICATION
 import DefaultValues.DEFAULT_COMPANY
 import DefaultValues.DEFAULT_PACKAGE
+import ExitCodes.MISSING_TARGET_DIR
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.prompt
@@ -79,6 +80,10 @@ class Main : CliktCommand() {
             val targetDirPathFromEnv = System.getenv("TARGET_PATH")
             if (!targetDirPathFromEnv.isNullOrEmpty())
                 targetDirPath = targetDirPathFromEnv
+        }
+        if (targetDirPath.isNullOrEmpty()) {
+            Log.e("No target directory. Define env var `TARGET_PATH` or pass it in project JSON editor ")
+            exitProcess(MISSING_TARGET_DIR)
         }
 
         val pathHelper = PathHelper(
