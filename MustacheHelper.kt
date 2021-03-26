@@ -194,7 +194,11 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                 ))
             }
 
-            tableNames.add(TemplateTableFiller(name = dataModel.name.condenseSpacesCapital(), name_original = dataModel.name))
+            tableNames.add(TemplateTableFiller(
+                name = dataModel.name.condenseSpacesCapital(),
+                name_original = dataModel.name,
+                nameCamelCase = dataModel.name.capitalizeWords().condenseSpaces(),
+                concat_fields = dataModel.fields?.joinToString { "\"${it.name}\"" } ?: ""))
 
             tableNames_lowercase.add(
                 TemplateLayoutFiller(
@@ -226,9 +230,9 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
         val typesAndTables = mutableListOf<TemplateTableFiller>()
         typesAndTables.addAll(tableNames)
-        typesAndTables.add(TemplateTableFiller(name = "Photo", name_original = "Photo"))
-        typesAndTables.add(TemplateTableFiller(name = "Date", name_original = "Date"))
-        typesAndTables.add(TemplateTableFiller(name = "Time", name_original = "Time"))
+        typesAndTables.add(TemplateTableFiller(name = "Photo", name_original = "Photo", nameCamelCase = "photo", concat_fields = ""))
+        typesAndTables.add(TemplateTableFiller(name = "Date", name_original = "Date", nameCamelCase = "date", concat_fields = ""))
+        typesAndTables.add(TemplateTableFiller(name = "Time", name_original = "Time", nameCamelCase = "time", concat_fields = ""))
         data[TYPES_AND_TABLES] = typesAndTables
 
 
@@ -418,7 +422,6 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
     }
 
     fun applyListFormTemplate() {
-
         projectEditor.listFormList.forEach { listForm ->
 
             println("MustacheHelper : listform.name = ${listForm.name}")

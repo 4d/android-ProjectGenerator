@@ -11,6 +11,9 @@ fun JSONObject.getFormList(dataModelList: List<DataModel>, formType: FormType, n
     val formTypeKey = if (formType == FormType.LIST) LIST_KEY else DETAIL_KEY
     val forms = this.getSafeObject(PROJECT_KEY)?.getSafeObject(formTypeKey)
 
+    println("dataModelList = ${dataModelList.map { it.id }.joinToString()}")
+    println("navigationTableList = ${navigationTableList.joinToString()}")
+
     forms?.names()?.let {
         for (i in 0 until forms.names().length()) {
             val keyDataModel = forms.names().getString(i)
@@ -22,20 +25,20 @@ fun JSONObject.getFormList(dataModelList: List<DataModel>, formType: FormType, n
                 }
                 println("***+ formType : $formType")
                 println("newFormJSONObject = $newFormJSONObject")
-                println("newFormJSONObject?.getSafeArray(FIELDS_KEY) = ${ newFormJSONObject?.getSafeArray(FIELDS_KEY)}")
+                println("newFormJSONObject?.getSafeArray(FIELDS_KEY) = ${newFormJSONObject?.getSafeArray(FIELDS_KEY)}")
                 val fieldList = newFormJSONObject?.getSafeArray(FIELDS_KEY).getObjectListAsString()
                 form.fields = getFormFields(fieldList)
                 formList.add(form)
             }
         }
-    } ?: kotlin.run {
+    }
 
-        dataModelList.forEach { dataModel ->
-            if (navigationTableList.contains(dataModel.id)) {
-                println("adding empty form for dataModel : ${dataModel.name}")
-                val form = Form(dataModel = dataModel)
-                formList.add(form)
-            }
+    dataModelList.forEach { dataModel ->
+        println("dataModel.id = ${dataModel.id}")
+        if (navigationTableList.contains(dataModel.id) && !formList.map { it.dataModel.id }.contains(dataModel.id)) {
+            println("adding empty form for dataModel : ${dataModel.name}")
+            val form = Form(dataModel = dataModel)
+            formList.add(form)
         }
     }
 
