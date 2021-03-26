@@ -53,9 +53,19 @@ fun replaceTemplateText(oldFormText: String, formType: FormType): String {
     newFormText = regex.replace(newFormText) { matchResult ->
         val indent = matchResult.destructured.component1()
         if (formType == FormType.LIST)
-            "${indent}android:text=\"@{${variableName}.{{name}}.toString()}\""
+                    "${indent}{{#isFormatted}}\n" +
+                    "${indent}android:text=\"@{Format.{{formatFunction}({{formatType}},${variableName}.{{name}}.toString())}\"\n" +
+                    "${indent}{{/isFormatted}}\n" +
+                    "${indent}{{^isFormatted}}\n" +
+                    "${indent}android:text=\"@{${variableName}.{{name}}.toString()}\"\n" +
+                    "${indent}{{/isFormatted}}"
         else
-            "${indent}android:text=\"@{${variableName}{{layout_variable_accessor}}.{{name}}.toString()}\""
+            "${indent}{{#isFormatted}}\n" +
+                    "${indent}android:text=\"@{Format.{{formatFunction}({{formatType}},${variableName}.{{name}}.toString())}\"\n" +
+                    "${indent}{{/isFormatted}}\n" +
+                    "${indent}{{^isFormatted}}\n" +
+                    "${indent}android:text=\"@{${variableName}{{layout_variable_accessor}}.{{name}}.toString()}\"\n" +
+                    "${indent}{{/isFormatted}}"
     }
 
     regex = ("(\\h*)<!--ENTITY_VARIABLE-->").toRegex()
@@ -96,11 +106,21 @@ fun replaceTemplateText(oldFormText: String, formType: FormType): String {
         val id = matchResult.destructured.component2()
         if (formType == FormType.LIST)
             "${indent}{{#field_${id}_defined}}\n" +
+                    "${indent}{{#field_${id}_formatted}}\n" +
+                    "${indent}android:text=\"@{Format.{{field_${id}_format_function}}({{field_${id}_format_type}},${variableName}.{{field_${id}_name}}.toString())}\"\n" +
+                    "${indent}{{/field_${id}_formatted}}\n" +
+                    "${indent}{{^field_${id}_formatted}}\n" +
                     "${indent}android:text=\"@{${variableName}.{{field_${id}_name}}.toString()}\"\n" +
+                    "${indent}{{/field_${id}_formatted}}\n" +
                     "${indent}{{/field_${id}_defined}}"
         else
             "${indent}{{#field_${id}_defined}}\n" +
+                    "${indent}{{#field_${id}_formatted}}\n" +
+                    "${indent}android:text=\"@{Format.{{field_${id}_format_function}}({{field_${id}_format_type}},${variableName}{{layout_variable_accessor}}.{{field_${id}_name}}.toString())}\"\n" +
+                    "${indent}{{/field_${id}_formatted}}\n" +
+                    "${indent}{{^field_${id}_formatted}}\n" +
                     "${indent}android:text=\"@{${variableName}{{layout_variable_accessor}}.{{field_${id}_name}}.toString()}\"\n" +
+                    "${indent}{{/field_${id}_formatted}}\n" +
                     "${indent}{{/field_${id}_defined}}"
     }
 

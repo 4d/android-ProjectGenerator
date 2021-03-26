@@ -84,8 +84,6 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
     //TypeChoice Key
     private val typeChoice = Key.getKeys()
     private val formatTypeFunctionName = Key.getFormatTypeFunctionName()
-    private lateinit var variableName: String
-    private lateinit var variableFieldPath: String
 
     init {
         Log.plantTree(this::class.java.canonicalName)
@@ -473,32 +471,34 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                             var i = 0
                             listForm.fields?.forEach { field -> // Could also iter over specificFieldsCount as Detail form
                                 i++
-                               // data["field_${i}_defined"] = field.name.isNotEmpty()
-                               // data["field_${i}_name"] = field.name.condensePropertyName()
-                               // data["field_${i}_label"] = field.label ?: ""
 
                                 if ((field.inverseName != null) || (fileHelper.pathHelper.isDefaultTemplateListFormPath(formPath) && field.fieldType == 3)) { // is relation or image in default template
 
                                     data["field_${i}_defined"] = false
+                                    data["field_${i}_formatted"] = false
                                     data["field_${i}_label"] = field.label ?: ""
                                     data["field_${i}_name"] = ""
 
                                 } else { // not a relation
 
-                                    val key = formatFields[field.name.condenseSpaces()]
-                                    if (formatFields[field.name.condenseSpaces()] != null) {
-                                        data["field_${i}_name"] =
-                                            "@{Format.${formatTypeFunctionName[key]}(${typeChoice[key]},$variableName.${field.name.condenseSpaces()}.toString())}"
-                                    } else {
-                                        data["field_${i}_name"] = "${field.name.condenseSpaces()}"
-                                    }
-                                    if (field.name.condenseSpaces().equals("Photo")) {
-                                        Log.d("Fieldname :: ${field.name.condenseSpaces()}")
-                                        data["field_${i}_name"] = "${field.name.condenseSpaces()}"
-                                    }
-
+                                    data["field_${i}_name"] = field.name.condenseSpaces()
                                     data["field_${i}_defined"] = field.name.isNotEmpty()
                                     data["field_${i}_label"] = field.label ?: ""
+                                    data["field_${i}_formatted"] = false
+
+                                    val key = formatFields[field.name.condenseSpaces()]
+                                    if (key != null) {
+                                        formatTypeFunctionName[key]?.let { functionName ->
+                                            typeChoice[key]?.let { type ->
+                                                data["field_${i}_formatted"] = true
+                                                data["field_${i}_format_function"] = functionName
+                                                data["field_${i}_format_type"] = type
+                                            }
+                                        }
+
+                                    } else {
+                                        // already defined
+                                    }
                                 }
                             }
 
@@ -510,6 +510,9 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                 data.remove("field_${j}_defined")
                                 data.remove("field_${j}_name")
                                 data.remove("field_${j}_label")
+                                data.remove("field_${j}_formatted")
+                                data.remove("field_${j}_format_function")
+                                data.remove("field_${j}_format_type")
                             }
                             data.remove(RELATIONS)
                         } else { // any file to copy in project
@@ -583,18 +586,20 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                    if (specificFieldsCount == 0) { // template with no specific field
                                        for (i in fieldList.indices) {
                                            if (fieldList[i].name.isNotEmpty()) {
-                                               // formFieldList.add(createFormField(fieldList[i], i + 1))
 
-                                                val key = fieldList[i].name.condenseSpaces()
-                                                if (formatFields[key] != null) {
-                                                    var customFormat =
-                                                        "@{Format.${formatTypeFunctionName[formatFields[key]]}(${typeChoice[formatFields[key]]},$variableFieldPath.${key}.toString()).toString()}"
-                                                    println("Adding free Field with format ${fieldList[i]}")
-                                                    formFieldList.add(createFormField(customFormat, fieldList[i], i + 1))
-                                                } else {
-                                                    println("Adding free Field ${fieldList[i]}")
-                                                    formFieldList.add(createFormField(fieldList[i],i + 1))
-                                                }
+                                               val key = formatFields[fieldList[i].name.condenseSpaces()]
+                                               var formField = createFormField(fieldList[i], i + 1, false)
+                                               if (key != null) {
+                                                   formatTypeFunctionName[key]?.let { functionName ->
+                                                       typeChoice[key]?.let { type ->
+                                                           println("Adding free Field with format ${fieldList[i]}")
+                                                           formField =  createFormField(fieldList[i], i + 1, true, functionName, type)
+                                                       }
+                                                   }
+                                               } else {
+                                                   // already defined
+                                               }
+                                               formFieldList.add(formField)
                                            } else {
                                                // you can get null fields in json file
                                                // occurs when you select a form, and then select back Blank form
@@ -607,7 +612,21 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                            data["field_${i + 1}_defined"] = fieldList[i].name.isNotEmpty()
                                            data["field_${i + 1}_name"] = fieldList[i].name.condenseSpaces()
                                            data["field_${i + 1}_label"] = fieldList[i].label ?: ""
+                                           data["field_${i + 1}_formatted"] = false
                                            data[LAYOUT_VARIABLE_ACCESSOR] = if (fieldList[i].name.contains(".")) "" else ".entity"
+
+                                           val key = formatFields[fieldList[i].name.condenseSpaces()]
+                                           if (key != null) {
+                                               formatTypeFunctionName[key]?.let { functionName ->
+                                                   typeChoice[key]?.let { type ->
+                                                       data["field_${i + 1}_formatted"] = true
+                                                       data["field_${i + 1}_format_function"] = functionName
+                                                       data["field_${i + 1}_format_type"] = type
+                                                   }
+                                               }
+                                           } else {
+                                               // already defined
+                                           }
                                        }
 
                                        println("fieldList.size = ${fieldList.size}")
@@ -621,7 +640,19 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                                println("fieldList[i] = ${fieldList[i]}")
                                                if (fieldList[i].name.isNotEmpty()) {
                                                    println("Adding free Field in specific template ${fieldList[i]}")
-                                                   formFieldList.add(createFormField(fieldList[i], k + 1))
+
+                                                   val key = formatFields[fieldList[i].name.condenseSpaces()]
+                                                   var formField = createFormField(fieldList[i], k + 1, false)
+                                                   if (key != null) {
+                                                       formatTypeFunctionName[key]?.let { functionName ->
+                                                           typeChoice[key]?.let { type ->
+                                                               formField =  createFormField(fieldList[i], k + 1, true, functionName, type)
+                                                           }
+                                                       }
+                                                   } else {
+                                                       // already defined
+                                                   }
+                                                   formFieldList.add(formField)
                                                    k++
                                                } else {
                                                    // don't add null field
@@ -646,6 +677,9 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                data.remove("field_${i}_defined")
                                data.remove("field_${i}_name")
                                data.remove("field_${i}_label")
+                               data.remove("field_${i}_formatted")
+                               data.remove("field_${i}_format_function")
+                               data.remove("field_${i}_format_type")
                            }
 
                        } else { // any file to copy in project
