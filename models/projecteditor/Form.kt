@@ -4,14 +4,9 @@ data class Form(
         var fields: List<Field>? = null
 )
 
-fun createFormField(field: Field, i: Int): TemplateFormFieldFiller {
+fun createFormField(field: Field, i: Int, isFormatted: Boolean, formatFunction: String = "", formatType: String = ""): TemplateFormFieldFiller{
     return TemplateFormFieldFiller(name = field.name.condenseSpaces(), label = field.label
         ?: field.name, viewId = i, isRelation = field.inverseName != null, isImage = field.fieldType == 3,
-        layout_variable_accessor = if (field.name.contains(".")) "" else ".entity")
-}
-
-fun createFormField(customNameWithFormatTemplate: String ,field: Field, i: Int): TemplateFormFieldFiller{
-    return TemplateFormFieldFiller(name = customNameWithFormatTemplate, label = field.label
-        ?: field.name, viewId = i, isRelation = field.inverseName != null, isImage = field.fieldType == 3,
-        layout_variable_accessor = if (field.name.contains(".")) "" else ".entity")
+        layout_variable_accessor = if (field.name.contains(".")) "" else ".entity", isFormatted = isFormatted,
+        formatFunction = formatFunction, formatType = formatType)
 }
