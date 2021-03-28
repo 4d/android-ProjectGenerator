@@ -127,7 +127,7 @@ class ProjectEditor(projectEditorFile: File) {
         )
     }
 
-    private fun getTableName(index: String): String? {
+    private fun getTableName(index: String): String? { // CLEAN there is already a DataModel object decoded
         val dataModel = jsonObj.getSafeObject(PROJECT_KEY)?.getSafeObject(DATAMODEL_KEY)?.getSafeObject(index)
         val newDataModelJSONObject = dataModel?.getSafeObject(ProjectEditorConstants.EMPTY_KEY)
         return newDataModelJSONObject?.get(NAME_KEY) as? String
@@ -174,18 +174,24 @@ class ProjectEditor(projectEditorFile: File) {
 
     private fun setFormatFields(){
         if (jsonObj.has("project")) {
-            if (jsonObj.getJSONObject("project").has("dataModel")) {
+            var project = jsonObj.getJSONObject("project")
+            if (project.has("dataModel")) { // CLEAN there is already a DataModel object decoded
                 //println("Data Model Present")
-                val dataModel = jsonObj.getJSONObject("project").getJSONObject("dataModel")
+                val dataModel = project.getJSONObject("dataModel")
                 val dataModeArray = dataModel.names()
-                for (index in 0 until dataModeArray.length()){
-                    val fieldJSONObject = dataModel.getJSONObject(dataModeArray[index] as String)
+                for (index in 0 until dataModeArray.length()) {
+                    val tableKey = dataModeArray[index] as String
+                    val fieldJSONObject = dataModel.getJSONObject(tableKey)
                     val fieldJSONArray = fieldJSONObject.names()
                     //if ()
-                    for (ind in 0 until fieldJSONArray.length()){
-                        val jsonColumnObject = fieldJSONObject.getJSONObject(fieldJSONArray[ind] as String)
-                        if (jsonColumnObject.has("format")){
-                            if (jsonColumnObject.has("name")){
+                    for (ind in 0 until fieldJSONArray.length()) {
+                        var fieldKey = fieldJSONArray[ind] as String
+                        // if (fieldKey.isNumber()) { // number key is associate to an object (but not all keys, could be trable property even if table property are not in key "" )
+                        // else if relation
+                        // else ignore
+                        val jsonColumnObject = fieldJSONObject.getSafeObject(fieldKey)
+                        if (jsonColumnObject !=null && jsonColumnObject.has("format")){
+                            if (jsonColumnObject.has("name")) {
                                 formatFields.put(jsonColumnObject["name"].toString(),jsonColumnObject["format"].toString())
                                // Log.d("check >>${jsonColumnObject["name"]} -  ${jsonColumnObject["format"]}")
                             }

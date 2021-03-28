@@ -14,3 +14,5 @@ fun String.condenseSpacesCapital() = this.replace("\\s".toRegex(), "").capitaliz
 fun String.addXmlSuffix() = this + XML_EXT
 
 fun String.replaceXmlTxtSuffix() = if (this.endsWith(XML_TXT_EXT)) this.removeSuffix(XML_TXT_EXT).addXmlSuffix() else this
+
+fun String.isNumber(): Boolean = if (this.isNullOrEmpty()) false else this.all { Character.isDigit(it) }
