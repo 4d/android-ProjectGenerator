@@ -242,25 +242,27 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
             0 // Counter to limit to 4 navigation tables as it is not possible to have more than 5
         projectEditor.navigationTableList.forEach { navigationTableId ->
             projectEditor.dataModelList.find { it.id == navigationTableId }?.let { dataModel ->
-                if (navigationTableCounter > 3)
-                    return@forEach
+                if (navigationTableCounter <= 3) {
+                    Log.w("Adding [${dataModel.name}] in navigation table list")
+                    tableNamesForNavigation.add(
+                        TemplateLayoutFiller(
+                            name = dataModel.name.condenseSpacesCapital(),
+                            name_original = dataModel.name,
+                            nameLowerCase = dataModel.name.toLowerCase().condenseSpaces(),
+                            nameCamelCase = dataModel.name.capitalizeWords().condenseSpaces(),
+                            hasIcon = (dataModel.iconPath != null && dataModel.iconPath != ""),
+                            icon = dataModel.iconPath ?: ""))
 
-                tableNamesForNavigation.add(
-                    TemplateLayoutFiller(
-                        name = dataModel.name.condenseSpacesCapital(),
-                        name_original = dataModel.name,
-                        nameLowerCase = dataModel.name.toLowerCase().condenseSpaces(),
-                        nameCamelCase = dataModel.name.capitalizeWords().condenseSpaces(),
-                        hasIcon = (dataModel.iconPath != null && dataModel.iconPath != ""),
-                        icon = dataModel.iconPath ?: ""))
+                    navigationTableCounter++
 
-                navigationTableCounter++
-
-                dataModel.relationList?.filter { it.relationType == RelationType.MANY_TO_ONE }?.forEach { relation ->
-                    layoutRelationList.add(TemplateRelationFiller(relation_source = relation.source.condenseSpacesCapital(),
-                        relation_target = relation.target.condenseSpacesCapital(),
-                        relation_name = relation.name.condenseSpaces()
-                    ))
+                    dataModel.relationList?.filter { it.relationType == RelationType.MANY_TO_ONE }?.forEach { relation ->
+                        layoutRelationList.add(TemplateRelationFiller(relation_source = relation.source.condenseSpacesCapital(),
+                            relation_target = relation.target.condenseSpacesCapital(),
+                            relation_name = relation.name.condenseSpaces()
+                        ))
+                    }
+                } else {
+                    Log.w("Not adding [${dataModel.name}] in navigation table list")
                 }
             }
         }
