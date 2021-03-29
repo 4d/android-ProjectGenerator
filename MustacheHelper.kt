@@ -80,10 +80,12 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
     private var tableNames_lowercase = mutableListOf<TemplateLayoutFiller>()
     private var relations = mutableListOf<TemplateRelationFiller>()
     private var formatFields: HashMap<String, String>
+    private val defaultFormatter = DefaultFormatter.getKeys()
 
     //TypeChoice Key
     private val typeChoice = Key.getKeys()
     private val formatTypeFunctionName = Key.getFormatTypeFunctionName()
+    private lateinit var defaultFormatterFields : HashMap<String, String>
 
     init {
         Log.plantTree(this::class.java.canonicalName)
@@ -95,7 +97,8 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         data[PACKAGE] = fileHelper.pathHelper.pkg
         data[APP_NAME_WITH_CAPS] = fileHelper.pathHelper.appNameWithCaps
         formatFields = projectEditor.formatFields
-
+        defaultFormatterFields = projectEditor.defaultFormatLFiledType
+        Log.e(">>>>>>> defaultFormatterFields :: $defaultFormatterFields")
         // for network_security_config.xml
         // whitelist production host address if defined, else, server host address, else localhost
         var remoteAddress =  projectEditor.findJsonString("productionUrl")
@@ -501,6 +504,14 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
                                     } else {
                                         // already defined
+                                        val defaultKey = defaultFormatter[defaultFormatterFields[field.name.condenseSpaces()]]
+                                        formatTypeFunctionName[defaultKey]?.let { functionName ->
+                                            typeChoice[defaultKey]?.let { type ->
+                                                data["field_${i}_formatted"] = true
+                                                data["field_${i}_format_function"] = functionName
+                                                data["field_${i}_format_type"] = type
+                                            }
+                                        }
                                     }
                                 }
                             }
@@ -619,6 +630,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                            data[LAYOUT_VARIABLE_ACCESSOR] = if (fieldList[i].name.contains(".")) "" else ".entity"
 
                                            val key = formatFields[fieldList[i].name.condenseSpaces()]
+                                           Log.e("applyDetailFormTemplate  filedName :: ${fieldList[i].name.condenseSpaces()} -- key :: $key")
                                            if (key != null) {
                                                formatTypeFunctionName[key]?.let { functionName ->
                                                    typeChoice[key]?.let { type ->
@@ -628,7 +640,18 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                                    }
                                                }
                                            } else {
-                                               // already defined
+                                               // already define
+
+                                               // default Key
+                                              val defaultKey = defaultFormatter[defaultFormatterFields[fieldList[i].name.condenseSpaces()]]
+                                               Log.e("applyListFormTemplate fieldName here 2:: ${fieldList[i].name.condenseSpaces()} --  --> defaultFormatter :: $defaultKey --- formatTypeFunctionName :: ${formatTypeFunctionName[defaultKey]} -- TypeChoice ::${typeChoice[defaultKey]}")
+                                               formatTypeFunctionName[defaultKey]?.let { functionName ->
+                                                   typeChoice[defaultKey]?.let { type ->
+                                                       data["field_${i + 1}_formatted"] = true
+                                                       data["field_${i + 1}_format_function"] = functionName
+                                                       data["field_${i + 1}_format_type"] = type
+                                                   }
+                                               }
                                            }
                                        }
 

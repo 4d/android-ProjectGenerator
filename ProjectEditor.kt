@@ -43,6 +43,7 @@ class ProjectEditor(projectEditorFile: File) {
     lateinit var jsonObj: JSONObject
     // Hold sort Filed
     val formatFields = HashMap<String,String>()
+    var defaultFormatLFiledType = HashMap<String,String>()
 
     init {
         val jsonString = projectEditorFile.readFile()
@@ -186,14 +187,20 @@ class ProjectEditor(projectEditorFile: File) {
                     //if ()
                     for (ind in 0 until fieldJSONArray.length()) {
                         var fieldKey = fieldJSONArray[ind] as String
+                        val jsonColumnObject = fieldJSONObject.getSafeObject(fieldKey)
                         // if (fieldKey.isNumber()) { // number key is associate to an object (but not all keys, could be trable property even if table property are not in key "" )
                         // else if relation
                         // else ignore
-                        val jsonColumnObject = fieldJSONObject.getSafeObject(fieldKey)
+
                         if (jsonColumnObject !=null && jsonColumnObject.has("format")){
                             if (jsonColumnObject.has("name")) {
                                 formatFields.put(jsonColumnObject["name"].toString(),jsonColumnObject["format"].toString())
-                               // Log.d("check >>${jsonColumnObject["name"]} -  ${jsonColumnObject["format"]}")
+                           }
+                        }else{
+                            if(jsonColumnObject !=null ){
+                                if (jsonColumnObject.has("name") && jsonColumnObject.has("fieldType")) {
+                                    defaultFormatLFiledType.put(jsonColumnObject["name"].toString(),jsonColumnObject["fieldType"].toString())
+                                }
                             }
                         }
                     }
