@@ -45,6 +45,7 @@ import MustacheConstants.TABLENAMES_NAVIGATION
 import MustacheConstants.TABLENAMES_RELATIONS
 import MustacheConstants.TABLENAMES_RELATIONS_DISTINCT
 import MustacheConstants.TABLENAMES_WITHOUT_RELATIONS
+import MustacheConstants.TABLENAMES__LAYOUT_RELATIONS
 import MustacheConstants.TABLENAME_LOWERCASE
 import MustacheConstants.TABLENAME_ORIGINAL
 import MustacheConstants.THEME_COLOR_ON_PRIMARY
@@ -184,6 +185,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         var entityClassesString = ""
 
         val dataModelRelationList = mutableListOf<TemplateRelationFiller>()
+        val layoutRelationList = mutableListOf<TemplateRelationFiller>()
 
         projectEditor.dataModelList.forEach { dataModel ->
 
@@ -253,9 +255,17 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                         icon = dataModel.iconPath ?: ""))
 
                 navigationTableCounter++
+
+                dataModel.relationList?.filter { it.relationType == RelationType.MANY_TO_ONE }?.forEach { relation ->
+                    layoutRelationList.add(TemplateRelationFiller(relation_source = relation.source.condenseSpacesCapital(),
+                        relation_target = relation.target.condenseSpacesCapital(),
+                        relation_name = relation.name.condenseSpaces()
+                    ))
+                }
             }
         }
         data[TABLENAMES_NAVIGATION] = tableNamesForNavigation
+        data[TABLENAMES__LAYOUT_RELATIONS] = layoutRelationList
 
         // Specifying if list layout is table or collection (LinearLayout or GridLayout)
         tableNamesForNavigation.map { it.name }.forEach { tableName ->
@@ -611,7 +621,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                    } else { // template with specific fields
 
                                        for (i in 0 until specificFieldsCount) {
-                                           
+
                                            if (i < fieldList.size) {
                                                Log.d("Adding specific Field ${fieldList[i]}")
                                                data["field_${i + 1}_defined"] = fieldList[i].name.isNotEmpty()
