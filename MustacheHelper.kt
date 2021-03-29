@@ -611,24 +611,35 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                    } else { // template with specific fields
 
                                        for (i in 0 until specificFieldsCount) {
-                                           println("Adding specific Field ${fieldList[i]}")
-                                           data["field_${i + 1}_defined"] = fieldList[i].name.isNotEmpty()
-                                           data["field_${i + 1}_name"] = fieldList[i].name.condenseSpaces()
-                                           data["field_${i + 1}_label"] = fieldList[i].label ?: ""
-                                           data["field_${i + 1}_formatted"] = false
-                                           data[LAYOUT_VARIABLE_ACCESSOR] = if (fieldList[i].name.contains(".")) "" else ".entity"
+                                           
+                                           if (i < fieldList.size) {
+                                               Log.d("Adding specific Field ${fieldList[i]}")
+                                               data["field_${i + 1}_defined"] = fieldList[i].name.isNotEmpty()
+                                               data["field_${i + 1}_name"] = fieldList[i].name.condenseSpaces()
+                                               data["field_${i + 1}_label"] = fieldList[i].label ?: ""
+                                               data["field_${i + 1}_formatted"] = false
+                                               data[LAYOUT_VARIABLE_ACCESSOR] =
+                                                   if (fieldList[i].name.contains(".")) "" else ".entity"
 
-                                           val key = formatFields[fieldList[i].name.condenseSpaces()]
-                                           if (key != null) {
-                                               formatTypeFunctionName[key]?.let { functionName ->
-                                                   typeChoice[key]?.let { type ->
-                                                       data["field_${i + 1}_formatted"] = true
-                                                       data["field_${i + 1}_format_function"] = functionName
-                                                       data["field_${i + 1}_format_type"] = type
+                                               val key = formatFields[fieldList[i].name.condenseSpaces()]
+                                               if (key != null) {
+                                                   formatTypeFunctionName[key]?.let { functionName ->
+                                                       typeChoice[key]?.let { type ->
+                                                           data["field_${i + 1}_formatted"] = true
+                                                           data["field_${i + 1}_format_function"] = functionName
+                                                           data["field_${i + 1}_format_type"] = type
+                                                       }
                                                    }
+                                               } else {
+                                                   // already defined
                                                }
                                            } else {
-                                               // already defined
+                                               Log.d("Field list shorter than specific fields count")
+                                               data["field_${i + 1}_defined"] = false
+                                               data["field_${i + 1}_name"] = ""
+                                               data["field_${i + 1}_label"] = ""
+                                               data["field_${i + 1}_formatted"] = false
+                                               data[LAYOUT_VARIABLE_ACCESSOR] = ""
                                            }
                                        }
 
