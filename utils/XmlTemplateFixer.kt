@@ -61,7 +61,7 @@ fun replaceTemplateText(oldFormText: String, formType: FormType): String {
                     "${indent}{{/isFormatted}}"
         else
             "${indent}{{#isFormatted}}\n" +
-                    "${indent}android:text=\"@{Format.{{formatFunction}({{formatType}},${variableName}.{{name}}.toString())}\"\n" +
+                    "${indent}android:text=\"@{Format.{{formatFunction}}({{formatType}},${variableName}.{{name}}.toString())}\"\n" +
                     "${indent}{{/isFormatted}}\n" +
                     "${indent}{{^isFormatted}}\n" +
                     "${indent}android:text=\"@{${variableName}{{layout_variable_accessor}}.{{name}}.toString()}\"\n" +
