@@ -1,13 +1,17 @@
+import ProjectEditorConstants.BOOLEAN_TYPE
+import ProjectEditorConstants.DATE_TYPE
+import ProjectEditorConstants.INT_TYPE
+import ProjectEditorConstants.TIME_TYPE
 
 object DefaultFormatter{
-    private var defaultForamt = HashMap<String,String>()
+    private var defaultFormat = HashMap<String,String>()
     // checkbyFielsType
     fun getKeys():  HashMap<String,String>{
-        defaultForamt.put("6","falseOrTrue") // bool
-        defaultForamt.put("4","mediumDate") // date
-        defaultForamt.put("11","mediumTime") // Time
-        defaultForamt.put("9","integer") // integer
-        return defaultForamt
+        defaultFormat.put(BOOLEAN_TYPE,"falseOrTrue") // bool
+        defaultFormat.put(DATE_TYPE,"mediumDate") // date
+        defaultFormat.put(TIME_TYPE,"mediumTime") // Time
+        defaultFormat.put(INT_TYPE,"integer") // integer
+        return defaultFormat
     }
 
 }

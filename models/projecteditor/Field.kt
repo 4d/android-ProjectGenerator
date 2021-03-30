@@ -11,7 +11,8 @@ data class Field(
         var relatedDataClass: String? = null,
         var variableType: String = VariableType.VAL.string,
         var isToMany: Boolean? = null,
-        var isSlave: Boolean? = null
+        var isSlave: Boolean? = null,
+        var format: String? = null
 )
 
 fun isPrivateRelationField(fieldName: String): Boolean = fieldName.startsWith("__") && fieldName.endsWith("Key")

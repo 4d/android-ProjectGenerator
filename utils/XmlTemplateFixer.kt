@@ -61,7 +61,7 @@ fun replaceTemplateText(oldFormText: String, formType: FormType): String {
                     "${indent}{{/isFormatted}}"
         else
             "${indent}{{#isFormatted}}\n" +
-                    "${indent}android:text=\"@{Format.{{formatFunction}}({{formatType}},${variableName}.{{name}}.toString())}\"\n" +
+                    "${indent}android:text=\"@{Format.{{formatFunction}}({{formatType}},${variableName}{{layout_variable_accessor}}.{{name}}.toString())}\"\n" +
                     "${indent}{{/isFormatted}}\n" +
                     "${indent}{{^isFormatted}}\n" +
                     "${indent}android:text=\"@{${variableName}{{layout_variable_accessor}}.{{name}}.toString()}\"\n" +
@@ -116,10 +116,10 @@ fun replaceTemplateText(oldFormText: String, formType: FormType): String {
         else
             "${indent}{{#field_${id}_defined}}\n" +
                     "${indent}{{#field_${id}_formatted}}\n" +
-                    "${indent}android:text=\"@{Format.{{field_${id}_format_function}}({{field_${id}_format_type}},${variableName}{{layout_variable_accessor}}.{{field_${id}_name}}.toString())}\"\n" +
+                    "${indent}android:text=\"@{Format.{{field_${id}_format_function}}({{field_${id}_format_type}},${variableName}.{{layout_variable_accessor}}.{{field_${id}_name}}.toString())}\"\n" +
                     "${indent}{{/field_${id}_formatted}}\n" +
                     "${indent}{{^field_${id}_formatted}}\n" +
-                    "${indent}android:text=\"@{${variableName}{{layout_variable_accessor}}.{{field_${id}_name}}.toString()}\"\n" +
+                    "${indent}android:text=\"@{${variableName}.{{layout_variable_accessor}}.{{field_${id}_name}}.toString()}\"\n" +
                     "${indent}{{/field_${id}_formatted}}\n" +
                     "${indent}{{/field_${id}_defined}}"
     }

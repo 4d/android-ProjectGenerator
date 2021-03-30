@@ -2,6 +2,7 @@ import ProjectEditorConstants.DATAMODEL_KEY
 import ProjectEditorConstants.EMPTY_KEY
 import ProjectEditorConstants.FIELDTYPE_KEY
 import ProjectEditorConstants.FILTER_KEY
+import ProjectEditorConstants.FORMAT_KEY
 import ProjectEditorConstants.ICON_KEY
 import ProjectEditorConstants.INVERSENAME_KEY
 import ProjectEditorConstants.ISTOMANY_KEY
@@ -187,6 +188,9 @@ fun JSONObject?.getDataModelField(keyField: String): Field {
         field.name = fieldName
         field.id = keyField
         field.fieldTypeString = typeStringFromTypeInt(field.fieldType)
+   }
+    this?.getSafeString(FORMAT_KEY).let{
+        field.format = it
     }
     this?.getSafeBoolean(ISTOMANY_KEY)?.let { isToMany -> // Slave table defined in another table will have isToMany key
         field.name = keyField

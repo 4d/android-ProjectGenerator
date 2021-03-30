@@ -85,7 +85,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
     //TypeChoice Key
     private val typeChoice = Key.getKeys()
     private val formatTypeFunctionName = Key.getFormatTypeFunctionName()
-    private lateinit var defaultFormatterFields : HashMap<String, String>
+    private  var defaultFormatterFields : HashMap<String, String>
 
     init {
         Log.plantTree(this::class.java.canonicalName)
@@ -98,6 +98,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         data[APP_NAME_WITH_CAPS] = fileHelper.pathHelper.appNameWithCaps
         formatFields = projectEditor.formatFields
         defaultFormatterFields = projectEditor.defaultFormatLFiledType
+        Log.e(">>>>>>> formatFields :: $formatFields")
         Log.e(">>>>>>> defaultFormatterFields :: $defaultFormatterFields")
         // for network_security_config.xml
         // whitelist production host address if defined, else, server host address, else localhost
@@ -504,9 +505,10 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
                                     } else {
                                         // already defined
-                                        val defaultKey = defaultFormatter[defaultFormatterFields[field.name.condenseSpaces()]]
+                                        val defaultKey = defaultFormatter[field.fieldTypeString]
                                         formatTypeFunctionName[defaultKey]?.let { functionName ->
                                             typeChoice[defaultKey]?.let { type ->
+                                                Log.e("TEST :: FunName -> ${functionName}   FormatType -> ${type} -->${defaultKey}")
                                                 data["field_${i}_formatted"] = true
                                                 data["field_${i}_format_function"] = functionName
                                                 data["field_${i}_format_type"] = type
@@ -538,6 +540,20 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                             }
                         }
                     }
+            }
+        }
+    }
+
+    private fun applyDefaultFormat(fieldList: List<Field>,index : Int){
+        // default Key
+        val fieldTypeString = typeStringFromTypeInt(fieldList[index].fieldType) // when fixed use fieldList[i].fieldTypeString
+        val defaultKey = defaultFormatter[fieldTypeString]
+        Log.d("Field type :: ${fieldList[index].name} ${fieldTypeString} ${defaultKey}")
+        formatTypeFunctionName[defaultKey]?.let { functionName ->
+            typeChoice[defaultKey]?.let { type ->
+                data["field_${index + 1}_formatted"] = true
+                data["field_${index + 1}_format_function"] = functionName
+                data["field_${index + 1}_format_type"] = type
             }
         }
     }
@@ -601,17 +617,19 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                        for (i in fieldList.indices) {
                                            if (fieldList[i].name.isNotEmpty()) {
 
-                                               val key = formatFields[fieldList[i].name.condenseSpaces()]
+                                               //val key = formatFields[fieldList[i].name.condenseSpaces()]
+                                               var key = fieldList[i].format
                                                var formField = createFormField(fieldList[i], i + 1, false)
                                                if (key != null) {
                                                    formatTypeFunctionName[key]?.let { functionName ->
                                                        typeChoice[key]?.let { type ->
                                                            println("Adding free Field with format ${fieldList[i]}")
-                                                           formField =  createFormField(fieldList[i], i + 1, true, functionName, type)
+                                                           formField = createFormField(fieldList[i], i + 1, true, functionName, type)
                                                        }
                                                    }
                                                } else {
                                                    // already defined
+                                                   applyDefaultFormat(fieldList,i)
                                                }
                                                formFieldList.add(formField)
                                            } else {
@@ -629,7 +647,8 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                            data["field_${i + 1}_formatted"] = false
                                            data[LAYOUT_VARIABLE_ACCESSOR] = if (fieldList[i].name.contains(".")) "" else ".entity"
 
-                                           val key = formatFields[fieldList[i].name.condenseSpaces()]
+                                           //val key = formatFields[fieldList[i].name.condenseSpaces()]
+                                           val key = fieldList[i].format
                                            Log.e("applyDetailFormTemplate  filedName :: ${fieldList[i].name.condenseSpaces()} -- key :: $key")
                                            if (key != null) {
                                                formatTypeFunctionName[key]?.let { functionName ->
@@ -641,10 +660,12 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                                }
                                            } else {
                                                // already define
-
+                                               applyDefaultFormat(fieldList,i)
                                                // default Key
-                                              val defaultKey = defaultFormatter[defaultFormatterFields[fieldList[i].name.condenseSpaces()]]
-                                               Log.e("applyListFormTemplate fieldName here 2:: ${fieldList[i].name.condenseSpaces()} --  --> defaultFormatter :: $defaultKey --- formatTypeFunctionName :: ${formatTypeFunctionName[defaultKey]} -- TypeChoice ::${typeChoice[defaultKey]}")
+                                               /*
+                                               val fieldTypeString = typeStringFromTypeInt(fieldList[i].fieldType) // when fixed use fieldList[i].fieldTypeString
+                                               val defaultKey = defaultFormatter[fieldTypeString]
+                                               Log.e("applyListFormTemplate fieldName here test2:: ${fieldList[i].name.condenseSpaces()} --  --> defaultFormatter :: $defaultKey --- formatTypeFunctionName :: ${formatTypeFunctionName[defaultKey]} -- TypeChoice ::${typeChoice[defaultKey]}")
                                                formatTypeFunctionName[defaultKey]?.let { functionName ->
                                                    typeChoice[defaultKey]?.let { type ->
                                                        data["field_${i + 1}_formatted"] = true
@@ -652,6 +673,8 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                                        data["field_${i + 1}_format_type"] = type
                                                    }
                                                }
+
+                                                */
                                            }
                                        }
 
@@ -667,7 +690,8 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                                if (fieldList[i].name.isNotEmpty()) {
                                                    println("Adding free Field in specific template ${fieldList[i]}")
 
-                                                   val key = formatFields[fieldList[i].name.condenseSpaces()]
+                                                   //val key = formatFields[fieldList[i].name.condenseSpaces()]
+                                                   val key = fieldList[i].format
                                                    var formField = createFormField(fieldList[i], k + 1, false)
                                                    if (key != null) {
                                                        formatTypeFunctionName[key]?.let { functionName ->
@@ -677,11 +701,24 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                                        }
                                                    } else {
                                                        // already defined
+
+                                                       // default Key
+                                                       val fieldTypeString = typeStringFromTypeInt(fieldList[i].fieldType) // when fixed use fieldList[i].fieldTypeString
+                                                       val defaultKey = defaultFormatter[fieldTypeString]
+                                                       Log.e("applyListFormTemplate fieldName here test3:: ${fieldList[i].name.condenseSpaces()} --  --> defaultFormatter :: $defaultKey --- formatTypeFunctionName :: ${formatTypeFunctionName[defaultKey]} -- TypeChoice ::${typeChoice[defaultKey]}")
+                                                       formatTypeFunctionName[defaultKey]?.let { functionName ->
+                                                           typeChoice[defaultKey]?.let { type ->
+                                                               data["field_${i + 1}_formatted"] = true
+                                                               data["field_${i + 1}_format_function"] = functionName
+                                                               data["field_${i + 1}_format_type"] = type
+                                                           }
+                                                       }
                                                    }
                                                    formFieldList.add(formField)
                                                    k++
                                                } else {
                                                    // don't add null field
+                                                   applyDefaultFormat(fieldList,i)
                                                }
                                            }
                                        } else {

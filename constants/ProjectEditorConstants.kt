@@ -10,6 +10,7 @@ object ProjectEditorConstants {
     const val PACKAGE_KEY = "package"
     const val EMPTY_KEY = ""
     const val LABEL_KEY = "label"
+    const val FORMAT_KEY = "format"
     const val SHORTLABEL_KEY = "shortLabel"
     const val ICON_KEY = "icon"
     const val FILTER_KEY = "filter"

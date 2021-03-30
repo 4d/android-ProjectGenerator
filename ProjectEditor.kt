@@ -149,11 +149,11 @@ class ProjectEditor(projectEditorFile: File) {
                             val dat = jsonObject.getSafeArray("searchableField")
                             if (dat != null) {
                                 for (ind in 0 until dat.length()) {
-                                    columns.add(dat.getJSONObject(ind).get("name") as String)
+                                     columns.add((dat.getJSONObject(ind).get("name") as String).replace(" ",""))
                                 }
                             } else {
                                 if (!(jsonObject.get("searchableField")).equals(null)) {
-                                    columns.add(jsonObject.getJSONObject("searchableField").get("name") as String)
+                                    columns.add((jsonObject.getJSONObject("searchableField").get("name") as String).replace(" ",""))
                                 } else {
                                     Log.w("searchableField is not available")
                                 }
@@ -194,7 +194,7 @@ class ProjectEditor(projectEditorFile: File) {
 
                         if (jsonColumnObject !=null && jsonColumnObject.has("format")){
                             if (jsonColumnObject.has("name")) {
-                                formatFields.put(jsonColumnObject["name"].toString(),jsonColumnObject["format"].toString())
+                                formatFields.put(jsonColumnObject["name"].toString().condenseSpacesCapital(),jsonColumnObject["format"].toString())
                            }
                         }else{
                             if(jsonColumnObject !=null ){
