@@ -7,6 +7,7 @@ import ExitCodes.FILE_CREATION_ERROR
 import ExitCodes.MISSING_ANDROID_CACHE_SDK_PATH
 import ExitCodes.MISSING_ANDROID_SDK_PATH
 import FileHelperConstants.APP_INFO_FILENAME
+import FileHelperConstants.DS_STORE
 import FileHelperConstants.QUERIES_FILENAME
 import MustacheConstants.ANDROID_SDK_PATH
 import MustacheConstants.APP_NAME_WITH_CAPS
@@ -295,7 +296,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
             compiler = generateCompilerFolder(currentFolder.absolutePath)
 
             currentFolder.walkTopDown()
-                .filter { file -> !file.isHidden && file.isFile && currentFolder.absolutePath.contains(file.parent) }
+                .filter { file -> !file.isHidden && file.isFile && currentFolder.absolutePath.contains(file.parent) && file.name != DS_STORE }
                 .forEach { currentFile ->
 
                     Log.d("Processed file"  ,"$currentFile")
@@ -470,7 +471,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                 compiler = generateCompilerFolder(currentFolder.absolutePath)
 
                 currentFolder.walkTopDown()
-                    .filter { file -> !file.isHidden && file.isFile && currentFolder.absolutePath.contains(file.parent) }
+                    .filter { file -> !file.isHidden && file.isFile && currentFolder.absolutePath.contains(file.parent) && file.name != DS_STORE }
                     .forEach { currentFile ->
 
                         Log.i(" > Processed template file : $currentFile")
@@ -597,7 +598,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                compiler = generateCompilerFolder(currentFolder.absolutePath)
 
                currentFolder.walkTopDown()
-                   .filter { file -> !file.isHidden && file.isFile && currentFolder.absolutePath.contains(file.parent) }
+                   .filter { file -> !file.isHidden && file.isFile && currentFolder.absolutePath.contains(file.parent)  && file.name != DS_STORE }
                    .forEach { currentFile ->
 
                        Log.i(" > Processed template file : $currentFile")
