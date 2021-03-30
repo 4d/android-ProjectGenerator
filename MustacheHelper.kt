@@ -28,7 +28,9 @@ import MustacheConstants.ENTITY_CLASSES
 import MustacheConstants.FIELDS
 import MustacheConstants.FIRST_FIELD
 import MustacheConstants.FORM_FIELDS
-import MustacheConstants.LAYOUT_VARIABLE_ACCESSOR
+import MustacheConstants.IMAGE_FIELD_NAME
+import MustacheConstants.IMAGE_KEY_ACCESSOR
+import MustacheConstants.IMAGE_TABLE_NAME
 import MustacheConstants.PACKAGE
 import MustacheConstants.RELATIONS
 import MustacheConstants.RELATIONS_IMPORT
@@ -150,7 +152,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         Log.d("> Cache 4D SDK = ${data[CACHE_4D_SDK_PATH]}")
 
         projectEditor.findJsonString("backgroundColor")?.let {
-            println("backgroundColor = $it")
+            Log.d("backgroundColor = $it")
             data[COLORS_DEFINED] = true
             data[COLOR_PRIMARY_NEUTRAL] = it
 
@@ -208,6 +210,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                     name_original = dataModel.name,
                     nameLowerCase = dataModel.name.toLowerCase().condenseSpaces(),
                     nameCamelCase = dataModel.name.capitalizeWords().condenseSpaces(),
+                    label = dataModel.getLabel(),
                     hasIcon = (dataModel.iconPath != null && dataModel.iconPath != ""),
                     icon = dataModel.iconPath ?: ""))
 
@@ -244,19 +247,21 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
             projectEditor.dataModelList.find { it.id == navigationTableId }?.let { dataModel ->
                 if (navigationTableCounter <= 3) {
                     Log.w("Adding [${dataModel.name}] in navigation table list")
+
                     tableNamesForNavigation.add(
                         TemplateLayoutFiller(
                             name = dataModel.name.condenseSpacesCapital(),
                             name_original = dataModel.name,
                             nameLowerCase = dataModel.name.toLowerCase().condenseSpaces(),
                             nameCamelCase = dataModel.name.capitalizeWords().condenseSpaces(),
+                            label = dataModel.getLabel(),
                             hasIcon = (dataModel.iconPath != null && dataModel.iconPath != ""),
                             icon = dataModel.iconPath ?: ""))
 
                     navigationTableCounter++
 
                     dataModel.relationList?.filter { it.relationType == RelationType.MANY_TO_ONE }?.forEach { relation ->
-                        layoutRelationList.add(TemplateRelationFiller(relation_source = relation.source.condenseSpacesCapital(),
+                        layoutRelationList.add(TemplateRelationFiller(relation_source = relation.source.capitalizeWords().condenseSpaces(),
                             relation_target = relation.target.condenseSpacesCapital(),
                             relation_name = relation.name.condenseSpaces()
                         ))
@@ -322,7 +327,12 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                             }
 
                             data[TABLENAME] = tableName.name.condenseSpacesCapital()
+
                             data[TABLENAME_ORIGINAL] = tableName.name_original
+                            projectEditor.dataModelList.find { it.name.condenseSpacesCapital() == tableName.name.condenseSpacesCapital() }?.let { datamodel ->
+                                data[TABLENAME_ORIGINAL] = datamodel.getLabel()
+                            }
+
                             data[TABLENAME_LOWERCASE] = tableName.name.toLowerCase().condenseSpaces()
                             projectEditor.dataModelList.find { it.name.condenseSpacesCapital() == tableName.name.condenseSpacesCapital() }?.fields?.let { fields ->
                                 val fieldList = mutableListOf<TemplateFieldFiller>()
@@ -436,10 +446,10 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
     fun applyListFormTemplate() {
         projectEditor.listFormList.forEach { listForm ->
 
-            println("MustacheHelper : listform.name = ${listForm.name}")
-            println("MustacheHelper : listform.datamodel.name = ${listForm.dataModel.name}")
-            println("MustacheHelper : listform.datamodel.name.condenseSpacesCapital() = ${listForm.dataModel.name.condenseSpacesCapital()}")
-            println("MustacheHelper : listform.fields size = ${listForm.fields?.size}")
+            Log.d("MustacheHelper : listform.name = ${listForm.name}")
+            Log.d("MustacheHelper : listform.datamodel.name = ${listForm.dataModel.name}")
+            Log.d("MustacheHelper : listform.datamodel.name.condenseSpacesCapital() = ${listForm.dataModel.name.condenseSpacesCapital()}")
+            Log.d("MustacheHelper : listform.fields size = ${listForm.fields?.size}")
 
             var formPath = fileHelper.pathHelper.getFormPath(listForm.name, FormType.LIST)
 
@@ -483,23 +493,34 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                             }
                             data[RELATIONS] = relations
 
+                            listForm.fields?.forEach {
+                                Log.d("LIST : ${listForm.name} / field = $it")
+                            }
+
                             var i = 0
                             listForm.fields?.forEach { field -> // Could also iter over specificFieldsCount as Detail form
                                 i++
 
-                                if ((field.inverseName != null) || (fileHelper.pathHelper.isDefaultTemplateListFormPath(formPath) && field.fieldType == 3)) { // is relation or image in default template
+                                if ((field.inverseName != null) || (fileHelper.pathHelper.isDefaultTemplateListFormPath(formPath) && field.isImage())) { // is relation or image in default template
 
                                     data["field_${i}_defined"] = false
                                     data["field_${i}_formatted"] = false
-                                    data["field_${i}_label"] = field.label ?: ""
+                                    data["field_${i}_label"] = ""
                                     data["field_${i}_name"] = ""
+                                    data["field_${i}_accessor"] = ""
 
                                 } else { // not a relation
 
                                     data["field_${i}_name"] = field.name.condenseSpaces()
                                     data["field_${i}_defined"] = field.name.isNotEmpty()
-                                    data["field_${i}_label"] = field.label ?: ""
+                                    data["field_${i}_label"] = field.getLabel()
                                     data["field_${i}_formatted"] = false
+                                    data["field_${i}_accessor"] = field.getLayoutVariableAccessor(FormType.LIST)
+                                    if (field.isImage()) {
+                                        data[IMAGE_FIELD_NAME] = field.getImageFieldName()
+                                        data[IMAGE_KEY_ACCESSOR] = field.getImageKeyAccessor(FormType.LIST)
+                                        data[IMAGE_TABLE_NAME] = field.getImageTableName(projectEditor.dataModelList, listForm)
+                                    }
 
                                     val key = formatFields[field.name.condenseSpaces()]
                                     if (key != null) {
@@ -528,8 +549,12 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                 data.remove("field_${j}_formatted")
                                 data.remove("field_${j}_format_function")
                                 data.remove("field_${j}_format_type")
+                                data.remove("field_${j}_accessor")
                             }
                             data.remove(RELATIONS)
+                            data.remove(IMAGE_FIELD_NAME)
+                            data.remove(IMAGE_KEY_ACCESSOR)
+                            data.remove(IMAGE_TABLE_NAME)
                         } else { // any file to copy in project
                             val newFile = File(fileHelper.pathHelper.getLayoutTemplatePath(currentFile.absolutePath, formPath))
                             Log.i("File to copy : ${currentFile.absolutePath}; target : ${newFile.absolutePath}")
@@ -551,11 +576,11 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
            if (File(formPath).exists()) {
                if (!fileHelper.pathHelper.appFolderExistsInTemplate(formPath)) {
-                   println("WARNING : AN IOS TEMPLATE WAS GIVEN FOR THE DETAIL FORM $formPath")
+                   Log.w("WARNING : AN IOS TEMPLATE WAS GIVEN FOR THE DETAIL FORM $formPath")
                    formPath = fileHelper.pathHelper.getDefaultTemplateDetailFormPath()
                }
            } else {
-               println("WARNING : MISSING DETAIL FORM TEMPLATE $formPath")
+               Log.w("WARNING : MISSING DETAIL FORM TEMPLATE $formPath")
                formPath = fileHelper.pathHelper.getDefaultTemplateDetailFormPath()
            }
 
@@ -593,7 +618,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                            detailForm.fields?.let { fieldList ->
 
                                fieldList.forEach {
-                                   println("${detailForm.name} / field = $it")
+                                   Log.d("DETAIL ${detailForm.name} / field = $it")
                                }
 
                                if (fieldList.isNotEmpty()) {
@@ -602,13 +627,14 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                        for (i in fieldList.indices) {
                                            if (fieldList[i].name.isNotEmpty()) {
 
+                                               var formField = createDetailFormField(fieldList[i], i + 1, projectEditor.dataModelList, detailForm, false)
+
                                                val key = formatFields[fieldList[i].name.condenseSpaces()]
-                                               var formField = createFormField(fieldList[i], i + 1, false)
                                                if (key != null) {
                                                    formatTypeFunctionName[key]?.let { functionName ->
                                                        typeChoice[key]?.let { type ->
-                                                           println("Adding free Field with format ${fieldList[i]}")
-                                                           formField =  createFormField(fieldList[i], i + 1, true, functionName, type)
+                                                           Log.d("Adding free Field with format ${fieldList[i]}")
+                                                           formField =  createDetailFormField(fieldList[i], i + 1, projectEditor.dataModelList, detailForm,true, functionName, type)
                                                        }
                                                    }
                                                } else {
@@ -626,12 +652,18 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
                                            if (i < fieldList.size) {
                                                Log.d("Adding specific Field ${fieldList[i]}")
+                                               Log.d("fieldList[i].getLayoutVariableAccessor() = ${fieldList[i].getLayoutVariableAccessor(FormType.DETAIL)}")
+
                                                data["field_${i + 1}_defined"] = fieldList[i].name.isNotEmpty()
                                                data["field_${i + 1}_name"] = fieldList[i].name.condenseSpaces()
-                                               data["field_${i + 1}_label"] = fieldList[i].label ?: ""
+                                               data["field_${i + 1}_label"] = fieldList[i].getLabel()
                                                data["field_${i + 1}_formatted"] = false
-                                               data[LAYOUT_VARIABLE_ACCESSOR] =
-                                                   if (fieldList[i].name.contains(".")) "" else ".entity"
+                                               data["field_${i + 1}_accessor"] = fieldList[i].getLayoutVariableAccessor(FormType.DETAIL)
+                                               if (fieldList[i].isImage()) {
+                                                    data[IMAGE_FIELD_NAME] = fieldList[i].getImageFieldName()
+                                                    data[IMAGE_KEY_ACCESSOR] = fieldList[i].getImageKeyAccessor(FormType.DETAIL)
+                                                    data[IMAGE_TABLE_NAME] = fieldList[i].getImageTableName(projectEditor.dataModelList, detailForm)
+                                               }
 
                                                val key = formatFields[fieldList[i].name.condenseSpaces()]
                                                if (key != null) {
@@ -651,28 +683,31 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                                data["field_${i + 1}_name"] = ""
                                                data["field_${i + 1}_label"] = ""
                                                data["field_${i + 1}_formatted"] = false
-                                               data[LAYOUT_VARIABLE_ACCESSOR] = ""
+                                               data["field_${i + 1}_accessor"] = ""
+                                               data[IMAGE_FIELD_NAME] = ""
+                                               data[IMAGE_KEY_ACCESSOR] = ""
+                                               data[IMAGE_TABLE_NAME] = ""
                                            }
                                        }
 
-                                       println("fieldList.size = ${fieldList.size}")
-                                       println("specificFieldsCount = $specificFieldsCount")
+                                       Log.d("fieldList.size = ${fieldList.size}")
+                                       Log.d("specificFieldsCount = $specificFieldsCount")
 
                                        if (fieldList.size > specificFieldsCount) {
                                            var k = specificFieldsCount // another counter to avoid null field
                                            for (i in specificFieldsCount until fieldList.size) {
-                                               println("in for loop, i = $i")
-                                               println("in for loop, k = $k")
-                                               println("fieldList[i] = ${fieldList[i]}")
+                                               Log.d("in for loop, i = $i")
+                                               Log.d("in for loop, k = $k")
+                                               Log.d("fieldList[i] = ${fieldList[i]}")
                                                if (fieldList[i].name.isNotEmpty()) {
-                                                   println("Adding free Field in specific template ${fieldList[i]}")
+                                                   Log.d("Adding free Field in specific template ${fieldList[i]}")
 
                                                    val key = formatFields[fieldList[i].name.condenseSpaces()]
-                                                   var formField = createFormField(fieldList[i], k + 1, false)
+                                                   var formField = createDetailFormField(fieldList[i], k + 1, projectEditor.dataModelList, detailForm,false)
                                                    if (key != null) {
                                                        formatTypeFunctionName[key]?.let { functionName ->
                                                            typeChoice[key]?.let { type ->
-                                                               formField =  createFormField(fieldList[i], k + 1, true, functionName, type)
+                                                               formField =  createDetailFormField(fieldList[i], k + 1, projectEditor.dataModelList, detailForm,true, functionName, type)
                                                            }
                                                        }
                                                    } else {
@@ -698,7 +733,9 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
                            // cleaning data for other templates
                            data.remove(FORM_FIELDS)
-                           data.remove(LAYOUT_VARIABLE_ACCESSOR)
+                           data.remove(IMAGE_FIELD_NAME)
+                           data.remove(IMAGE_KEY_ACCESSOR)
+                           data.remove(IMAGE_TABLE_NAME)
                            for (i in 1 until specificFieldsCount) {
                                data.remove("field_${i}_defined")
                                data.remove("field_${i}_name")
@@ -706,12 +743,13 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                data.remove("field_${i}_formatted")
                                data.remove("field_${i}_format_function")
                                data.remove("field_${i}_format_type")
+                               data.remove("field_${i}_accessor")
                            }
 
                        } else { // any file to copy in project
                            val newFile = File(fileHelper.pathHelper.getLayoutTemplatePath(currentFile.absolutePath, formPath))
                            if (!currentFile.copyRecursively(target = newFile, overwrite = true)) {
-                               println("An error occurred while copying template files with target : ${newFile.absolutePath}")
+                               Log.e("An error occurred while copying template files with target : ${newFile.absolutePath}")
                                exitProcess(COPY_TEMPLATE_FILE_ERROR)
                            }
                        }
@@ -768,7 +806,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
     }
 
     fun getLayoutManagerType(formPath: String): String {
-        println("getLayoutManagerType: $formPath")
+        Log.d("getLayoutManagerType: $formPath")
 
         var type = "Collection"
         getTemplateManifestJSONContent(formPath)?.let {
