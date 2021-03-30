@@ -65,7 +65,9 @@ class PathHelper(
             Log.e("Couldn't find target directory with path : $currentPath")
             exitProcess(MISSING_TARGET_DIR)
         }
-        return replaceDirectoriesPath(paths[1])
+        val subPath = paths[1].removePrefix("/").removePrefix("\\").removePrefix(ANDROID_PATH_KEY)
+        Log.d("replaceLayoutTemplatePath, subPath = $subPath")
+        return replaceDirectoriesPath(subPath)
     }
 
     val listFormTemplatesPath = templateFormsPath + File.separator + LIST_FORMS_KEY
@@ -184,7 +186,7 @@ class PathHelper(
         ZipFile(zipFile).use { zip ->
             zip.entries().asSequence().forEach { entry ->
 
-                println("zip entry is : $entry")
+                Log.d("zip entry is : $entry")
                 zip.getInputStream(entry).use { input ->
 
                     File(entry.name).outputStream().use { output ->
