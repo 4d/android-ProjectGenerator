@@ -37,7 +37,7 @@ fun JSONObject.getDataModelList(): List<DataModel> {
                     savedRelations.addAll(it)
                 }
                 if (dataModelList.removeIf { dataModel ->  dataModel.name == dataModelName}) {
-                    println("DataModel removed from list : $dataModelName")
+                    Log.d("DataModel removed from list : $dataModelName")
                 }
 
                 val newDataModel = DataModel(name = dataModelName, isSlave = false)
@@ -73,7 +73,7 @@ fun JSONObject.getDataModelList(): List<DataModel> {
 
                                 if (relation.relationType == RelationType.MANY_TO_ONE) {
                                     val relationKeyField = Field(name = "__${relation.name}Key")
-                                    println("Many to One relation: adding relationKeyField = $relationKeyField")
+                                    Log.d("Many to One relation: adding relationKeyField = $relationKeyField")
                                     relationKeyField.fieldType = 0
                                     relationKeyField.fieldTypeString = typeStringFromTypeInt(relationKeyField.fieldType)
                                     relationKeyField.variableType = VariableType.VAR.string
@@ -102,7 +102,7 @@ fun JSONObject.getDataModelList(): List<DataModel> {
 
                                                 if (relation.relationType == RelationType.MANY_TO_ONE) {
                                                     val relationKeyField = Field(name = "__${relation.name}Key")
-                                                    println("Many to One relation: adding relationKeyField = $relationKeyField")
+                                                    Log.d("Many to One relation: adding relationKeyField = $relationKeyField")
                                                     relationKeyField.fieldType = 0
                                                     relationKeyField.fieldTypeString = typeStringFromTypeInt(relationKeyField.fieldType)
                                                     relationKeyField.variableType = VariableType.VAR.string

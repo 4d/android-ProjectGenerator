@@ -62,7 +62,7 @@ class ProjectEditor(projectEditorFile: File) {
             dataModelList = jsonObj.getDataModelList()
             Log.d("> DataModels list successfully read.")
 
-            getSearchableColums(jsonObj)
+            getSearchableColumns(jsonObj)
             Log.d("> Searchable fields successfully read.")
 
             setFormatFields()
@@ -133,7 +133,7 @@ class ProjectEditor(projectEditorFile: File) {
         return newDataModelJSONObject?.get(NAME_KEY) as? String
     }
 
-    private fun getSearchableColums(datarecv: JSONObject?) {
+    private fun getSearchableColumns(datarecv: JSONObject?) {
 
         datarecv.let {
             if (datarecv!!.has("project")) {
@@ -178,9 +178,9 @@ class ProjectEditor(projectEditorFile: File) {
             if (project.has("dataModel")) { // CLEAN there is already a DataModel object decoded
                 //println("Data Model Present")
                 val dataModel = project.getJSONObject("dataModel")
-                val dataModeArray = dataModel.names()
-                for (index in 0 until dataModeArray.length()) {
-                    val tableKey = dataModeArray[index] as String
+                val dataModelArray = dataModel.names()
+                for (index in 0 until dataModelArray.length()) {
+                    val tableKey = dataModelArray[index] as String
                     val fieldJSONObject = dataModel.getJSONObject(tableKey)
                     val fieldJSONArray = fieldJSONObject.names()
                     //if ()
@@ -198,7 +198,7 @@ class ProjectEditor(projectEditorFile: File) {
                         }
                     }
                 }
-                println(dataModeArray)
+                Log.d("dataModelArray : $dataModelArray")
             }
         }
     }

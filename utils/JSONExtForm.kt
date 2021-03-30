@@ -11,8 +11,8 @@ fun JSONObject.getFormList(dataModelList: List<DataModel>, formType: FormType, n
     val formTypeKey = if (formType == FormType.LIST) LIST_KEY else DETAIL_KEY
     val forms = this.getSafeObject(PROJECT_KEY)?.getSafeObject(formTypeKey)
 
-    println("dataModelList = ${dataModelList.map { it.id }.joinToString()}")
-    println("navigationTableList = ${navigationTableList.joinToString()}")
+    Log.d("dataModelList = ${dataModelList.map { it.id }.joinToString()}")
+    Log.d("navigationTableList = ${navigationTableList.joinToString()}")
 
     forms?.names()?.let {
         for (i in 0 until forms.names().length()) {
@@ -23,9 +23,9 @@ fun JSONObject.getFormList(dataModelList: List<DataModel>, formType: FormType, n
                 newFormJSONObject?.getSafeString(FORM_KEY)?.let {
                     form.name = it
                 }
-                println("***+ formType : $formType")
-                println("newFormJSONObject = $newFormJSONObject")
-                println("newFormJSONObject?.getSafeArray(FIELDS_KEY) = ${newFormJSONObject?.getSafeArray(FIELDS_KEY)}")
+                Log.d("***+ formType : $formType")
+                Log.d("newFormJSONObject = $newFormJSONObject")
+                Log.d("newFormJSONObject?.getSafeArray(FIELDS_KEY) = ${newFormJSONObject?.getSafeArray(FIELDS_KEY)}")
                 val fieldList = newFormJSONObject?.getSafeArray(FIELDS_KEY).getObjectListAsString()
                 form.fields = getFormFields(fieldList)
                 formList.add(form)
@@ -34,19 +34,19 @@ fun JSONObject.getFormList(dataModelList: List<DataModel>, formType: FormType, n
     }
 
     dataModelList.forEach { dataModel ->
-        println("dataModel.id = ${dataModel.id}")
+        Log.d("dataModel.id = ${dataModel.id}")
         if (navigationTableList.contains(dataModel.id) && !formList.map { it.dataModel.id }.contains(dataModel.id)) {
-            println("adding empty form for dataModel : ${dataModel.name}")
+            Log.d("adding empty form for dataModel : ${dataModel.name}")
             val form = Form(dataModel = dataModel)
             formList.add(form)
         }
     }
 
     for (form in formList) {
-        println("form (before checking missing forms) : ${form.name}")
+        Log.d("form (before checking missing forms) : ${form.name}")
         form.fields?.let {
             for (field in it)
-                println("> field : ${field.name}")
+                Log.d("> field : ${field.name}")
         }
     }
 
@@ -60,7 +60,7 @@ fun JSONObject.getFormList(dataModelList: List<DataModel>, formType: FormType, n
                     if (formType == FormType.LIST && (it.inverseName != null || it.fieldTypeString == PHOTO_TYPE)) {
                         // don't add this field
                     } else {
-                        println("adding field to default form = $it")
+                        Log.d("adding field to default form = $it")
                         fields.add(it)
                     }
                 }
@@ -73,10 +73,10 @@ fun JSONObject.getFormList(dataModelList: List<DataModel>, formType: FormType, n
     }
 
     for (form in formList) {
-        println("form (after checking missing forms) : ${form.name}")
+        Log.d("form (after checking missing forms) : ${form.name}")
         form.fields?.let {
             for (field in it)
-                println("> field : ${field.name}")
+                Log.d("> field : ${field.name}")
         }
     }
     return formList
