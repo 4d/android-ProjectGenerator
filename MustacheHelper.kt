@@ -202,7 +202,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
             tableNames.add(TemplateTableFiller(
                 name = dataModel.name.condenseSpacesCapital(),
                 name_original = dataModel.name,
-                nameCamelCase = dataModel.name.capitalizeWords().condenseSpaces(),
+                nameCamelCase = dataModel.name.capitalizeWords(),
                 concat_fields = dataModel.fields?.joinToString { "\"${it.name}\"" } ?: ""))
 
             tableNames_lowercase.add(
@@ -210,7 +210,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                     name = dataModel.name.condenseSpacesCapital(),
                     name_original = dataModel.name,
                     nameLowerCase = dataModel.name.toLowerCase().condenseSpaces(),
-                    nameCamelCase = dataModel.name.capitalizeWords().condenseSpaces(),
+                    nameCamelCase = dataModel.name.capitalizeWords(),
                     label = dataModel.getLabel(),
                     hasIcon = (dataModel.iconPath != null && dataModel.iconPath != ""),
                     icon = dataModel.iconPath ?: ""))
@@ -254,7 +254,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                             name = dataModel.name.condenseSpacesCapital(),
                             name_original = dataModel.name,
                             nameLowerCase = dataModel.name.toLowerCase().condenseSpaces(),
-                            nameCamelCase = dataModel.name.capitalizeWords().condenseSpaces(),
+                            nameCamelCase = dataModel.name.capitalizeWords(),
                             label = dataModel.getLabel(),
                             hasIcon = (dataModel.iconPath != null && dataModel.iconPath != ""),
                             icon = dataModel.iconPath ?: ""))
@@ -262,9 +262,11 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                     navigationTableCounter++
 
                     dataModel.relationList?.filter { it.relationType == RelationType.MANY_TO_ONE }?.forEach { relation ->
-                        layoutRelationList.add(TemplateRelationFiller(relation_source = relation.source.capitalizeWords().condenseSpaces(),
-                            relation_target = relation.target.condenseSpacesCapital(),
-                            relation_name = relation.name.condenseSpaces()
+                        layoutRelationList.add(
+                            TemplateRelationFiller(
+                                relation_source = relation.source.capitalizeWords(),
+                                relation_target = relation.target.condenseSpacesCapital(),
+                                relation_name = relation.name.condenseSpaces()
                         ))
                     }
                 } else {
@@ -342,7 +344,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                         fieldList.add(
                                             TemplateFieldFiller(
                                                 name = field.name.condenseSpaces(),
-                                                fieldTypeString = fieldTypeString,
+                                                fieldTypeString = fieldTypeString.condenseSpacesCapital(),
                                                 variableType = field.variableType,
                                                 name_original = field.name
                                             )
@@ -402,10 +404,10 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                     projectEditor.dataModelList.forEach { dataModel ->
                         dataModel.relationList?.filter { it.relationType == RelationType.MANY_TO_ONE }?.forEach { relation ->
 
-                            data[RELATION_SOURCE] = relation.source
-                            data[RELATION_TARGET] = relation.target
+                            data[RELATION_SOURCE] = relation.source.condenseSpacesCapital()
+                            data[RELATION_TARGET] = relation.target.condenseSpacesCapital()
 
-                            val replacedPath = newFilePath.replace(TEMPLATE_RELATION_DAO_PLACEHOLDER, "${relation.source}Has${relation.target}")
+                            val replacedPath = newFilePath.replace(TEMPLATE_RELATION_DAO_PLACEHOLDER, "${relation.source.condenseSpacesCapital()}Has${relation.target.condenseSpacesCapital()}")
 
                             applyTemplate(replacedPath)
 
@@ -420,12 +422,12 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                     projectEditor.dataModelList.forEach { dataModel ->
                         dataModel.relationList?.filter { it.relationType == RelationType.MANY_TO_ONE }?.forEach { relation ->
 
-                            data[RELATION_SOURCE] = relation.source
-                            data[RELATION_TARGET] = relation.target
+                            data[RELATION_SOURCE] = relation.source.condenseSpacesCapital()
+                            data[RELATION_TARGET] = relation.target.condenseSpacesCapital()
                             data[RELATION_NAME] = relation.name.condenseSpaces()
                             data[RELATION_SAME_TYPE] = relation.source == relation.target
 
-                            val replacedPath = newFilePath.replace(TEMPLATE_RELATION_ENTITY_PLACEHOLDER, "${relation.source}And${relation.target}")
+                            val replacedPath = newFilePath.replace(TEMPLATE_RELATION_ENTITY_PLACEHOLDER, "${relation.source.condenseSpacesCapital()}And${relation.target.condenseSpacesCapital()}")
 
                             applyTemplate(replacedPath)
 
