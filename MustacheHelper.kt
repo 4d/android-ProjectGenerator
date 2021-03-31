@@ -504,11 +504,14 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                         }
 
                                     } else {
-                                        // already defined
-                                        val defaultKey = defaultFormatter[field.fieldTypeString]
+                                        //already define
+                                           // field.fieldType when corrected will be replaced.
+                                        val defaultKeyName = defaultFormatterFields[field.name.condenseSpaces()]
+                                        val defaultKeyRetrieved = typeStringFromTypeInt(defaultKeyName?.toInt())
+                                        val defaultKey = defaultFormatter[defaultKeyRetrieved]
                                         formatTypeFunctionName[defaultKey]?.let { functionName ->
                                             typeChoice[defaultKey]?.let { type ->
-                                                Log.e("TEST :: FunName -> ${functionName}   FormatType -> ${type} -->${defaultKey}")
+                                                //Log.d("TEST :: FunName -> ${functionName}   FormatType -> ${type} -->${defaultKey}")
                                                 data["field_${i}_formatted"] = true
                                                 data["field_${i}_format_function"] = functionName
                                                 data["field_${i}_format_type"] = type
@@ -551,6 +554,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         Log.d("Field type :: ${fieldList[index].name} ${fieldTypeString} ${defaultKey}")
         formatTypeFunctionName[defaultKey]?.let { functionName ->
             typeChoice[defaultKey]?.let { type ->
+                Log.e("TEST :: $defaultKey -- $functionName -- $type")
                 data["field_${index + 1}_formatted"] = true
                 data["field_${index + 1}_format_function"] = functionName
                 data["field_${index + 1}_format_type"] = type
@@ -629,7 +633,15 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                                    }
                                                } else {
                                                    // already defined
-                                                   applyDefaultFormat(fieldList,i)
+                                                  val fieldTypeString = typeStringFromTypeInt(fieldList[i].fieldType) // when fixed use fieldList[i].fieldTypeString
+                                                   val defaultKey = defaultFormatter[fieldTypeString]
+                                                  formatTypeFunctionName[defaultKey]?.let { functionName ->
+                                                       typeChoice[defaultKey]?.let { type ->
+                                                           println("Adding free Field with default format ${fieldList[i]}")
+                                                           formField = createFormField(fieldList[i], i + 1, true, functionName, type)
+                                                       }
+                                                   }
+                                                  // applyDefaultFormat(fieldList,i)
                                                }
                                                formFieldList.add(formField)
                                            } else {
@@ -661,20 +673,6 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                            } else {
                                                // already define
                                                applyDefaultFormat(fieldList,i)
-                                               // default Key
-                                               /*
-                                               val fieldTypeString = typeStringFromTypeInt(fieldList[i].fieldType) // when fixed use fieldList[i].fieldTypeString
-                                               val defaultKey = defaultFormatter[fieldTypeString]
-                                               Log.e("applyListFormTemplate fieldName here test2:: ${fieldList[i].name.condenseSpaces()} --  --> defaultFormatter :: $defaultKey --- formatTypeFunctionName :: ${formatTypeFunctionName[defaultKey]} -- TypeChoice ::${typeChoice[defaultKey]}")
-                                               formatTypeFunctionName[defaultKey]?.let { functionName ->
-                                                   typeChoice[defaultKey]?.let { type ->
-                                                       data["field_${i + 1}_formatted"] = true
-                                                       data["field_${i + 1}_format_function"] = functionName
-                                                       data["field_${i + 1}_format_type"] = type
-                                                   }
-                                               }
-
-                                                */
                                            }
                                        }
 
@@ -701,16 +699,11 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                                        }
                                                    } else {
                                                        // already defined
-
-                                                       // default Key
                                                        val fieldTypeString = typeStringFromTypeInt(fieldList[i].fieldType) // when fixed use fieldList[i].fieldTypeString
                                                        val defaultKey = defaultFormatter[fieldTypeString]
-                                                       Log.e("applyListFormTemplate fieldName here test3:: ${fieldList[i].name.condenseSpaces()} --  --> defaultFormatter :: $defaultKey --- formatTypeFunctionName :: ${formatTypeFunctionName[defaultKey]} -- TypeChoice ::${typeChoice[defaultKey]}")
                                                        formatTypeFunctionName[defaultKey]?.let { functionName ->
                                                            typeChoice[defaultKey]?.let { type ->
-                                                               data["field_${i + 1}_formatted"] = true
-                                                               data["field_${i + 1}_format_function"] = functionName
-                                                               data["field_${i + 1}_format_type"] = type
+                                                              formField =  createFormField(fieldList[i], k + 1, true, functionName, type)
                                                            }
                                                        }
                                                    }
@@ -718,7 +711,6 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                                    k++
                                                } else {
                                                    // don't add null field
-                                                   applyDefaultFormat(fieldList,i)
                                                }
                                            }
                                        } else {
