@@ -60,7 +60,7 @@ class PathHelper(
     }
 
     private fun replaceLayoutTemplatePath(currentPath: String, formPath: String): String {
-        val paths = currentPath.replaceIfWindowsPath().split(Regex(formPath))
+        val paths = currentPath.replaceIfWindowsPath().split(Regex(formPath.replaceIfWindowsPath()))
         if (paths.size < 2) {
             Log.e("Couldn't find target directory with path : $currentPath")
             exitProcess(MISSING_TARGET_DIR)
