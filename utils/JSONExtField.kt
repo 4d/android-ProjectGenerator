@@ -35,7 +35,7 @@ fun JSONObject?.getFormField(): Field {
     }
     this?.getSafeString(RELATEDENTITIES_KEY).let {
         field.relatedEntities = it
-        field.fieldTypeString = "Entities<$it>"
+        field.fieldTypeString = "Entities<${it?.tableNameAdjustment()}>"
     }
     return field
 }

@@ -72,7 +72,7 @@ fun JSONObject.getDataModelList(): List<DataModel> {
                                 relationList.add(relation)
 
                                 if (relation.relationType == RelationType.MANY_TO_ONE) {
-                                    val relationKeyField = Field(name = "__${relation.name}Key")
+                                    val relationKeyField = Field(name = "__${relation.name.validateWord()}Key")
                                     Log.d("Many to One relation: adding relationKeyField = $relationKeyField")
                                     relationKeyField.fieldType = 0
                                     relationKeyField.fieldTypeString = typeStringFromTypeInt(relationKeyField.fieldType)
@@ -101,7 +101,7 @@ fun JSONObject.getDataModelList(): List<DataModel> {
                                                 slaveRelationList.add(relation)
 
                                                 if (relation.relationType == RelationType.MANY_TO_ONE) {
-                                                    val relationKeyField = Field(name = "__${relation.name}Key")
+                                                    val relationKeyField = Field(name = "__${relation.name.validateWord()}Key")
                                                     Log.d("Many to One relation: adding relationKeyField = $relationKeyField")
                                                     relationKeyField.fieldType = 0
                                                     relationKeyField.fieldTypeString = typeStringFromTypeInt(relationKeyField.fieldType)
@@ -193,7 +193,7 @@ fun JSONObject?.getDataModelField(keyField: String): Field {
         this.getSafeString(RELATEDDATACLASS_KEY)?.let { relatedDataClass ->
             if (isToMany) {
                 field.relatedEntities = relatedDataClass
-                field.fieldTypeString = "Entities<$relatedDataClass>"
+                field.fieldTypeString = "Entities<${relatedDataClass.tableNameAdjustment()}>"
             } else {
                 field.relatedDataClass = relatedDataClass
                 field.fieldTypeString = relatedDataClass
@@ -208,7 +208,7 @@ fun JSONObject?.getDataModelField(keyField: String): Field {
         this?.getSafeString(RELATEDENTITIES_KEY)?.let { relatedEntities -> // One-to-many relation
             field.name = keyField
             field.relatedEntities = relatedEntities
-            field.fieldTypeString = "Entities<$relatedEntities>"
+            field.fieldTypeString = "Entities<${relatedEntities.tableNameAdjustment()}>"
         }
     }
     if (field.label.isNullOrEmpty())

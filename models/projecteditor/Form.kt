@@ -15,7 +15,7 @@ fun createDetailFormField(
 ): TemplateFormFieldFiller {
 
     return TemplateFormFieldFiller(
-        name = field.name.condenseSpaces(),
+        name = field.name.fieldAdjustment(),
         label = field.getLabel(),
         viewId = i,
         isRelation = field.inverseName != null,

@@ -19,40 +19,40 @@ fun isPrivateRelationField(fieldName: String): Boolean = fieldName.startsWith("_
 fun Field.isImage() = this.fieldType == 3
 
 fun Field.getImageFieldName() =
-    if (this.name.condenseSpaces().contains("."))
-        this.name.condenseSpaces().split(".")[1]
+    if (this.name.fieldAdjustment().contains("."))
+        this.name.fieldAdjustment().split(".")[1]
     else
-        this.name.condenseSpaces()
+        this.name.fieldAdjustment()
 
 fun Field.getImageKeyAccessor(formType: FormType) =
     if (formType == FormType.LIST)
-        if (this.name.condenseSpaces().contains("."))
-            this.name.condenseSpaces().split(".")[0] + ".__KEY"
+        if (this.name.fieldAdjustment().contains("."))
+            this.name.fieldAdjustment().split(".")[0] + ".__KEY"
         else
             "__KEY"
     else
-        if (this.name.condenseSpaces().contains("."))
-            this.name.condenseSpaces().split(".")[0] + ".__KEY"
+        if (this.name.fieldAdjustment().contains("."))
+            this.name.fieldAdjustment().split(".")[0] + ".__KEY"
         else
             "__KEY"
 
 fun Field.getLayoutVariableAccessor(formType: FormType) =
     if (formType == FormType.LIST)
-        if (this.name.condenseSpaces().contains("."))
+        if (this.name.fieldAdjustment().contains("."))
             ""
         else
             "entityData."
     else
-        if (this.name.condenseSpaces().contains("."))
+        if (this.name.fieldAdjustment().contains("."))
             "viewModel."
         else
             "viewModel.entity."
 
 fun Field.getImageTableName(dataModelList: List<DataModel>, form: Form): String {
-    if (this.name.condenseSpaces().contains(".")) {
+    if (this.name.fieldAdjustment().contains(".")) {
 
         val fieldFromDataModel: Field? =
-            form.dataModel.fields?.find { it.name == this.name.condenseSpaces().split(".")[0] }
+            form.dataModel.fields?.find { it.name == this.name.fieldAdjustment().split(".")[0] }
 
         fieldFromDataModel?.let { field ->
             return dataModelList.find { it.id == "${field.relatedTableNumber}" }?.name ?: ""

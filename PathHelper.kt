@@ -32,9 +32,6 @@ class PathHelper(
         val pkg: String
 ) {
 
-//    val companyCondensed = companyWithCaps.condense()
-//    val appNameCondensed = appNameWithCaps.condense()
-
     fun getPath(currentPath: String): String {
         val path = targetDirPath + replacePath(currentPath)
         return path.replaceIfWindowsPath()
