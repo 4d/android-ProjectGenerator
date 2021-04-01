@@ -12,8 +12,8 @@ stages:
 build:
   stage: build
   script:
-    - ls
-    - ./compiler.sh build
+    - mkdir -p build
+    - ./compile.sh build
   tags:
     - osx
   artifacts:
