@@ -12,7 +12,7 @@ stages:
 build:
   stage: build
   before_script:
-    - brew install holgerbrandl/tap/kscript
+    - ./checkConf.sh
   script:
     - mkdir -p build
     - ./compile.sh build
