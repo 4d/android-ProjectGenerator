@@ -11,6 +11,8 @@ stages:
 
 build:
   stage: build
+  before_script:
+    - brew install --HEAD holgerbrandl/tap/kscript
   script:
     - mkdir -p build
     - ./compile.sh build
