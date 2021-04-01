@@ -520,7 +520,9 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
                                     data["field_${i}_name"] = field.name.condenseSpaces()
                                     data["field_${i}_defined"] = field.name.isNotEmpty()
+                                    data["field_${i}_is_image"] = field.isImage()
                                     data["field_${i}_label"] = field.getLabel()
+                                    data["field_${i}_is_int"] = field.isInt()
                                     data["field_${i}_formatted"] = false
                                     data["field_${i}_accessor"] = field.getLayoutVariableAccessor(FormType.LIST)
                                     if (field.isImage()) {
@@ -551,6 +553,8 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                             // cleaning data for other templates
                             for (j in 1 until i + 1) {
                                 data.remove("field_${j}_defined")
+                                data.remove("field_${j}_is_image")
+                                data.remove("field_${j}_is_int")
                                 data.remove("field_${j}_name")
                                 data.remove("field_${j}_label")
                                 data.remove("field_${j}_formatted")
@@ -664,6 +668,8 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                                    Log.d("fieldList[i].getLayoutVariableAccessor() = ${fieldList[i].getLayoutVariableAccessor(FormType.DETAIL)}")
 
                                                    data["field_${i + 1}_defined"] = fieldList[i].name.isNotEmpty()
+                                                   data["field_${i + 1}_is_image"] = fieldList[i].isImage()
+                                                   data["field_${i + 1}_is_int"] = fieldList[i].isInt()
                                                    data["field_${i + 1}_name"] = fieldList[i].name.condenseSpaces()
                                                    data["field_${i + 1}_label"] = fieldList[i].getLabel()
                                                    data["field_${i + 1}_formatted"] = false
@@ -693,6 +699,8 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                            } else {
                                                Log.d("Field list shorter than specific fields count")
                                                data["field_${i + 1}_defined"] = false
+                                               data["field_${i + 1}_is_image"] = false
+                                               data["field_${i + 1}_is_int"] = false
                                                data["field_${i + 1}_name"] = ""
                                                data["field_${i + 1}_label"] = ""
                                                data["field_${i + 1}_formatted"] = false
@@ -751,6 +759,8 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                            data.remove(IMAGE_TABLE_NAME)
                            for (i in 1 until specificFieldsCount) {
                                data.remove("field_${i}_defined")
+                               data.remove("field_${i}_is_image")
+                               data.remove("field_${i}_is_int")
                                data.remove("field_${i}_name")
                                data.remove("field_${i}_label")
                                data.remove("field_${i}_formatted")

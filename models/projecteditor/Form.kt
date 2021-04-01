@@ -26,6 +26,7 @@ fun createDetailFormField(
         formatType = formatType,
         imageFieldName = field.getImageFieldName(),
         imageKeyAccessor = field.getImageKeyAccessor(FormType.DETAIL),
-        imageTableName = field.getImageTableName(dataModelList, form)
+        imageTableName = field.getImageTableName(dataModelList, form),
+        isInt = field.isInt()
     )
 }
