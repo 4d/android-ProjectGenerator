@@ -12,6 +12,7 @@ stages:
 build:
   stage: build
   script:
+    - ls
     - ./compiler.sh build
   tags:
     - osx
