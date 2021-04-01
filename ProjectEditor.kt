@@ -166,7 +166,7 @@ class ProjectEditor(projectEditorFile: File) {
                         if (columns.size != 0) {
                             getTableName(jsonrecv.names()[index].toString())?.let {
                                 var tablename = it[0].toUpperCase() + it.substring(1)
-                                searchableFields.put(tablename, columns)
+                                searchableFields.put(tablename.condenseSpacesCapital(), columns)
                             }
                         }
                     }
