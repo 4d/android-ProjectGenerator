@@ -654,32 +654,38 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                        for (i in 0 until specificFieldsCount) {
 
                                            if (i < fieldList.size) {
-                                               Log.d("Adding specific Field ${fieldList[i]}")
-                                               Log.d("fieldList[i].getLayoutVariableAccessor() = ${fieldList[i].getLayoutVariableAccessor(FormType.DETAIL)}")
 
-                                               data["field_${i + 1}_defined"] = fieldList[i].name.isNotEmpty()
-                                               data["field_${i + 1}_name"] = fieldList[i].name.condenseSpaces()
-                                               data["field_${i + 1}_label"] = fieldList[i].getLabel()
-                                               data["field_${i + 1}_formatted"] = false
-                                               data["field_${i + 1}_accessor"] = fieldList[i].getLayoutVariableAccessor(FormType.DETAIL)
-                                               if (fieldList[i].isImage()) {
-                                                    data[IMAGE_FIELD_NAME] = fieldList[i].getImageFieldName()
-                                                    data[IMAGE_KEY_ACCESSOR] = fieldList[i].getImageKeyAccessor(FormType.DETAIL)
-                                                    data[IMAGE_TABLE_NAME] = fieldList[i].getImageTableName(projectEditor.dataModelList, detailForm)
-                                               }
+                                               if (fieldList[i].inverseName == null) { // is not relation
+                                                   Log.d("Adding specific Field ${fieldList[i]}")
+                                                   Log.d("fieldList[i].getLayoutVariableAccessor() = ${fieldList[i].getLayoutVariableAccessor(FormType.DETAIL)}")
 
-                                               val key = formatFields[fieldList[i].name.condenseSpaces()]
-                                               if (key != null) {
-                                                   formatTypeFunctionName[key]?.let { functionName ->
-                                                       typeChoice[key]?.let { type ->
-                                                           data["field_${i + 1}_formatted"] = true
-                                                           data["field_${i + 1}_format_function"] = functionName
-                                                           data["field_${i + 1}_format_type"] = type
+                                                   data["field_${i + 1}_defined"] = fieldList[i].name.isNotEmpty()
+                                                   data["field_${i + 1}_name"] = fieldList[i].name.condenseSpaces()
+                                                   data["field_${i + 1}_label"] = fieldList[i].getLabel()
+                                                   data["field_${i + 1}_formatted"] = false
+                                                   data["field_${i + 1}_accessor"] = fieldList[i].getLayoutVariableAccessor(FormType.DETAIL)
+                                                   if (fieldList[i].isImage()) {
+                                                       data[IMAGE_FIELD_NAME] = fieldList[i].getImageFieldName()
+                                                       data[IMAGE_KEY_ACCESSOR] = fieldList[i].getImageKeyAccessor(FormType.DETAIL)
+                                                       data[IMAGE_TABLE_NAME] = fieldList[i].getImageTableName(projectEditor.dataModelList, detailForm)
+                                                   }
+
+                                                   val key = formatFields[fieldList[i].name.condenseSpaces()]
+                                                   if (key != null) {
+                                                       formatTypeFunctionName[key]?.let { functionName ->
+                                                           typeChoice[key]?.let { type ->
+                                                               data["field_${i + 1}_formatted"] = true
+                                                               data["field_${i + 1}_format_function"] = functionName
+                                                               data["field_${i + 1}_format_type"] = type
+                                                           }
                                                        }
+                                                   } else {
+                                                       // already defined
                                                    }
                                                } else {
-                                                   // already defined
+                                                   Log.d("Field [${fieldList[i].name}] not added in specifc field because it is a relation")
                                                }
+
                                            } else {
                                                Log.d("Field list shorter than specific fields count")
                                                data["field_${i + 1}_defined"] = false
