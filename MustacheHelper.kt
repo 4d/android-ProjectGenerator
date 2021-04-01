@@ -146,11 +146,15 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
             }
 
             if (data[CACHE_4D_SDK_PATH] == null) {
-                Log.e("Missing 4D Mobile cache SDK path")
+                Log.e("Missing 4D Mobile cache SDK path. Define `cache_4d_sdk` in json file or `QMOBILE_HOME` env variable")
                 exitProcess(MISSING_ANDROID_CACHE_SDK_PATH)
             }
         }
         Log.d("> Cache 4D SDK = ${data[CACHE_4D_SDK_PATH]}")
+        if (!File("${data[CACHE_4D_SDK_PATH]}").exists()) {
+            Log.e("Cache 4D SDK path do not exists. Define it correctly.")
+            exitProcess(MISSING_ANDROID_SDK_PATH)
+        }
 
         projectEditor.findJsonString("backgroundColor")?.let {
             Log.d("backgroundColor = $it")
