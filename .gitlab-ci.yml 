@@ -1,0 +1,26 @@
+variables:
+  ANDROID_COMPILE_SDK: "29"
+  ANDROID_SDK_TOOLS: "4333796"
+  ANDROID_BUILD_TOOLS: "29.0.2"
+  AVD_SDK: "29"
+  AVD_TAG: "google_apis_playstore"
+  AVD_ARCH: "x86"
+
+stages:
+  - build
+  - test
+
+build:
+  stage: build
+  script:
+    - ./compiler.sh build
+  tags:
+    - osx
+  artifacts:
+    paths:
+     - build/
+
+test:
+  stage: test
+  script:
+    - ./test.sh 
