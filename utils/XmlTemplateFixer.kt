@@ -182,7 +182,7 @@ fun replaceTemplateText(oldFormText: String, formType: FormType): String {
                     "${indent}{{/field_${id}_defined}}"
         else
             "${indent}{{#field_${id}_defined}}\n" +
-                    "${indent}{{#field_${id}_is_literal}}\n" +
+                    "${indent}{{#field_${id}_is_image}}\n" +
                     "${indent}app:imageFieldName='@{\"{{imageFieldName}}\"}'\n" +
                     "${indent}app:imageKey=\"@{ {{field_${id}_accessor}}{{imageKeyAccessor}} }\"\n" +
                     "${indent}app:imageTableName='@{\"{{imageTableName}}\"}'\n" +
