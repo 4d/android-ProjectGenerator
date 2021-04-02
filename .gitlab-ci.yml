@@ -29,7 +29,8 @@ test:
     - curl http://QA:quality@srv-build:8111/repository/download/id4dmobile_QMobile_Main_Android_TestEnv/.lastSuccessful/androidtestenv.zip -o androidtestenv.zip
     - unzip androidtestenv.zip -d test/
     - export MOBILE_COMPONENT_PATH=./test/4D\ Mobile\ App
-    - ./tests.sh .//test/dataForCreateProject
+    - export QMOBILE_HOME=./test/
+    - ./tests.sh ./test/dataForCreateProject
   tags:
     - osx
 
