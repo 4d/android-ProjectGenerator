@@ -658,7 +658,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                                var formField = createDetailFormField(fieldList[i], i + 1, projectEditor.dataModelList, detailForm, false)
 
                                                val format = getFormatNameForType(fieldList[i].fieldType, fieldList[i].format)?: fieldList[i].format
-                                               Log.v("key :: $format")
+                                               Log.v("format :: $format")
 
                                                if (format != null) {
                                                    formatTypeFunctionName[format]?.let { functionName ->
@@ -708,8 +708,8 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                                    }
 
                                                    val format = getFormatNameForType(fieldList[i].fieldType, fieldList[i].format) ?: fieldList[i].format
-                                                   Log.v("key :: $format")
-                                                   Log.i("applyDetailFormTemplate fieldName :: ${fieldList[i].name.fieldAdjustment()} -- key :: $format")
+                                                   Log.v("format :: $format")
+                                                   Log.i("applyDetailFormTemplate fieldName :: ${fieldList[i].name.fieldAdjustment()}")
                                                    if (format != null) {
                                                        formatTypeFunctionName[format]?.let { functionName ->
                                                            typeChoice[format]?.let { type ->
