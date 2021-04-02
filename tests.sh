@@ -34,7 +34,7 @@ fi
 
 finalStatus=0
 
-find "$testsPath" -name '*.4dmobileapp' | while read line; do
+while read line; do
     echo "📦 Processing file '$line' start..."
     shortPath=$(python -c "import os.path; print os.path.relpath('$line', '$currentDir')")
   
@@ -48,9 +48,12 @@ find "$testsPath" -name '*.4dmobileapp' | while read line; do
     
     # echo "##teamcity[testFinished name='$shortPath']"
     echo "📦 Processing file '$line' done"
-done
+done <<EOT
+$(find "$testsPath" -name '*.4dmobileapp')
+EOT
 
-echo "Final result"
+
+echo "Final result $finalStatus"
 if [ "$finalStatus" -eq 0 ]; then
     echo "✅ success"
 else
