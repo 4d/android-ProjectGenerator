@@ -1,4 +1,5 @@
 import ProjectEditorConstants.FIELDTYPE_KEY
+import ProjectEditorConstants.FORMAT_KEY
 import ProjectEditorConstants.ID_KEY
 import ProjectEditorConstants.INVERSENAME_KEY
 import ProjectEditorConstants.LABEL_KEY
@@ -28,6 +29,9 @@ fun JSONObject?.getFormField(): Field {
     this?.getSafeString(NAME_KEY)?.let {
         field.name = it
         field.fieldTypeString = typeStringFromTypeInt(field.fieldType)
+    }
+    this?.getSafeString(FORMAT_KEY)?.let {
+        field.format = it
     }
     this?.getSafeString(RELATEDDATACLASS_KEY).let {
         field.relatedDataClass = it

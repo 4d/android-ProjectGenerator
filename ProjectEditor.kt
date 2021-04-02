@@ -7,6 +7,7 @@ import ProjectEditorConstants.CACHE_4D_SDK_KEY
 import ProjectEditorConstants.COLORS
 import ProjectEditorConstants.DATAMODEL_KEY
 import ProjectEditorConstants.DATASOURCE_KEY
+import ProjectEditorConstants.DATE_TYPE
 import ProjectEditorConstants.DEVELOPER_KEY
 import ProjectEditorConstants.EMAIL_KEY
 import ProjectEditorConstants.EMPTY_TYPE
@@ -27,6 +28,7 @@ import ProjectEditorConstants.SERVER_KEY
 import ProjectEditorConstants.SOURCE_KEY
 import ProjectEditorConstants.STRING_TYPE
 import ProjectEditorConstants.TEAMID_KEY
+import ProjectEditorConstants.TIME_TYPE
 import ProjectEditorConstants.URLS_KEY
 import org.json.JSONObject
 import java.io.File
@@ -42,7 +44,6 @@ class ProjectEditor(projectEditorFile: File) {
 
     lateinit var jsonObj: JSONObject
     // Hold sort Filed
-    val formatFields = HashMap<String,String>()
 
     init {
         val jsonString = projectEditorFile.readFile()
@@ -64,9 +65,6 @@ class ProjectEditor(projectEditorFile: File) {
 
             getSearchableColumns(jsonObj)
             Log.d("> Searchable fields successfully read.")
-
-            setFormatFields()
-            Log.d("> Format fields successfully read.")
 
             listFormList = jsonObj.getFormList(dataModelList, FormType.LIST, navigationTableList)
             Log.d("> List forms list successfully read.")
@@ -148,11 +146,11 @@ class ProjectEditor(projectEditorFile: File) {
                             val dat = jsonObject.getSafeArray("searchableField")
                             if (dat != null) {
                                 for (ind in 0 until dat.length()) {
-                                    columns.add(dat.getJSONObject(ind).get("name") as String)
+                                     columns.add((dat.getJSONObject(ind).get("name") as String).replace(" ",""))
                                 }
                             } else {
                                 if (!(jsonObject.get("searchableField")).equals(null)) {
-                                    columns.add(jsonObject.getJSONObject("searchableField").get("name") as String)
+                                    columns.add((jsonObject.getJSONObject("searchableField").get("name") as String).replace(" ",""))
                                 } else {
                                     Log.w("searchableField is not available")
                                 }
@@ -162,43 +160,13 @@ class ProjectEditor(projectEditorFile: File) {
                         }
                         if (columns.size != 0) {
                             getTableName(jsonrecv.names()[index].toString())?.let {
-                                searchableFields.put(it, columns)
+                                var tablename = it[0].toUpperCase() + it.substring(1)
+                                searchableFields.put(tablename.tableNameAdjustment(), columns)
                             }
                         }
                     }
 
                 }
-            }
-        }
-    }
-
-    private fun setFormatFields(){
-        if (jsonObj.has("project")) {
-            var project = jsonObj.getJSONObject("project")
-            if (project.has("dataModel")) { // CLEAN there is already a DataModel object decoded
-                //println("Data Model Present")
-                val dataModel = project.getJSONObject("dataModel")
-                val dataModelArray = dataModel.names()
-                for (index in 0 until dataModelArray.length()) {
-                    val tableKey = dataModelArray[index] as String
-                    val fieldJSONObject = dataModel.getJSONObject(tableKey)
-                    val fieldJSONArray = fieldJSONObject.names()
-                    //if ()
-                    for (ind in 0 until fieldJSONArray.length()) {
-                        var fieldKey = fieldJSONArray[ind] as String
-                        // if (fieldKey.isNumber()) { // number key is associate to an object (but not all keys, could be trable property even if table property are not in key "" )
-                        // else if relation
-                        // else ignore
-                        val jsonColumnObject = fieldJSONObject.getSafeObject(fieldKey)
-                        if (jsonColumnObject !=null && jsonColumnObject.has("format")){
-                            if (jsonColumnObject.has("name")) {
-                                formatFields.put(jsonColumnObject["name"].toString(),jsonColumnObject["format"].toString())
-                               // Log.d("check >>${jsonColumnObject["name"]} -  ${jsonColumnObject["format"]}")
-                            }
-                        }
-                    }
-                }
-                Log.d("dataModelArray : $dataModelArray")
             }
         }
     }
@@ -209,13 +177,13 @@ fun typeStringFromTypeInt(type: Int?): String = when (type) {
     1 -> FLOAT_TYPE
     2 -> STRING_TYPE
     3 -> PHOTO_TYPE
-    4 -> STRING_TYPE
+    4 -> DATE_TYPE
     5 -> EMPTY_TYPE
     6 -> BOOLEAN_TYPE
     7 -> EMPTY_TYPE
     8 -> INT_TYPE
     9 -> INT_TYPE
-    11 -> STRING_TYPE
+    11 -> TIME_TYPE
     12 -> EMPTY_TYPE
     25 -> INT_TYPE
     else -> EMPTY_TYPE
