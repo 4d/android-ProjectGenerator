@@ -166,7 +166,7 @@ class ProjectEditor(projectEditorFile: File) {
                         if (columns.size != 0) {
                             getTableName(jsonrecv.names()[index].toString())?.let {
                                 var tablename = it[0].toUpperCase() + it.substring(1)
-                                searchableFields.put(tablename.condenseSpacesCapital(), columns)
+                                searchableFields.put(tablename.tableNameAdjustment(), columns)
                             }
                         }
                     }
@@ -197,7 +197,7 @@ class ProjectEditor(projectEditorFile: File) {
 
                         if (jsonColumnObject !=null && jsonColumnObject.has("format")){
                             if (jsonColumnObject.has("name")) {
-                                formatFields.put(jsonColumnObject["name"].toString().condenseSpacesCapital(),jsonColumnObject["format"].toString())
+                                formatFields.put(jsonColumnObject["name"].toString().tableNameAdjustment(),jsonColumnObject["format"].toString())
                            }
                         }else{
                             if(jsonColumnObject !=null ){

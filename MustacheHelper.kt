@@ -599,21 +599,6 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         return null
     }
 
-    private fun applyDefaultFormat(fieldList: List<Field>,index : Int){
-        // default Key
-        val fieldTypeString = typeStringFromTypeInt(fieldList[index].fieldType) // when fixed use fieldList[i].fieldTypeString
-        val defaultKey = defaultFormatter[fieldTypeString]
-        Log.d("Field type :: ${fieldList[index].name} ${fieldTypeString} ${defaultKey}")
-        formatTypeFunctionName[defaultKey]?.let { functionName ->
-            typeChoice[defaultKey]?.let { type ->
-                Log.i("$defaultKey -- $functionName -- $type")
-                data["field_${index + 1}_formatted"] = true
-                data["field_${index + 1}_format_function"] = functionName
-                data["field_${index + 1}_format_type"] = type
-            }
-        }
-    }
-
    fun applyDetailFormTemplate() {
 
        projectEditor.detailFormList.forEach { detailForm ->
@@ -737,8 +722,16 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                                            }
                                                        }
                                                    } else {
-                                                       // already define
-                                                       applyDefaultFormat(fieldList,i)
+                                                       val defaultKey = defaultFormatter[fieldList[i].fieldTypeString]
+                                                       Log.d("Field type :: ${fieldList[i].name} ${fieldList[i].fieldTypeString} ${defaultKey}")
+                                                       formatTypeFunctionName[defaultKey]?.let { functionName ->
+                                                           typeChoice[defaultKey]?.let { type ->
+                                                               Log.i("$defaultKey -- $functionName -- $type")
+                                                               data["field_${i + 1}_formatted"] = true
+                                                               data["field_${i + 1}_format_function"] = functionName
+                                                               data["field_${i + 1}_format_type"] = type
+                                                           }
+                                                       }
                                                    }
 
                                                } else {
