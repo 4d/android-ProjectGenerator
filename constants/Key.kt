@@ -14,6 +14,7 @@ object Key{
        typeChoice.put("decimal","TypeChoice.Decimal.key.toString()")
        typeChoice.put("noOrYes","TypeChoice.YesNo.key.toString()")
        typeChoice.put("falseOrTrue","TypeChoice.TrueFalse.key.toString()")
+       typeChoice.put("boolInteger","TypeChoice.Number.Key.toString()")
        typeChoice.put("shortTime","TypeChoice.ShortTime.key.toString()")
        typeChoice.put("mediumTime","TypeChoice.Time.key.toString()")
        typeChoice.put("duration","TypeChoice.Duration.key.toString()")
@@ -26,6 +27,7 @@ object Key{
     fun getFormatTypeFunctionName():HashMap<String,String>{
         formatTypeFunctionName.put("noOrYes","formatBoolean")
         formatTypeFunctionName.put("falseOrTrue","formatBoolean")
+        formatTypeFunctionName.put("boolInteger","formatBoolean")
         formatTypeFunctionName.put("shortTime","time")
         formatTypeFunctionName.put("mediumTime","time")
         formatTypeFunctionName.put("duration","time")
