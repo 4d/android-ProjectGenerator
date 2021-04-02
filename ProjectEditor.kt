@@ -44,8 +44,6 @@ class ProjectEditor(projectEditorFile: File) {
 
     lateinit var jsonObj: JSONObject
     // Hold sort Filed
-    val formatFields = HashMap<String,String>()
-    var defaultFormatLFiledType = HashMap<String,String>()
 
     init {
         val jsonString = projectEditorFile.readFile()
@@ -67,9 +65,6 @@ class ProjectEditor(projectEditorFile: File) {
 
             getSearchableColumns(jsonObj)
             Log.d("> Searchable fields successfully read.")
-
-            setFormatFields()
-            Log.d("> Format fields successfully read.")
 
             listFormList = jsonObj.getFormList(dataModelList, FormType.LIST, navigationTableList)
             Log.d("> List forms list successfully read.")
@@ -172,43 +167,6 @@ class ProjectEditor(projectEditorFile: File) {
                     }
 
                 }
-            }
-        }
-    }
-
-    private fun setFormatFields(){
-        if (jsonObj.has("project")) {
-            var project = jsonObj.getJSONObject("project")
-            if (project.has("dataModel")) { // CLEAN there is already a DataModel object decoded
-                //println("Data Model Present")
-                val dataModel = project.getJSONObject("dataModel")
-                val dataModelArray = dataModel.names()
-                for (index in 0 until dataModelArray.length()) {
-                    val tableKey = dataModelArray[index] as String
-                    val fieldJSONObject = dataModel.getJSONObject(tableKey)
-                    val fieldJSONArray = fieldJSONObject.names()
-                    //if ()
-                    for (ind in 0 until fieldJSONArray.length()) {
-                        var fieldKey = fieldJSONArray[ind] as String
-                        val jsonColumnObject = fieldJSONObject.getSafeObject(fieldKey)
-                        // if (fieldKey.isNumber()) { // number key is associate to an object (but not all keys, could be trable property even if table property are not in key "" )
-                        // else if relation
-                        // else ignore
-
-                        if (jsonColumnObject !=null && jsonColumnObject.has("format")){
-                            if (jsonColumnObject.has("name")) {
-                                formatFields.put(jsonColumnObject["name"].toString().tableNameAdjustment(),jsonColumnObject["format"].toString())
-                           }
-                        }else{
-                            if(jsonColumnObject !=null ){
-                                if (jsonColumnObject.has("name") && jsonColumnObject.has("fieldType")) {
-                                    defaultFormatLFiledType.put(jsonColumnObject["name"].toString(),jsonColumnObject["fieldType"].toString())
-                                }
-                            }
-                        }
-                    }
-                }
-                Log.d("dataModelArray : $dataModelArray")
             }
         }
     }
