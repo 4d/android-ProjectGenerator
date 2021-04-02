@@ -9,3 +9,15 @@ data class DataModel(
         var isSlave: Boolean? = null,
         var relationList: MutableList<Relation>? = null
 )
+
+fun DataModel.getLabel(): String {
+        var label = this.name
+        this.label?.let {
+                label = it
+        } ?: kotlin.run {
+                this.shortLabel?.let {
+                        label = it
+                }
+        }
+        return label
+}

@@ -38,7 +38,7 @@ fun JSONObject.getDataModelList(): List<DataModel> {
                     savedRelations.addAll(it)
                 }
                 if (dataModelList.removeIf { dataModel ->  dataModel.name == dataModelName}) {
-                    println("DataModel removed from list : $dataModelName")
+                    Log.d("DataModel removed from list : $dataModelName")
                 }
 
                 val newDataModel = DataModel(name = dataModelName, isSlave = false)
@@ -73,8 +73,8 @@ fun JSONObject.getDataModelList(): List<DataModel> {
                                 relationList.add(relation)
 
                                 if (relation.relationType == RelationType.MANY_TO_ONE) {
-                                    val relationKeyField = Field(name = "__${relation.name}Key")
-                                    println("Many to One relation: adding relationKeyField = $relationKeyField")
+                                    val relationKeyField = Field(name = "__${relation.name.validateWord()}Key")
+                                    Log.d("Many to One relation: adding relationKeyField = $relationKeyField")
                                     relationKeyField.fieldType = 0
                                     relationKeyField.fieldTypeString = typeStringFromTypeInt(relationKeyField.fieldType)
                                     relationKeyField.variableType = VariableType.VAR.string
@@ -102,8 +102,8 @@ fun JSONObject.getDataModelList(): List<DataModel> {
                                                 slaveRelationList.add(relation)
 
                                                 if (relation.relationType == RelationType.MANY_TO_ONE) {
-                                                    val relationKeyField = Field(name = "__${relation.name}Key")
-                                                    println("Many to One relation: adding relationKeyField = $relationKeyField")
+                                                    val relationKeyField = Field(name = "__${relation.name.validateWord()}Key")
+                                                    Log.d("Many to One relation: adding relationKeyField = $relationKeyField")
                                                     relationKeyField.fieldType = 0
                                                     relationKeyField.fieldTypeString = typeStringFromTypeInt(relationKeyField.fieldType)
                                                     relationKeyField.variableType = VariableType.VAR.string
@@ -197,7 +197,7 @@ fun JSONObject?.getDataModelField(keyField: String): Field {
         this.getSafeString(RELATEDDATACLASS_KEY)?.let { relatedDataClass ->
             if (isToMany) {
                 field.relatedEntities = relatedDataClass
-                field.fieldTypeString = "Entities<$relatedDataClass>"
+                field.fieldTypeString = "Entities<${relatedDataClass.tableNameAdjustment()}>"
             } else {
                 field.relatedDataClass = relatedDataClass
                 field.fieldTypeString = relatedDataClass
@@ -212,7 +212,7 @@ fun JSONObject?.getDataModelField(keyField: String): Field {
         this?.getSafeString(RELATEDENTITIES_KEY)?.let { relatedEntities -> // One-to-many relation
             field.name = keyField
             field.relatedEntities = relatedEntities
-            field.fieldTypeString = "Entities<$relatedEntities>"
+            field.fieldTypeString = "Entities<${relatedEntities.tableNameAdjustment()}>"
         }
     }
     if (field.label.isNullOrEmpty())

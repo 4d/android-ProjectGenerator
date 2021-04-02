@@ -36,6 +36,7 @@ function usage() {
     >&2 echo "  .4dmobile: the project info file (by default $HOME/Library/Caches/com.4d.mobile/lastAndroidBuild.4dmobile)"
     >&2 echo "Please define also: "
     >&2 echo "  PERFORCE_PATH env var to the root of your perforce (we will find component inside)"
+    >&2 echo "  or MOBILE_COMPONENT_PATH env var to the root the c4d mobile component"
     >&2 echo "  or if your 4D is in /Applications/ we will use it by defaults"
     >&2 echo "❌ failure"
     exit 42
@@ -52,10 +53,14 @@ DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
 
 cd "$DIR"
 
-mobileComponentPath="/Applications/4D.app/Contents/Resources/Internal User Components/4D Mobile App.4dbase"
-if [ ! -z "$PERFORCE_PATH" ]; then
-    branch="main"
-    mobileComponentPath="$PERFORCE_PATH/4eDimension/$branch/4DComponents/Internal User Components/4D Mobile App" 
+if [ -z "$MOBILE_COMPONENT_PATH" ]; then
+  mobileComponentPath="/Applications/4D.app/Contents/Resources/Internal User Components/4D Mobile App.4dbase"
+  if [ ! -z "$PERFORCE_PATH" ]; then
+      branch="main"
+      mobileComponentPath="$PERFORCE_PATH/4eDimension/$branch/4DComponents/Internal User Components/4D Mobile App" 
+  fi
+else
+  mobileComponentPath="$MOBILE_COMPONENT_PATH"
 fi
 
 if [ ! -d "$mobileComponentPath" ]; then

@@ -4,8 +4,12 @@ data class TemplateFormFieldFiller(
     val viewId: Int,
     val isRelation: Boolean,
     val isImage: Boolean,
-    val layout_variable_accessor: String,
+    val accessor: String,
     val isFormatted: Boolean,
     val formatFunction: String,
-    val formatType: String
+    val formatType: String,
+    val imageFieldName: String,
+    val imageKeyAccessor: String,
+    val imageTableName: String,
+    val isInt: Boolean
 )
