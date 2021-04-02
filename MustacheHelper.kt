@@ -493,11 +493,11 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
                                     val key1 = formatFields[field.name.condenseSpacesCapital()]
                                     //val key = field.format
-                                    val key = isBooleanHasNumberType(field.fieldType, field.format)?: field.format
-                                    Log.e("key -- $key -- > ${field.name.condenseSpacesCapital()} -- decodeKey ::$key1 -- fieldType :: ${field.fieldType} --- > newKey: ${isBooleanHasNumberType(field.fieldType, field.format)}")
-                                    if (key != null) {
-                                        formatTypeFunctionName[key]?.let { functionName ->
-                                                typeChoice[key]?.let { type ->
+                                    val format = getFormatNameForType(field.fieldType, field.format)?: field.format
+                                    Log.v("key -- $format -- > ${field.name.condenseSpacesCapital()} -- decodeKey ::$key1 -- fieldType :: ${field.fieldType} --- > newKey: ${getFormatNameForType(field.fieldType, field.format)}")
+                                    if (format != null) {
+                                        formatTypeFunctionName[format]?.let { functionName ->
+                                                typeChoice[format]?.let { type ->
                                                     data["field_${i}_formatted"] = true
                                                     data["field_${i}_format_function"] = functionName
                                                     data["field_${i}_format_type"] = type
@@ -549,7 +549,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
     }
 
 
-    private fun isBooleanHasNumberType(fieldType : Int? , key :String?):String?{
+    private fun getFormatNameForType(fieldType : Int? , key :String?):String?{
         if(fieldType == 6 && key.equals("integer")) return "boolInteger"
         return null
     }
@@ -630,13 +630,13 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
                                                //val key = formatFields[fieldList[i].name.condenseSpaces()]
                                                //var key = fieldList[i].format
-                                               val key = isBooleanHasNumberType(fieldList[i].fieldType, fieldList[i].format)?: fieldList[i].format
+                                               val format = getFormatNameForType(fieldList[i].fieldType, fieldList[i].format)?: fieldList[i].format
                                                //val key = if (isTestBooleanHasNumberType(fieldList[i].fieldType, fieldList[i].format)) "boolInteger" else fieldList[i].format
-                                               Log.e("Entered 1 key :: $key")
+                                               Log.v("key :: $format")
                                                var formField = createFormField(fieldList[i], i + 1, false)
-                                               if (key != null) {
-                                                   formatTypeFunctionName[key]?.let { functionName ->
-                                                           typeChoice[key]?.let { type ->
+                                               if (format != null) {
+                                                   formatTypeFunctionName[format]?.let { functionName ->
+                                                           typeChoice[format]?.let { type ->
                                                                Log.i("Adding free Field with format ${fieldList[i]}")
                                                                formField = createFormField(fieldList[i], i + 1, true, functionName, type)
                                                            }
@@ -670,12 +670,12 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                            data["field_${i + 1}_formatted"] = false
                                            data[LAYOUT_VARIABLE_ACCESSOR] = if (fieldList[i].name.contains(".")) "" else ".entity"
 
-                                           val key = isBooleanHasNumberType(fieldList[i].fieldType, fieldList[i].format) ?: fieldList[i].format
-                                           Log.v("key :: $key")
-                                           Log.i("applyDetailFormTemplate  filedName :: ${fieldList[i].name.condenseSpaces()} -- key :: $key")
-                                           if (key != null) {
-                                               formatTypeFunctionName[key]?.let { functionName ->
-                                                       typeChoice[key]?.let { type ->
+                                           val format = getFormatNameForType(fieldList[i].fieldType, fieldList[i].format) ?: fieldList[i].format
+                                           Log.v("key :: $format")
+                                           Log.i("applyDetailFormTemplate  filedName :: ${fieldList[i].name.condenseSpaces()} -- key :: $format")
+                                           if (format != null) {
+                                               formatTypeFunctionName[format]?.let { functionName ->
+                                                       typeChoice[format]?.let { type ->
                                                            data["field_${i + 1}_formatted"] = true
                                                            data["field_${i + 1}_format_function"] = functionName
                                                            data["field_${i + 1}_format_type"] = type
@@ -698,12 +698,12 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                                Log.i("fieldList[i] = ${fieldList[i]}")
                                                if (fieldList[i].name.isNotEmpty()) {
                                                    Log.i("Adding free Field in specific template ${fieldList[i]}")
-                                                   val key = isBooleanHasNumberType(fieldList[i].fieldType, fieldList[i].format)?: fieldList[i].format
-                                                   Log.v("key :: $key")
+                                                   val format = getFormatNameForType(fieldList[i].fieldType, fieldList[i].format)?: fieldList[i].format
+                                                   Log.v("key :: $format")
                                                    var formField = createFormField(fieldList[i], k + 1, false)
-                                                   if (key != null) {
-                                                       formatTypeFunctionName[key]?.let { functionName ->
-                                                               typeChoice[key]?.let { type ->
+                                                   if (format != null) {
+                                                       formatTypeFunctionName[format]?.let { functionName ->
+                                                               typeChoice[format]?.let { type ->
                                                                    formField =  createFormField(fieldList[i], i + 1, true, functionName, type)
                                                                }
                                                        }
