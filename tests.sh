@@ -5,10 +5,15 @@
 testsPath="$1"
 
 targetDir=$(mktemp)
-export TARGET_PATH="$targetDir"
-export QMOBILE_HOME="/Library/Caches/com.4D.mobile/sdk/1920/Android/sdk"
+if [ ! -d "$TARGET_PATH" ]; then
+  export TARGET_PATH="$targetDir"
+fi
+
 if [ ! -d "$QMOBILE_HOME" ]; then
-  export QMOBILE_HOME="/Library/Caches/com.4D.mobile/sdk/1900/Android/sdk"
+  export QMOBILE_HOME="/Library/Caches/com.4D.mobile/sdk/1920/Android/sdk"
+  if [ ! -d "$QMOBILE_HOME" ]; then
+    export QMOBILE_HOME="/Library/Caches/com.4D.mobile/sdk/1900/Android/sdk"
+  fi
 fi
 
 if [ -z "$testsPath" ]; then
