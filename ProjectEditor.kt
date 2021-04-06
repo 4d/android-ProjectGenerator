@@ -134,41 +134,58 @@ class ProjectEditor(projectEditorFile: File) {
     }
 
     private fun getSearchableColumns(datarecv: JSONObject?) {
-
         datarecv.let {
             if (datarecv!!.has("project")) {
-                if (datarecv.getJSONObject("project").has("list")) {
-                    val jsonrecv = datarecv.getJSONObject("project").getJSONObject("list")
-                    val jsonKeys = jsonrecv.names()
-                    Log.i("JSONArray :: $jsonrecv")
-                    for (index in 0 until jsonKeys.length()) {
-                        var columns = mutableListOf<String>()
-                        val jsonObject = jsonrecv.getJSONObject(jsonKeys.getString(index))
-                        if (jsonObject.has("searchableField")) {
-                            val dat = jsonObject.getSafeArray("searchableField")
-                            if (dat != null) {
-                                for (ind in 0 until dat.length()) {
-                                     columns.add((dat.getJSONObject(ind).get("name") as String).replace(" ",""))
+                val project = datarecv!!.getJSONObject("project")
+                if (project.has("list")) {
+                    val listForms = project.getJSONObject("list")
+                    val listFormsKeys = listForms.names()
+                    Log.i("listForms :: $listForms")
+                    for (index in 0 until listFormsKeys.length()) {
+                        var tableSearchableFields = mutableListOf<String>()
+                        var tableIndex = listFormsKeys.getString(index)
+                        var tableName = getTableName(tableIndex) // get table name by id
+                        val listForm = listForms.getJSONObject(tableIndex)
+                        if (listForm.has("searchableField")) {
+                            // could be an array or an object
+                            val searchableFieldAsArray = listForm.getSafeArray("searchableField")
+                            if (searchableFieldAsArray != null) {
+                                for (ind in 0 until searchableFieldAsArray.length()) {
+                                    val fieldName = searchableFieldAsArray.getJSONObject(ind).get("name") as String
+                                    if (!fieldName.contains(".")) {
+                                        Log.v("${tableName} SearchField fieldName.fieldAdjustment() :: ${fieldName.fieldAdjustment()}")
+                                        tableSearchableFields.add(fieldName.fieldAdjustment())
+                                    } else {
+                                        Log.w("${tableName} Search field ${fieldName} ignored. Relation N>1 not yet supported")
+                                    }
                                 }
                             } else {
-                                if (!(jsonObject.get("searchableField")).equals(null)) {
-                                    columns.add((jsonObject.getJSONObject("searchableField").get("name") as String).replace(" ",""))
+                                var searchableFieldAsObject = listForm.getSafeObject("searchableField")
+                                if (searchableFieldAsObject != null) {
+                                    var fieldName = searchableFieldAsObject!!.get("name") as String
+                                    if (!fieldName.contains(".")) {
+                                        Log.v("${tableName}  SearchField fieldName.fieldAdjustment() :: ${fieldName.fieldAdjustment()}")
+                                        tableSearchableFields.add(fieldName.fieldAdjustment())
+                                    } else {
+                                        Log.w("${tableName}  Search field ${fieldName} ignored. Relation N>1 not yet supported")
+                                    }
                                 } else {
-                                    Log.w("searchableField is not available")
+                                    Log.w("${tableName} searchableField is not available as object or array in ${listForm}")
                                 }
                             }
                         } else {
-                            Log.w("No searchable Field Found")
+                            Log.d("${tableName} No searchable Field Found")
                         }
-                        if (columns.size != 0) {
-                            getTableName(jsonrecv.names()[index].toString())?.let {
-                                var tablename = it[0].toUpperCase() + it.substring(1)
-                                searchableFields.put(tablename.tableNameAdjustment(), columns)
+                        if (tableSearchableFields.size != 0) { // if has search field add it
+                            if (tableName != null) {
+                                searchableFields.put(tableName!!.tableNameAdjustment(), tableSearchableFields)
+                            } else {
+                                Log.e("Cannot get tablename for index ${tableIndex} when filling search fields")
                             }
                         }
                     }
-
-                }
+                    Log.i("Computed search fields ${searchableFields}")
+                } // else no list form, so no search fields
             }
         }
     }
