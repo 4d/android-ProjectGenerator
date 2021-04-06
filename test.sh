@@ -19,7 +19,7 @@ fi
 
 # if no project file, use the cached one
 if [ -z "$projectFile" ]; then
-   projectFile=$HOME/Library/Caches/com.4d.mobile/lastAndroidBuild.4dmobile
+   projectFile=$HOME/Library/Caches/com.4d.mobile/lastBuild.android.4dmobile
 else
   if [[ "$projectFile" == *".4dmobileapp" ]]; then
      echo "Converting to 4dmobile file: $projectFile..."
@@ -33,7 +33,7 @@ fi
 function usage() {
     >&2 echo "usage $cmd (<component path>) (<.4dmobile>) "
     >&2 echo "  component path: the root path of your component"
-    >&2 echo "  .4dmobile: the project info file (by default $HOME/Library/Caches/com.4d.mobile/lastAndroidBuild.4dmobile)"
+    >&2 echo "  .4dmobile: the project info file (by default $HOME/Library/Caches/com.4d.mobile/lastBuild.android.4dmobile)"
     >&2 echo "Please define also: "
     >&2 echo "  PERFORCE_PATH env var to the root of your perforce (we will find component inside)"
     >&2 echo "  or MOBILE_COMPONENT_PATH env var to the root the c4d mobile component"
