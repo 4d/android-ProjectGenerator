@@ -12,4 +12,14 @@ object DefaultValues {
     const val DEFAULT_LIST_FORM = "Simple Table"
     const val DEFAULT_DETAIL_FORM = "Blank Form"
     const val LAYOUT_FILE = "layout.xml"
+
+    /**
+     *  val VERBOSE = 2
+     *  val DEBUG = 3
+     *  val INFO = 4
+     *  val WARN = 5
+     *  val ERROR = 6
+     *  val ASSERT = 7
+     */
+    const val DEFAULT_LOG_LEVEL = 4
 }

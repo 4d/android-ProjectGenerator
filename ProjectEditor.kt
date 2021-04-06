@@ -1,3 +1,4 @@
+import DefaultValues.DEFAULT_LOG_LEVEL
 import DefaultValues.DEFAULT_REMOTE_URL
 import ExitCodes.PROJECT_EDITOR_JSON_EMPTY
 import ProjectEditorConstants.AUTHENTICATION_KEY
@@ -121,7 +122,8 @@ class ProjectEditor(projectEditorFile: File) {
             remoteUrl = remoteUrl,
             embeddedData = embeddedData,
             initialGlobalStamp = 0,
-            searchableField = searchableFields
+            searchableField = searchableFields,
+            logLevel = DEFAULT_LOG_LEVEL
         )
     }
 
