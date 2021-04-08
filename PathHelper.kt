@@ -62,7 +62,7 @@ class PathHelper(
             Log.e("Couldn't find target directory with path : $currentPath")
             exitProcess(MISSING_TARGET_DIR)
         }
-        val subPath = paths[1].removePrefix("/").removePrefix("\\").removePrefix(ANDROID_PATH_KEY)
+        val subPath = paths[1].removePrefix(File.separator).removePrefix(ANDROID_PATH_KEY)
         Log.d("replaceLayoutTemplatePath, subPath = $subPath")
         return replaceDirectoriesPath(subPath)
     }
@@ -160,7 +160,7 @@ class PathHelper(
         } else {
             templatePath = listFormTemplatesPath
         }
-        return templatePath + File.separator + formName.removePrefix("/")
+        return templatePath + File.separator + formName.removePrefix(File.separator)
     }
 
     fun getTemplateDetailFormPath(formName: String): String {
@@ -176,7 +176,7 @@ class PathHelper(
         } else {
             templatePath = detailFormTemplatesPath
         }
-        return templatePath + File.separator + formName.removePrefix("/")
+        return templatePath + File.separator + formName.removePrefix(File.separator)
     }
 
     private fun unzipTemplate(zipFile: File) {

@@ -16,6 +16,7 @@ import ProjectEditorConstants.SHORTLABEL_KEY
 import ProjectEditorConstants.STRING_KEY
 import ProjectEditorConstants.VALIDATED_KEY
 import org.json.JSONObject
+import java.io.File
 
 fun JSONObject.getDataModelList(): List<DataModel> {
     val dataModelList = mutableListOf<DataModel>()
@@ -46,11 +47,15 @@ fun JSONObject.getDataModelList(): List<DataModel> {
                 newDataModelJSONObject.getSafeObject(EMPTY_KEY)?.getSafeString(LABEL_KEY)?.let { newDataModel.label = it }
                 newDataModelJSONObject.getSafeObject(EMPTY_KEY)?.getSafeString(SHORTLABEL_KEY)?.let { newDataModel.shortLabel = it }
                 newDataModelJSONObject.getSafeObject(EMPTY_KEY)?.getSafeString(ICON_KEY)?.let { iconPath ->
-                    newDataModel.iconPath = iconPath
+                    val correctedIconPath =  iconPath
+                        .substring(0, iconPath.lastIndexOf('.')) // removes extension
                         .replace(".+/".toRegex(), "")
+                        .removePrefix(File.separator)
                         .toLowerCase()
-                        .removeSuffix(".svg") // only keeping icon name
                         .replace("[^a-z0-9]+".toRegex(), "_")
+
+                    Log.d("correctedIconPath = $correctedIconPath")
+                    newDataModel.iconPath = correctedIconPath
                 }
                 newDataModelJSONObject.getSafeObject(EMPTY_KEY)?.getSafeObject(FILTER_KEY)?.let {
                     if (it.getSafeBoolean(VALIDATED_KEY) == true)
