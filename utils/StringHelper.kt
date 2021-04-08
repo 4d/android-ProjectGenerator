@@ -16,16 +16,24 @@ fun String.replaceXmlTxtSuffix() = if (this.endsWith(XML_TXT_EXT)) this.removeSu
  * Field / Table name adjustments
  */
 
-fun String.tableNameAdjustment() = this.condense().capitalize().unaccent().validateWord()
+fun String.tableNameAdjustment() = this.condense().capitalize().replaceSpecialChars().validateWord()
 
-fun String.fieldAdjustment() = this.condense().unaccent().validateWord()
+fun String.fieldAdjustment() = this.condense().replaceSpecialChars().validateWord()
 
-fun String.dataBindingAdjustment(): String = this.condense().unaccent().split("_")
+fun String.dataBindingAdjustment(): String = this.condense().replaceSpecialChars().split("_")
     .joinToString("") { it.toLowerCase().capitalize() }
 
-private val REGEX_UNACCENT = "\\p{InCombiningDiacriticalMarks}+".toRegex()
-
 private fun String.condense() = this.replace("\\s".toRegex(), "")
+
+private fun String.replaceSpecialChars(): String {
+    return if (this.contains("Entities<")) {
+        this.replace("[^a-zA-Z0-9<>]".toRegex(), "_").unaccent()
+    } else {
+        this.replace("[^a-zA-Z0-9]".toRegex(), "_").unaccent()
+    }
+}
+
+private val REGEX_UNACCENT = "\\p{InCombiningDiacriticalMarks}+".toRegex()
 
 private fun CharSequence.unaccent(): String {
     val temp = Normalizer.normalize(this, Normalizer.Form.NFD)
