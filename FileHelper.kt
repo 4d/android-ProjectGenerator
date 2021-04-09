@@ -1,4 +1,3 @@
-import ExitCodes.COPY_FILE_ERROR
 import FileHelperConstants.kotlinProjectDirs
 import PathHelperConstants.TEMPLATE_PLACEHOLDER
 import PathHelperConstants.TEMPLATE_RELATION_DAO_PLACEHOLDER
@@ -6,7 +5,6 @@ import PathHelperConstants.TEMPLATE_RELATION_ENTITY_PLACEHOLDER
 import PathHelperConstants.XML_TXT_EXT
 import org.json.JSONObject
 import java.io.File
-import kotlin.system.exitProcess
 
 class FileHelper(val pathHelper: PathHelper) {
 
@@ -37,8 +35,7 @@ class FileHelper(val pathHelper: PathHelper) {
         }
         targetFolder.mkdir()
         if (!sourceFolder.copyRecursively(target = targetFolder, overwrite = true)) {
-            Log.e("An error occurred while copying files with target folder : ${targetFolder.absolutePath}")
-            exitProcess(COPY_FILE_ERROR)
+            throw Exception("An error occurred while copying files with target folder : ${targetFolder.absolutePath}")
         }
 
         renameTxtXmlFiles(targetFolder)

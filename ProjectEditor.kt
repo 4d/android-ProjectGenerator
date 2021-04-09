@@ -1,6 +1,5 @@
 import DefaultValues.DEFAULT_LOG_LEVEL
 import DefaultValues.DEFAULT_REMOTE_URL
-import ExitCodes.PROJECT_EDITOR_JSON_EMPTY
 import ProjectEditorConstants.AUTHENTICATION_KEY
 import ProjectEditorConstants.BACKGROUND_COLOR
 import ProjectEditorConstants.BOOLEAN_TYPE
@@ -33,7 +32,6 @@ import ProjectEditorConstants.TIME_TYPE
 import ProjectEditorConstants.URLS_KEY
 import org.json.JSONObject
 import java.io.File
-import kotlin.system.exitProcess
 
 class ProjectEditor(projectEditorFile: File) {
 
@@ -51,8 +49,7 @@ class ProjectEditor(projectEditorFile: File) {
         Log.plantTree(this::class.java.canonicalName)
 
         if (jsonString.isEmpty()) {
-            Log.d("Json file ${projectEditorFile.name} is empty")
-            exitProcess(PROJECT_EDITOR_JSON_EMPTY)
+            throw Exception("Json file ${projectEditorFile.name} is empty")
         }
 
         retrieveJSONObject(jsonString)?.let {

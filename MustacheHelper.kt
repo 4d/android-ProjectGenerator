@@ -1,11 +1,6 @@
 import DefaultValues.DEFAULT_AUTHOR
 import DefaultValues.DEFAULT_REMOTE_URL
 import DefaultValues.LAYOUT_FILE
-import ExitCodes.COPY_TEMPLATE_FILE_ERROR
-import ExitCodes.FIELD_TYPE_ERROR
-import ExitCodes.FILE_CREATION_ERROR
-import ExitCodes.MISSING_ANDROID_CACHE_SDK_PATH
-import ExitCodes.MISSING_ANDROID_SDK_PATH
 import FileHelperConstants.APP_INFO_FILENAME
 import FileHelperConstants.DS_STORE
 import FileHelperConstants.QUERIES_FILENAME
@@ -67,7 +62,6 @@ import java.io.File
 import java.io.FileReader
 import java.lang.Integer.toHexString
 import java.util.*
-import kotlin.system.exitProcess
 
 class MustacheHelper(private val fileHelper: FileHelper, private val projectEditor: ProjectEditor) {
 
@@ -126,8 +120,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                 if (File(commonSdkPath).exists()) {
                     data[ANDROID_SDK_PATH] = commonSdkPath
                 } else {
-                    Log.e("Missing Android SDK path")
-                    exitProcess(MISSING_ANDROID_SDK_PATH)
+                    throw Exception("Missing Android SDK path")
                 }
             } else {
                 // already defined
@@ -146,14 +139,12 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
             }
 
             if (data[CACHE_4D_SDK_PATH] == null) {
-                Log.e("Missing 4D Mobile cache SDK path. Define `cache_4d_sdk` in json file or `QMOBILE_HOME` env variable")
-                exitProcess(MISSING_ANDROID_CACHE_SDK_PATH)
+                throw Exception("Missing 4D Mobile cache SDK path. Define `cache_4d_sdk` in json file or `QMOBILE_HOME` env variable")
             }
         }
         Log.d("> Cache 4D SDK = ${data[CACHE_4D_SDK_PATH]}")
         if (!File("${data[CACHE_4D_SDK_PATH]}").exists()) {
-            Log.e("Cache 4D SDK path do not exists. Define it correctly.")
-            exitProcess(MISSING_ANDROID_SDK_PATH)
+            throw Exception("Cache 4D SDK path do not exists. Define it correctly.")
         }
 
         projectEditor.findJsonString("backgroundColor")?.let {
@@ -357,8 +348,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                         )
 
                                     } ?: kotlin.run {
-                                        Log.e("An error occurred while parsing the fieldType of field : $field")
-                                        exitProcess(FIELD_TYPE_ERROR)
+                                        throw Exception("An error occurred while parsing the fieldType of field : $field")
                                     }
                                 }
 
@@ -581,8 +571,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                             val newFile = File(fileHelper.pathHelper.getLayoutTemplatePath(currentFile.absolutePath, formPath))
                             Log.i("File to copy : ${currentFile.absolutePath}; target : ${newFile.absolutePath}")
                             if (!currentFile.copyRecursively(target = newFile, overwrite = true)) {
-                                Log.e("An error occurred while copying template files with target : ${newFile.absolutePath}")
-                                exitProcess(COPY_TEMPLATE_FILE_ERROR)
+                                throw Exception("An error occurred while copying template files with target : ${newFile.absolutePath}")
                             }
                         }
                     }
@@ -822,8 +811,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                        } else { // any file to copy in project
                            val newFile = File(fileHelper.pathHelper.getLayoutTemplatePath(currentFile.absolutePath, formPath))
                            if (!currentFile.copyRecursively(target = newFile, overwrite = true)) {
-                               Log.e("An error occurred while copying template files with target : ${newFile.absolutePath}")
-                               exitProcess(COPY_TEMPLATE_FILE_ERROR)
+                               throw Exception("An error occurred while copying template files with target : ${newFile.absolutePath}")
                            }
                        }
                    }
@@ -844,8 +832,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         }
         newFile.parentFile.mkdirs()
         if (!newFile.createNewFile()) {
-            Log.e("An error occurred while creating new file : $newFile")
-            exitProcess(FILE_CREATION_ERROR)
+            throw Exception("An error occurred while creating new file : $newFile")
         }
         newFile.writeText(template.execute(data))
     }
@@ -862,8 +849,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         val queriesFile = File(fileHelper.pathHelper.assetsPath(), QUERIES_FILENAME)
         queriesFile.parentFile.mkdirs()
         if (!queriesFile.createNewFile()) {
-            Log.e("An error occurred while creating new file : $queriesFile")
-            exitProcess(FILE_CREATION_ERROR)
+            throw Exception("An error occurred while creating new file : $queriesFile")
         }
         queriesFile.writeText(gson.toJson(queries))
     }
@@ -872,8 +858,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         val appInfoFile = File(fileHelper.pathHelper.assetsPath(), APP_INFO_FILENAME)
         appInfoFile.parentFile.mkdirs()
         if (!appInfoFile.createNewFile()) {
-            Log.e("An error occurred while creating new file : $appInfoFile")
-            exitProcess(FILE_CREATION_ERROR)
+            throw Exception("An error occurred while creating new file : $appInfoFile")
         }
         appInfoFile.writeText(gson.toJson(projectEditor.getAppInfo()))
     }

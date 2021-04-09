@@ -1,6 +1,5 @@
 import DefaultValues.DEFAULT_DETAIL_FORM
 import DefaultValues.DEFAULT_LIST_FORM
-import ExitCodes.MISSING_TARGET_DIR
 import PathHelperConstants.ANDROID_PATH_KEY
 import PathHelperConstants.APP_PATH_KEY
 import PathHelperConstants.ASSETS_PATH_KEY
@@ -19,7 +18,6 @@ import PathHelperConstants.RES_PATH_KEY
 import PathHelperConstants.SRC_PATH_KEY
 import java.io.File
 import java.util.zip.ZipFile
-import kotlin.system.exitProcess
 
 class PathHelper(
         val targetDirPath: String,
@@ -50,8 +48,7 @@ class PathHelper(
     private fun replacePath(currentPath: String): String {
         val paths = currentPath.replaceIfWindowsPath().split(Regex(templateFilesPath))
         if (paths.size < 2) {
-            Log.e("Couldn't find target directory with path : $currentPath")
-            exitProcess(MISSING_TARGET_DIR)
+            throw Exception("Couldn't find target directory with path : $currentPath")
         }
         return replaceDirectoriesPath(paths[1])
     }
@@ -59,8 +56,7 @@ class PathHelper(
     private fun replaceLayoutTemplatePath(currentPath: String, formPath: String): String {
         val paths = currentPath.replaceIfWindowsPath().split(Regex(formPath.replaceIfWindowsPath()))
         if (paths.size < 2) {
-            Log.e("Couldn't find target directory with path : $currentPath")
-            exitProcess(MISSING_TARGET_DIR)
+            throw Exception("Couldn't find target directory with path : $currentPath")
         }
         val subPath = paths[1].removePrefix(File.separator).removePrefix(ANDROID_PATH_KEY)
         Log.d("replaceLayoutTemplatePath, subPath = $subPath")
