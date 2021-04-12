@@ -112,13 +112,12 @@ class ProjectEditor(projectEditorFile: File) {
         if (remoteUrl.isNullOrEmpty())
             remoteUrl = DEFAULT_REMOTE_URL
         val teamId = findJsonString("teamId") ?: ""
-        val embeddedData = findJsonString("embeddedData") != null
         return AppInfo(
             team = Team(TeamID = teamId, TeamName = ""),
             guestLogin = mailAuth.not(),
             remoteUrl = remoteUrl,
-            embeddedData = embeddedData,
             initialGlobalStamp = 0,
+            dumpedTables = mutableListOf(),
             searchableField = searchableFields,
             logLevel = DEFAULT_LOG_LEVEL
         )

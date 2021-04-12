@@ -16,22 +16,28 @@ fun String.replaceXmlTxtSuffix() = if (this.endsWith(XML_TXT_EXT)) this.removeSu
  * Field / Table name adjustments
  */
 
-fun String.tableNameAdjustment() = this.condense().capitalize().replaceSpecialChars().validateWord()
+fun String.tableNameAdjustment() = this.condense().capitalize().replaceSpecialChars().firstCharForTable().validateWord()
 
 fun String.fieldAdjustment() = this.condense().replaceSpecialChars().validateWord()
 
-fun String.dataBindingAdjustment(): String = this.condense().replaceSpecialChars().split("_")
-    .joinToString("") { it.toLowerCase().capitalize() }
+fun String.dataBindingAdjustment(): String = this.condense().replaceSpecialChars().firstCharForTable()
+    .split("_").joinToString("") { it.toLowerCase().capitalize() }
 
 private fun String.condense() = this.replace("\\s".toRegex(), "")
 
 private fun String.replaceSpecialChars(): String {
     return if (this.contains("Entities<")) {
-        this.replace("[^a-zA-Z0-9._<>]".toRegex(), "_").unaccent()
+        this.unaccent().replace("[^a-zA-Z0-9._<>]".toRegex(), "_")
     } else {
-        this.replace("[^a-zA-Z0-9._]".toRegex(), "_").unaccent()
+        this.unaccent().replace("[^a-zA-Z0-9._]".toRegex(), "_")
     }
 }
+
+private fun String.firstCharForTable(): String =
+    if (this.startsWith("_"))
+        "Q$this"
+    else
+        this
 
 private val REGEX_UNACCENT = "\\p{InCombiningDiacriticalMarks}+".toRegex()
 

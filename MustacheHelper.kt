@@ -250,7 +250,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                         TemplateLayoutFiller(
                             name = dataModel.name.tableNameAdjustment(),
                             name_original = dataModel.name,
-                            nameLowerCase = dataModel.name.toLowerCase().fieldAdjustment(),
+                            nameLowerCase = dataModel.name.tableNameAdjustment().toLowerCase(),
                             nameCamelCase = dataModel.name.dataBindingAdjustment(),
                             label = dataModel.getLabel(),
                             hasIcon = (dataModel.iconPath != null && dataModel.iconPath != ""),
