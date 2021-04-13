@@ -74,7 +74,7 @@ if [ -z "$componentPath" ]; then
 fi
 
 # launch compilation and bundling
-kscript main.kt \
+kscript main.kt generate \
     --project-editor "$projectFile" \
     --files-to-copy  "$mobileComponentPath/Resources/templates/android/project/copy/" \
     --template-files "$mobileComponentPath/Resources/templates/android/project/tpl/" \

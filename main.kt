@@ -1,7 +1,7 @@
 //DEPS com.samskivert:jmustache:1.15
 //DEPS com.squareup.retrofit2:converter-gson:2.9.0
 
-@file:DependsOnMaven("com.github.ajalt.clikt:clikt-jvm:3.0.1")
+@file:DependsOnMaven("com.github.ajalt.clikt:clikt-jvm:3.1.0")
 @file:DependsOnMaven("org.json:json:20180813")
 @file:DependsOnMaven("com.google.android:android:4.1.1.4")
 
@@ -15,12 +15,13 @@ import DefaultValues.DEFAULT_APPLICATION
 import DefaultValues.DEFAULT_COMPANY
 import DefaultValues.DEFAULT_PACKAGE
 import com.github.ajalt.clikt.core.CliktCommand
+import com.github.ajalt.clikt.core.subcommands
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.prompt
 import com.github.ajalt.clikt.parameters.options.validate
 import java.io.File
 
-class Main : CliktCommand() {
+class GenerateCommand : CliktCommand(name = "generate") {
 
     private lateinit var FILES_TO_COPY: String
     private lateinit var TEMPLATE_FILES: String
@@ -58,6 +59,7 @@ class Main : CliktCommand() {
 
     override fun run() {
         Log.d("Parameters checked.")
+        Log.d("Version: ${Version.VALUE}")
         Log.i("Starting procedure...")
         start()
         Log.i("Procedure complete.")
@@ -133,4 +135,8 @@ class Main : CliktCommand() {
     }
 }
 
-fun main(args: Array<String>) = Main().main(args)
+class Main : CliktCommand() {
+    override fun run() {}
+}
+
+fun main(args: Array<String>) = Main().subcommands(VersionCommand(), GenerateCommand()).main(args)

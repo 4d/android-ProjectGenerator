@@ -1,3 +1,4 @@
+//INCLUDE version.kt
 //INCLUDE FileHelper.kt
 //INCLUDE MustacheHelper.kt
 //INCLUDE PathHelper.kt
