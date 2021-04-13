@@ -1,8 +1,12 @@
 
 import com.github.ajalt.clikt.core.CliktCommand
 
-class Version: CliktCommand(name = "version") {
+object Version {
+    const val VALUE = "__VERSION__"
+}
+
+class VersionCommand: CliktCommand(name = "version") {
     override fun run() {
-        echo("VERSION")
+        echo("${Version.VALUE}")
     }
 }

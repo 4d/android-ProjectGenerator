@@ -21,7 +21,7 @@ import com.github.ajalt.clikt.parameters.options.prompt
 import com.github.ajalt.clikt.parameters.options.validate
 import java.io.File
 
-class Generate : CliktCommand(name = "generate") {
+class GenerateCommand : CliktCommand(name = "generate") {
 
     private lateinit var FILES_TO_COPY: String
     private lateinit var TEMPLATE_FILES: String
@@ -59,6 +59,7 @@ class Generate : CliktCommand(name = "generate") {
 
     override fun run() {
         Log.d("Parameters checked.")
+        Log.d("Version: ${Version.VALUE}")
         Log.i("Starting procedure...")
         start()
         Log.i("Procedure complete.")
@@ -138,4 +139,4 @@ class Main : CliktCommand() {
     override fun run() {}
 }
 
-fun main(args: Array<String>) = Main().subcommands(Version(), Generate()).main(args)
+fun main(args: Array<String>) = Main().subcommands(VersionCommand(), GenerateCommand()).main(args)
