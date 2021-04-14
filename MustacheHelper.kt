@@ -536,7 +536,8 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                                 }
                                         }
                                     } else {
-                                        val defaultFormat = defaultFormatter[field.fieldTypeString]
+                                        val defaultFormat = defaultFormatter[typeFromTypeInt(field.fieldType)]
+                                        Log.v("defaultFormat  -- $defaultFormat")
                                         formatTypeFunctionName[defaultFormat]?.let { functionName ->
                                             typeChoice[defaultFormat]?.let { type ->
                                                 data["field_${i}_formatted"] = true
