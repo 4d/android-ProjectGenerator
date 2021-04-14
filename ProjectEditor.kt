@@ -192,6 +192,23 @@ fun typeStringFromTypeInt(type: Int?): String = when (type) {
     1 -> FLOAT_TYPE
     2 -> STRING_TYPE
     3 -> PHOTO_TYPE
+    4 -> STRING_TYPE
+    5 -> EMPTY_TYPE
+    6 -> BOOLEAN_TYPE
+    7 -> EMPTY_TYPE
+    8 -> INT_TYPE
+    9 -> INT_TYPE
+    11 -> STRING_TYPE
+    12 -> EMPTY_TYPE
+    25 -> INT_TYPE
+    else -> EMPTY_TYPE
+}
+
+fun typeFromTypeInt(type: Int?): String = when (type) {
+    0 -> STRING_TYPE
+    1 -> FLOAT_TYPE
+    2 -> STRING_TYPE
+    3 -> PHOTO_TYPE
     4 -> DATE_TYPE
     5 -> EMPTY_TYPE
     6 -> BOOLEAN_TYPE
