@@ -455,7 +455,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
             if (File(formPath).exists()) {
                 if (!fileHelper.pathHelper.appFolderExistsInTemplate(formPath)) {
-                    Log.w("WARNING : AN IOS TEMPLATE WAS GIVEN FOR THE LIST FORM $formPath")
+                    Log.w("WARNING : INCOMPATIBLE TEMPLATE WAS GIVEN FOR THE LIST FORM $formPath")
                     formPath = fileHelper.pathHelper.getDefaultTemplateListFormPath()
                 }
             } else {
@@ -594,7 +594,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
            if (File(formPath).exists()) {
                if (!fileHelper.pathHelper.appFolderExistsInTemplate(formPath)) {
-                   Log.w("WARNING : AN IOS TEMPLATE WAS GIVEN FOR THE DETAIL FORM $formPath")
+                   Log.w("WARNING : INCOMPATIBLE TEMPLATE WAS GIVEN FOR THE DETAIL FORM $formPath")
                    formPath = fileHelper.pathHelper.getDefaultTemplateDetailFormPath()
                }
            } else {
@@ -817,6 +817,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
                        } else { // any file to copy in project
                            val newFile = File(fileHelper.pathHelper.getLayoutTemplatePath(currentFile.absolutePath, formPath))
+                           Log.i("File to copy : ${currentFile.absolutePath}; target : ${newFile.absolutePath}")
                            if (!currentFile.copyRecursively(target = newFile, overwrite = true)) {
                                throw Exception("An error occurred while copying template files with target : ${newFile.absolutePath}")
                            }

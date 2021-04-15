@@ -1,5 +1,6 @@
 import DefaultValues.DEFAULT_DETAIL_FORM
 import DefaultValues.DEFAULT_LIST_FORM
+import FileHelperConstants.TEMPORARY_UNZIPPED_TEMPLATE_PREFIX
 import PathHelperConstants.ANDROID_PATH_KEY
 import PathHelperConstants.APP_PATH_KEY
 import PathHelperConstants.ASSETS_PATH_KEY
@@ -17,7 +18,6 @@ import PathHelperConstants.RECYCLER_VIEW_ITEM_PREFIX
 import PathHelperConstants.RES_PATH_KEY
 import PathHelperConstants.SRC_PATH_KEY
 import java.io.File
-import java.util.zip.ZipFile
 
 class PathHelper(
         val targetDirPath: String,
@@ -29,6 +29,8 @@ class PathHelper(
         val appNameWithCaps: String,
         val pkg: String
 ) {
+
+    val tmpUnzippedTemplateListToBeDeleted: MutableList<File> = mutableListOf()
 
     fun getPath(currentPath: String): String {
         val path = targetDirPath + replacePath(currentPath)
@@ -58,7 +60,7 @@ class PathHelper(
         if (paths.size < 2) {
             throw Exception("Couldn't find target directory with path : $currentPath")
         }
-        val subPath = paths[1].removePrefix(File.separator).removePrefix(ANDROID_PATH_KEY)
+        val subPath = paths[1].removePrefix("/").removeSuffix("\\").removePrefix(ANDROID_PATH_KEY)
         Log.d("replaceLayoutTemplatePath, subPath = $subPath")
         return replaceDirectoriesPath(subPath)
     }
@@ -145,47 +147,49 @@ class PathHelper(
 
     fun getTemplateListFormPath(formName: String): String {
         var templatePath = ""
+        var newFormName = formName
         if (formName.startsWith("/")) {
             templatePath = hostListFormTemplatesPath
 
-            /*if (formName.endsWith(".zip")) {
+            if (formName.endsWith(".zip")) {
                 val zipFile = File(templatePath + File.separator + formName.removePrefix("/"))
-                unzipTemplate(zipFile)
-            }*/
+                val tmpDir = ZipManager.unzip(zipFile)
+                tmpUnzippedTemplateListToBeDeleted.add(tmpDir)
+                newFormName = TEMPORARY_UNZIPPED_TEMPLATE_PREFIX + formName.removePrefix("/").removeSuffix(".zip")
+            }
 
         } else {
             templatePath = listFormTemplatesPath
         }
-        return templatePath + File.separator + formName.removePrefix(File.separator)
+        return templatePath + File.separator + newFormName.removePrefix(File.separator)
     }
 
     fun getTemplateDetailFormPath(formName: String): String {
         var templatePath = ""
+        var newFormName = formName
         if (formName.startsWith("/")) {
             templatePath = hostDetailFormTemplatesPath
 
-            /*if (formName.endsWith(".zip")) {
+            if (formName.endsWith(".zip")) {
                 val zipFile = File(templatePath + File.separator + formName.removePrefix("/"))
-                unzipTemplate(zipFile)
-            }*/
+                val tmpDir = ZipManager.unzip(zipFile)
+                tmpUnzippedTemplateListToBeDeleted.add(tmpDir)
+                newFormName = TEMPORARY_UNZIPPED_TEMPLATE_PREFIX + formName.removePrefix("/").removeSuffix(".zip")
+            }
 
         } else {
             templatePath = detailFormTemplatesPath
         }
-        return templatePath + File.separator + formName.removePrefix(File.separator)
+        return templatePath + File.separator + newFormName.removePrefix(File.separator)
     }
 
-    private fun unzipTemplate(zipFile: File) {
-        ZipFile(zipFile).use { zip ->
-            zip.entries().asSequence().forEach { entry ->
-
-                Log.d("zip entry is : $entry")
-                zip.getInputStream(entry).use { input ->
-
-                    File(entry.name).outputStream().use { output ->
-                        input.copyTo(output)
-                    }
-                }
+    fun deleteTemporaryUnzippedDirectories() {
+        tmpUnzippedTemplateListToBeDeleted.forEach { fileToBeDeleted ->
+            Log.d("Dir to be deleted : ${fileToBeDeleted.absolutePath}")
+            if (fileToBeDeleted.deleteRecursively()) {
+                Log.d("Temporary unzipped template directory successfully deleted.")
+            } else {
+                Log.w("Could not delete temporary unzipped template directory.")
             }
         }
     }

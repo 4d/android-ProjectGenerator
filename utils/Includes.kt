@@ -38,3 +38,4 @@
 //INCLUDE utils/JSONExtNavigation.kt
 //INCLUDE utils/Log.kt
 //INCLUDE utils/XmlTemplateFixer.kt
+//INCLUDE utils/ZipManager.kt

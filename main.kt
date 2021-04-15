@@ -120,6 +120,8 @@ class GenerateCommand : CliktCommand(name = "generate") {
 
         mustacheHelper.applyDetailFormTemplate()
 
+        pathHelper.deleteTemporaryUnzippedDirectories()
+
         Log.i("Mustache templating done.")
         Log.v("-------------------------")
 
