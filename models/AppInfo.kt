@@ -5,5 +5,6 @@ data class AppInfo(
         val initialGlobalStamp: Int,
         val dumpedTables: List<String>,
         val searchableField: Map<String, List<String>>,
-        val logLevel: Int
+        val logLevel: Int,
+        val relations: Boolean
 )

@@ -119,7 +119,8 @@ class ProjectEditor(projectEditorFile: File) {
             initialGlobalStamp = 0,
             dumpedTables = mutableListOf(),
             searchableField = searchableFields,
-            logLevel = DEFAULT_LOG_LEVEL
+            logLevel = DEFAULT_LOG_LEVEL,
+            relations = true
         )
     }
 
