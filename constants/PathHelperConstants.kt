@@ -28,6 +28,7 @@ object PathHelperConstants {
     const val DETAIL_FORMS_KEY = "detail"
     const val RECYCLER_VIEW_ITEM_PREFIX = "recyclerview_item_"
     const val DETAIL_FORM_PREFIX = "fragment_detail_"
+    const val HOST_FORMATTERS_KEY = "formatters"
 
     /**
      * FILE EXTENSIONS

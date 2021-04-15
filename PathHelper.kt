@@ -5,6 +5,7 @@ import PathHelperConstants.APP_PATH_KEY
 import PathHelperConstants.ASSETS_PATH_KEY
 import PathHelperConstants.DETAIL_FORMS_KEY
 import PathHelperConstants.DETAIL_FORM_PREFIX
+import PathHelperConstants.HOST_FORMATTERS_KEY
 import PathHelperConstants.HOST_FORMS
 import PathHelperConstants.JAVA_PATH_KEY
 import PathHelperConstants.LAYOUT_PATH_KEY
@@ -17,6 +18,7 @@ import PathHelperConstants.RECYCLER_VIEW_ITEM_PREFIX
 import PathHelperConstants.RES_PATH_KEY
 import PathHelperConstants.SRC_PATH_KEY
 import java.io.File
+import java.lang.IllegalArgumentException
 import java.util.zip.ZipFile
 
 class PathHelper(
@@ -72,6 +74,8 @@ class PathHelper(
     val hostListFormTemplatesPath = hostFormTemplatesPath + File.separator + LIST_FORMS_KEY
 
     val hostDetailFormTemplatesPath = hostFormTemplatesPath + File.separator + DETAIL_FORMS_KEY
+
+    val hostFormattersPath = hostDb + File.separator + HOST_FORMATTERS_KEY
 
     private val srcPath = targetDirPath + File.separator +
             APP_PATH_KEY + File.separator +
@@ -189,4 +193,18 @@ class PathHelper(
             }
         }
     }
+
+    /**
+     * Get custom formatter path
+     * @param   name name of the formatter
+     * @return  the file path
+     * @throws  IllegalArgumentException if formatter name do not start with /
+     */
+    fun getFormatterPath(name: String): String {
+        if (name.startsWith("/")) {
+            return hostFormattersPath + File.separator + name.removePrefix("/")
+        }
+        throw IllegalArgumentException("Getting path of formatter $name that are not a host one ie. starting with '/' characters}")
+    }
+
 }
