@@ -153,9 +153,13 @@ class PathHelper(
 
             if (formName.endsWith(".zip")) {
                 val zipFile = File(templatePath + File.separator + formName.removePrefix("/"))
-                val tmpDir = ZipManager.unzip(zipFile)
-                tmpUnzippedTemplateListToBeDeleted.add(tmpDir)
-                newFormName = TEMPORARY_UNZIPPED_TEMPLATE_PREFIX + formName.removePrefix("/").removeSuffix(".zip")
+                if (zipFile.exists()) {
+                    val tmpDir = ZipManager.unzip(zipFile)
+                    tmpUnzippedTemplateListToBeDeleted.add(tmpDir)
+                    newFormName = TEMPORARY_UNZIPPED_TEMPLATE_PREFIX + formName.removePrefix("/").removeSuffix(".zip")
+                } else {
+                    return getDefaultTemplateListFormPath()
+                }
             }
 
         } else {
@@ -172,9 +176,13 @@ class PathHelper(
 
             if (formName.endsWith(".zip")) {
                 val zipFile = File(templatePath + File.separator + formName.removePrefix("/"))
-                val tmpDir = ZipManager.unzip(zipFile)
-                tmpUnzippedTemplateListToBeDeleted.add(tmpDir)
-                newFormName = TEMPORARY_UNZIPPED_TEMPLATE_PREFIX + formName.removePrefix("/").removeSuffix(".zip")
+                if (zipFile.exists()) {
+                    val tmpDir = ZipManager.unzip(zipFile)
+                    tmpUnzippedTemplateListToBeDeleted.add(tmpDir)
+                    newFormName = TEMPORARY_UNZIPPED_TEMPLATE_PREFIX + formName.removePrefix("/").removeSuffix(".zip")
+                } else {
+                    return getDefaultTemplateDetailFormPath()
+                }
             }
 
         } else {
