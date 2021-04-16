@@ -213,6 +213,7 @@ fun JSONObject?.getDataModelField(keyField: String): Field {
             field.name = keyField
             field.relatedDataClass = relatedDataClass
             field.fieldTypeString = relatedDataClass
+            field.variableType = VariableType.VAR.string
         }
         this?.getSafeString(RELATEDENTITIES_KEY)?.let { relatedEntities -> // One-to-many relation
             field.name = keyField
