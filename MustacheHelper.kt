@@ -54,12 +54,15 @@ import MustacheConstants.TYPES_AND_TABLES
 import PathHelperConstants.TEMPLATE_PLACEHOLDER
 import PathHelperConstants.TEMPLATE_RELATION_DAO_PLACEHOLDER
 import PathHelperConstants.TEMPLATE_RELATION_ENTITY_PLACEHOLDER
+import android.util.JsonReader
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
+import com.google.gson.JsonArray
 import com.samskivert.mustache.Mustache
 import com.samskivert.mustache.Template
 import java.io.File
 import java.io.FileReader
+import java.io.StringReader
 import java.lang.Integer.toHexString
 import java.util.*
 
@@ -443,6 +446,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         }
     }
 
+
     fun applyListFormTemplate() {
         projectEditor.listFormList.forEach { listForm ->
 
@@ -526,7 +530,8 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
                                     val format = getFormatNameForType(field.fieldType, field.format)?: field.format
                                     Log.v("format -- $format (${field.format}) -- > ${field.name.fieldAdjustment()}  -- fieldType :: ${field.fieldType}")
-
+                                    // CustomFormatter
+                                    fileHelper.pathHelper.readCustomFormatterManifest(format)
                                     if (format != null) {
                                         formatTypeFunctionName[format]?.let { functionName ->
                                                 typeChoice[format]?.let { type ->
@@ -650,7 +655,8 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
                                                val format = getFormatNameForType(field.fieldType, field.format)?: field.format
                                                Log.v("format :: $format")
-
+                                               // CustomFormatter
+                                               fileHelper.pathHelper.readCustomFormatterManifest(format)
                                                if (format != null) {
                                                    formatTypeFunctionName[format]?.let { functionName ->
                                                        typeChoice[format]?.let { type ->
@@ -702,6 +708,8 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                                    }
 
                                                    val format = getFormatNameForType(field.fieldType, field.format) ?: field.format
+                                                   // CustomFormatter
+                                                   fileHelper.pathHelper.readCustomFormatterManifest(format)
                                                    Log.v("format :: $format")
                                                    Log.i("applyDetailFormTemplate fieldName :: ${field.name.fieldAdjustment()}")
                                                    if (format != null) {
@@ -762,7 +770,8 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
                                                    val format = getFormatNameForType(field.fieldType, field.format)?: field.format
                                                    Log.v("format :: $format")
-                                                   
+                                                   // CustomFormatter
+                                                   fileHelper.pathHelper.readCustomFormatterManifest(format)
                                                    if (format != null) {
                                                        formatTypeFunctionName[format]?.let { functionName ->
                                                            typeChoice[format]?.let { type ->

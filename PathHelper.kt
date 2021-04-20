@@ -200,11 +200,24 @@ class PathHelper(
      * @return  the file path
      * @throws  IllegalArgumentException if formatter name do not start with /
      */
-    fun getFormatterPath(name: String): String {
+    private fun getFormatterPath(name: String): String {
         if (name.startsWith("/")) {
-            return hostFormattersPath + File.separator + name.removePrefix("/")
+            return hostFormattersPath + File.separator + name.removePrefix("/")+"/manifest.json"
         }
         throw IllegalArgumentException("Getting path of formatter $name that are not a host one ie. starting with '/' characters}")
+    }
+
+    fun readCustomFormatterManifest(customFormatter :String?){
+        customFormatter?.let {
+            val isCustomFormatter = it[0] == '/'
+            if (isCustomFormatter){
+                val customFormatterPath = getFormatterPath(customFormatter)
+                val jsonObject = retrieveJSONObject(File(customFormatterPath).readFile())
+                val binding = jsonObject?.getSafeString("binding")
+                val choiceList = jsonObject?.getSafeObject("choiceList")
+                Log.e("<<<<<<<fetchJsonObject<<<<<< $binding --> $choiceList")
+            }
+        }
     }
 
 }
