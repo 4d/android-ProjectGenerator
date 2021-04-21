@@ -130,6 +130,29 @@ class PathHelper(
         }
     }
 
+    fun verifyFormPath(formPath: String, formType: FormType): String {
+        if (File(formPath).exists()) {
+            if (!appFolderExistsInTemplate(formPath)) {
+                return if (formType == FormType.LIST) {
+                    Log.w("WARNING : INCOMPATIBLE TEMPLATE WAS GIVEN FOR THE LIST FORM $formPath")
+                    getDefaultTemplateListFormPath()
+                } else {
+                    Log.w("WARNING : INCOMPATIBLE TEMPLATE WAS GIVEN FOR THE DETAIL FORM $formPath")
+                    getDefaultTemplateDetailFormPath()
+                }
+            }
+        } else {
+            return if (formType == FormType.LIST) {
+                Log.w("WARNING : MISSING LIST FORM TEMPLATE $formPath")
+                getDefaultTemplateListFormPath()
+            } else {
+                Log.w("WARNING : MISSING DETAIL FORM TEMPLATE $formPath")
+                getDefaultTemplateDetailFormPath()
+            }
+        }
+        return formPath
+    }
+
     fun appFolderExistsInTemplate(formPath: String): Boolean = File(getAppFolderInTemplate(formPath)).exists()
 
     fun getAppFolderInTemplate(formPath: String): String {
@@ -189,6 +212,22 @@ class PathHelper(
             templatePath = detailFormTemplatesPath
         }
         return templatePath + File.separator + newFormName.removePrefix(File.separator)
+    }
+
+    fun getLayoutManagerType(formPath: String): String {
+
+        Log.i("getLayoutManagerType: $formPath")
+
+        var type = "Collection"
+        getTemplateManifestJSONContent(formPath)?.let {
+            type = it.getSafeObject("tags")?.getSafeString("___LISTFORMTYPE___") ?: "Collection"
+        }
+
+        return when (type) {
+            "Collection" -> "GRID"
+            "Table" -> "LINEAR"
+            else -> "LINEAR"
+        }
     }
 
     fun deleteTemporaryUnzippedDirectories() {

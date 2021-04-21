@@ -277,8 +277,9 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         // Specifying if list layout is table or collection (LinearLayout or GridLayout)
         tableNamesForNavigation.map { it.name }.forEach { tableName ->
             val listFormName = projectEditor.listFormList.find { listform -> listform.dataModel.name.tableNameAdjustment() == tableName.tableNameAdjustment() }?.name
-            val formPath = fileHelper.pathHelper.getFormPath(listFormName, FormType.LIST)
-            tableNamesForLayoutType.add(TemplateLayoutTypeFiller(name = tableName, layout_manager_type = getLayoutManagerType(formPath)))
+            var formPath = fileHelper.pathHelper.getFormPath(listFormName, FormType.LIST)
+            formPath = fileHelper.pathHelper.verifyFormPath(formPath, FormType.LIST)
+            tableNamesForLayoutType.add(TemplateLayoutTypeFiller(name = tableName, layout_manager_type = fileHelper.pathHelper.getLayoutManagerType(formPath)))
         }
 
         data[TABLENAMES_LAYOUT] = tableNamesForLayoutType
@@ -452,16 +453,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
             Log.d("MustacheHelper : listform.fields size = ${listForm.fields?.size}")
 
             var formPath = fileHelper.pathHelper.getFormPath(listForm.name, FormType.LIST)
-
-            if (File(formPath).exists()) {
-                if (!fileHelper.pathHelper.appFolderExistsInTemplate(formPath)) {
-                    Log.w("WARNING : INCOMPATIBLE TEMPLATE WAS GIVEN FOR THE LIST FORM $formPath")
-                    formPath = fileHelper.pathHelper.getDefaultTemplateListFormPath()
-                }
-            } else {
-                Log.w("WARNING : MISSING LIST FORM TEMPLATE $formPath")
-                formPath = fileHelper.pathHelper.getDefaultTemplateListFormPath()
-            }
+            formPath = fileHelper.pathHelper.verifyFormPath(formPath, FormType.LIST)
 
             val appFolderInTemplate = fileHelper.pathHelper.getAppFolderInTemplate(formPath)
 
@@ -591,16 +583,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
        projectEditor.detailFormList.forEach { detailForm ->
 
            var formPath = fileHelper.pathHelper.getFormPath(detailForm.name, FormType.DETAIL)
-
-           if (File(formPath).exists()) {
-               if (!fileHelper.pathHelper.appFolderExistsInTemplate(formPath)) {
-                   Log.w("WARNING : INCOMPATIBLE TEMPLATE WAS GIVEN FOR THE DETAIL FORM $formPath")
-                   formPath = fileHelper.pathHelper.getDefaultTemplateDetailFormPath()
-               }
-           } else {
-               Log.w("WARNING : MISSING DETAIL FORM TEMPLATE $formPath")
-               formPath = fileHelper.pathHelper.getDefaultTemplateDetailFormPath()
-           }
+           formPath = fileHelper.pathHelper.verifyFormPath(formPath, FormType.DETAIL)
 
            // not used in list form
            var specificFieldsCount = 0
@@ -874,22 +857,6 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
     private fun generateCompilerFolder(templateFileFolder: String): Mustache.Compiler {
         return Mustache.compiler().withLoader { name ->
             FileReader(File(templateFileFolder, name))
-        }
-    }
-
-    fun getLayoutManagerType(formPath: String): String {
-
-        Log.i("getLayoutManagerType: $formPath")
-
-        var type = "Collection"
-        getTemplateManifestJSONContent(formPath)?.let {
-            type = it.getSafeObject("tags")?.getSafeString("___LISTFORMTYPE___") ?: "Collection"
-        }
-
-        return when (type) {
-            "Collection" -> "GRID"
-            "Table" -> "LINEAR"
-            else -> "LINEAR"
         }
     }
 }
