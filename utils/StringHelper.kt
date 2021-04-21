@@ -1,6 +1,7 @@
 import PathHelperConstants.XML_EXT
 import PathHelperConstants.XML_TXT_EXT
 import java.text.Normalizer
+import java.util.*
 
 fun String.isNumber(): Boolean = if (this.isEmpty()) false else this.all { Character.isDigit(it) }
 
@@ -10,15 +11,17 @@ fun String.isNumber(): Boolean = if (this.isEmpty()) false else this.all { Chara
 
 fun String.addXmlSuffix() = this + XML_EXT
 
-fun String.replaceXmlTxtSuffix() = if (this.endsWith(XML_TXT_EXT)) this.removeSuffix(XML_TXT_EXT).addXmlSuffix() else this
+fun String.replaceXmlTxtSuffix() =
+    if (this.endsWith(XML_TXT_EXT)) this.removeSuffix(XML_TXT_EXT).addXmlSuffix() else this
 
 /**
  * Field / Table name adjustments
  */
 
-fun String.tableNameAdjustment() = this.condense().capitalize().replaceSpecialChars().firstCharForTable().validateWord()
+fun String.tableNameAdjustment() =
+    this.condense().capitalize(Locale.getDefault()).replaceSpecialChars().firstCharForTable().validateWord()
 
-fun String.fieldAdjustment() = this.condense().replaceSpecialChars().validateWord()
+fun String.fieldAdjustment() = this.condense().replaceSpecialChars().decapitalizeExceptID().validateWord()
 
 fun String.dataBindingAdjustment(): String = this.condense().replaceSpecialChars().firstCharForTable()
     .split("_").joinToString("") { it.toLowerCase().capitalize() }
@@ -32,6 +35,8 @@ private fun String.replaceSpecialChars(): String {
         this.unaccent().replace("[^a-zA-Z0-9._]".toRegex(), "_")
     }
 }
+
+private fun String.decapitalizeExceptID() = if (this == "ID") this else this.decapitalize(Locale.getDefault())
 
 private fun String.firstCharForTable(): String =
     if (this.startsWith("_"))
