@@ -1,3 +1,5 @@
+import org.json.JSONObject
+
 data class AppInfo(
         val team: Team,
         val guestLogin: Boolean,
@@ -5,5 +7,6 @@ data class AppInfo(
         val initialGlobalStamp: Int,
         val dumpedTables: List<String>,
         val searchableField: Map<String, List<String>>,
-        val logLevel: Int
+        val logLevel: Int,
+        val customFormatterJson: HashMap<String,JSONObject>
 )

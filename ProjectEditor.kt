@@ -104,7 +104,7 @@ class ProjectEditor(projectEditorFile: File) {
         }
     }
 
-    fun getAppInfo(): AppInfo {
+    fun getAppInfo(customFormatterJson: HashMap<String,JSONObject>): AppInfo {
         val mailAuth = findJsonBoolean("mailAuth") ?: false
         var remoteUrl = findJsonString("productionUrl")
         if (remoteUrl.isNullOrEmpty())
@@ -119,7 +119,8 @@ class ProjectEditor(projectEditorFile: File) {
             initialGlobalStamp = 0,
             dumpedTables = mutableListOf(),
             searchableField = searchableFields,
-            logLevel = DEFAULT_LOG_LEVEL
+            logLevel = DEFAULT_LOG_LEVEL,
+            customFormatterJson = customFormatterJson
         )
     }
 

@@ -876,7 +876,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         if (!appInfoFile.createNewFile()) {
             throw Exception("An error occurred while creating new file : $appInfoFile")
         }
-        appInfoFile.writeText(gson.toJson(projectEditor.getAppInfo()))
+        appInfoFile.writeText(gson.toJson(projectEditor.getAppInfo(fileHelper.pathHelper.getCustomFormatterJson())))
     }
 
     private fun generateCompilerFolder(templateFileFolder: String): Mustache.Compiler {
