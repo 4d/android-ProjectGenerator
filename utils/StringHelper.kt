@@ -36,7 +36,8 @@ private fun String.replaceSpecialChars(): String {
     }
 }
 
-private fun String.decapitalizeExceptID() = if (this == "ID") this else this.decapitalize(Locale.getDefault())
+private fun String.decapitalizeExceptID() =
+    if (this == "ID") this.toLowerCase(Locale.getDefault()) else this.decapitalize(Locale.getDefault())
 
 private fun String.firstCharForTable(): String =
     if (this.startsWith("_"))
