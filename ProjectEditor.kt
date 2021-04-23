@@ -104,7 +104,7 @@ class ProjectEditor(projectEditorFile: File) {
         }
     }
 
-    fun getAppInfo(customFormatterJson: HashMap<String,JSONObject>): AppInfo {
+    fun getAppInfo(customFormatterJson:  HashMap<String,JSONObject>): AppInfo {
         val mailAuth = findJsonBoolean("mailAuth") ?: false
         var remoteUrl = findJsonString("productionUrl")
         if (remoteUrl.isNullOrEmpty())

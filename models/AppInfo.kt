@@ -8,5 +8,5 @@ data class AppInfo(
         val dumpedTables: List<String>,
         val searchableField: Map<String, List<String>>,
         val logLevel: Int,
-        val customFormatterJson: HashMap<String,JSONObject>
+        val customFormatterJson:  HashMap<String,JSONObject>,
 )

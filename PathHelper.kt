@@ -34,7 +34,6 @@ class PathHelper(
 ) {
     private var jsonList = HashMap<String,JSONObject>()
 
-
     fun getPath(currentPath: String): String {
         val path = targetDirPath + replacePath(currentPath)
         return path.replaceIfWindowsPath()
@@ -220,12 +219,10 @@ class PathHelper(
                 val smallJSONOBJ = JSONObject()
                 smallJSONOBJ.put("binding",jsonObject?.getSafeString("binding"))
                 smallJSONOBJ.put("choiceList",jsonObject?.getSafeObject("choiceList"))
-                jsonList.put(customFormatter.removePrefix("/"),smallJSONOBJ)
+                jsonList[customFormatter.removePrefix("/")] = smallJSONOBJ
             }
         }
     }
 
     fun getCustomFormatterJson() = jsonList
-
-
 }
