@@ -80,7 +80,7 @@ fun JSONObject.getDataModelList(): List<DataModel> {
                                 relationList.add(relation)
 
                                 if (relation.relationType == RelationType.MANY_TO_ONE) {
-                                    val relationKeyField = Field(name = "__${relation.name.validateWord()}Key")
+                                    val relationKeyField = Field(name = "__${relation.name.validateWordDecapitalized()}Key")
                                     Log.d("Many to One relation: adding relationKeyField = $relationKeyField")
                                     relationKeyField.fieldType = 0
                                     relationKeyField.fieldTypeString = typeStringFromTypeInt(relationKeyField.fieldType)
@@ -109,7 +109,7 @@ fun JSONObject.getDataModelList(): List<DataModel> {
                                                 slaveRelationList.add(relation)
 
                                                 if (relation.relationType == RelationType.MANY_TO_ONE) {
-                                                    val relationKeyField = Field(name = "__${relation.name.validateWord()}Key")
+                                                    val relationKeyField = Field(name = "__${relation.name.validateWordDecapitalized()}Key")
                                                     Log.d("Many to One relation: adding relationKeyField = $relationKeyField")
                                                     relationKeyField.fieldType = 0
                                                     relationKeyField.fieldTypeString = typeStringFromTypeInt(relationKeyField.fieldType)

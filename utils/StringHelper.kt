@@ -21,7 +21,7 @@ fun String.replaceXmlTxtSuffix() =
 fun String.tableNameAdjustment() =
     this.condense().capitalize(Locale.getDefault()).replaceSpecialChars().firstCharForTable().validateWord()
 
-fun String.fieldAdjustment() = this.condense().replaceSpecialChars().decapitalizeExceptID().validateWord()
+fun String.fieldAdjustment() = this.condense().replaceSpecialChars().validateWordDecapitalized()
 
 fun String.dataBindingAdjustment(): String = this.condense().replaceSpecialChars().firstCharForTable()
     .split("_").joinToString("") { it.toLowerCase().capitalize() }
@@ -56,6 +56,12 @@ private const val prefixReservedKeywords = "qmobile"
 
 fun String.validateWord(): String {
     return this.split(".").joinToString(".") {
+        if (reservedKeywords.contains(it)) "${prefixReservedKeywords}_$it" else it
+    }
+}
+
+fun String.validateWordDecapitalized(): String {
+    return this.decapitalizeExceptID().split(".").joinToString(".") {
         if (reservedKeywords.contains(it)) "${prefixReservedKeywords}_$it" else it
     }
 }
