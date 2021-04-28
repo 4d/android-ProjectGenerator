@@ -69,7 +69,7 @@ class GenerateCommand : CliktCommand(name = "generate") {
 
         Log.d("e ${projectEditorJson.name}...")
 
-        val projectEditor = ProjectEditor(projectEditorJson)
+        val projectEditor = ProjectEditor(projectEditorJson,hostDb = HOST_DB)
 
         Log.d("Reading project editor json file done.")
         Log.v("--------------------------------------")

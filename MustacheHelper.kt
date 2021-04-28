@@ -58,6 +58,7 @@ import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.samskivert.mustache.Mustache
 import com.samskivert.mustache.Template
+import org.json.JSONObject
 import java.io.File
 import java.io.FileReader
 import java.lang.Integer.toHexString
@@ -556,16 +557,16 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                         }
 
                                         var format = getFormatNameForType(field.fieldType, field.format) ?: field.format
-                                        Log.v("-- format -- $format (${field.format})")
+                                        Log.v("-- format -- $format (${field.format}) - fieldName = ${field.name}  -- > ${listForm.dataModel.name.tableNameAdjustment()}")
                                         // CustomFormatter
-                                        fileHelper.pathHelper.readCustomFormatterManifest(format)
-                                        if (format?.get(0) == '/') format = format.removePrefix("/")
+                                        if (format?.get(0) == '/') format = "custom"
                                         if (format != null) {
                                             formatTypeFunctionName[format]?.let { functionName ->
                                                 typeChoice[format]?.let { type ->
+                                                    // if(type == "custom") "${field.format?.replace("/","")}`" else type --> Enable to inject string directly
                                                     data["field_${i}_formatted"] = true
                                                     data["field_${i}_format_function"] = functionName
-                                                    data["field_${i}_format_type"] = type
+                                                    data["field_${i}_format_type"] = if(type == "custom") "`${listForm.dataModel.name.tableNameAdjustment()}`" else type
                                                 }
                                             }
                                         } else {
@@ -692,8 +693,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                                         ?: field.format
                                                     Log.v("format :: $format")
                                                     // CustomFormatter
-                                                    fileHelper.pathHelper.readCustomFormatterManifest(format)
-                                                    if (format?.get(0) == '/') format = format.removePrefix("/")
+                                                    if (format?.get(0) == '/') format = "custom"
 
                                                     if (format != null) {
                                                         formatTypeFunctionName[format]?.let { functionName ->
@@ -766,8 +766,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                                         var format = getFormatNameForType(field.fieldType, field.format)
                                                             ?: field.format
                                                         // CustomFormatter
-                                                        fileHelper.pathHelper.readCustomFormatterManifest(format)
-                                                        if (format?.get(0) == '/') format = format.removePrefix("/")
+                                                        if (format?.get(0) == '/') format = "custom"
                                                         Log.v("format :: $format")
                                                         Log.i("applyDetailFormTemplate fieldName :: ${field.name.fieldAdjustment()}")
                                                         if (format != null) {
@@ -836,8 +835,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                                             ?: field.format
                                                         Log.v("format :: $format")
                                                         // CustomFormatter
-                                                        fileHelper.pathHelper.readCustomFormatterManifest(format)
-                                                        if (format?.get(0) == '/') format = format.removePrefix("/")
+                                                        if (format?.get(0) == '/') format = "custom"
                                                         if (format != null) {
                                                             formatTypeFunctionName[format]?.let { functionName ->
                                                                 typeChoice[format]?.let { type ->
@@ -957,11 +955,11 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         if (!appInfoFile.createNewFile()) {
             throw Exception("An error occurred while creating new file : $appInfoFile")
         }
-        appInfoFile.writeText(gson.toJson(projectEditor.getAppInfo(fileHelper.pathHelper.getCustomFormatterJson())))
+        appInfoFile.writeText(gson.toJson(projectEditor.getAppInfo()))
     }
 
     private fun generateCompilerFolder(templateFileFolder: String): Mustache.Compiler {
-        return Mustache.compiler().withLoader { name ->
+        return Mustache.compiler().escapeHTML(false).withLoader { name ->
             FileReader(File(templateFileFolder, name))
         }
     }

@@ -1,3 +1,4 @@
+import com.google.gson.JsonObject
 import org.json.JSONObject
 
 data class AppInfo(
@@ -8,5 +9,8 @@ data class AppInfo(
         val dumpedTables: List<String>,
         val searchableField: Map<String, List<String>>,
         val logLevel: Int,
-        val customFormatterJson:  HashMap<String,JSONObject>,
+       // val customFormatter:  HashMap<String,HashMap<String,JsonObject>>,
+       val customFormatters : HashMap<String,HashMap<String,FieldMapping>>
 )
+
+data class FieldMapping(val binding:String?,val formatchoice: JSONObject?,val isSearchable: Boolean?,val formatType: String?)

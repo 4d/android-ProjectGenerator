@@ -17,6 +17,8 @@ import PathHelperConstants.PACKAGE_PH
 import PathHelperConstants.RECYCLER_VIEW_ITEM_PREFIX
 import PathHelperConstants.RES_PATH_KEY
 import PathHelperConstants.SRC_PATH_KEY
+import com.google.gson.Gson
+import com.google.gson.JsonObject
 import org.json.JSONObject
 import java.io.File
 import java.lang.IllegalArgumentException
@@ -32,7 +34,7 @@ class PathHelper(
         val appNameWithCaps: String,
         val pkg: String
 ) {
-    private var jsonList = HashMap<String,JSONObject>()
+
 
     fun getPath(currentPath: String): String {
         val path = targetDirPath + replacePath(currentPath)
@@ -195,34 +197,4 @@ class PathHelper(
             }
         }
     }
-
-    /**
-     * Get custom formatter path
-     * @param   name name of the formatter
-     * @return  the file path
-     * @throws  IllegalArgumentException if formatter name do not start with /
-     */
-    private fun getFormatterPath(name: String): String {
-        if (name.startsWith("/")) {
-            return hostFormattersPath + File.separator + name.removePrefix("/")+"/manifest.json"
-        }
-        throw IllegalArgumentException("Getting path of formatter $name that are not a host one ie. starting with '/' characters}")
-    }
-
-    fun readCustomFormatterManifest(customFormatter :String?){
-
-        customFormatter?.let {
-            val isCustomFormatter = it[0] == '/'
-            if (isCustomFormatter){
-                val customFormatterPath = getFormatterPath(customFormatter)
-                val jsonObject = retrieveJSONObject(File(customFormatterPath).readFile())
-                val smallJSONOBJ = JSONObject()
-                smallJSONOBJ.put("binding",jsonObject?.getSafeString("binding"))
-                smallJSONOBJ.put("choiceList",jsonObject?.getSafeObject("choiceList"))
-                jsonList[customFormatter.removePrefix("/")] = smallJSONOBJ
-            }
-        }
-    }
-
-    fun getCustomFormatterJson() = jsonList
 }

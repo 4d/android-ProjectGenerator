@@ -22,10 +22,7 @@ object Key{
        typeChoice.put("longDate","TypeChoice.LongDate.key.toString()")
        typeChoice.put("mediumDate","TypeChoice.MediumDate.key.toString()")
        typeChoice.put("shortDate","TypeChoice.ShortDate.key.toString()")
-       typeChoice.put("formatter-Address","TypeChoice.FormatterAddress.key.toString()")
-       typeChoice.put("formatter-IntToString","TypeChoice.FormatterIntToString.key.toString()")
-       typeChoice.put("formatter-Html","TypeChoice.FormatterHtml.key.toString()")
-       typeChoice.put("formatter-TextToString","TypeChoice.FormatterTextToString.key.toString()")
+       typeChoice.put("custom","custom")
        return typeChoice
    }
     fun getFormatTypeFunctionName():HashMap<String,String>{
@@ -49,10 +46,7 @@ object Key{
         formatTypeFunctionName.put("integer","number")
         formatTypeFunctionName.put("real","number")
         formatTypeFunctionName.put("decimal","number")
-        formatTypeFunctionName.put("formatter-Address","customFormat")
-        formatTypeFunctionName.put("formatter-IntToString","customFormat")
-        formatTypeFunctionName.put("formatter-Html","customFormat")
-        formatTypeFunctionName.put("formatter-TextToString","customFormat")
+        formatTypeFunctionName.put("custom","custom")
         return formatTypeFunctionName
     }
 }
