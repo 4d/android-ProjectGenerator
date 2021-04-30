@@ -566,7 +566,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                                     // if(type == "custom") "${field.format?.replace("/","")}`" else type --> Enable to inject string directly
                                                     data["field_${i}_formatted"] = true
                                                     data["field_${i}_format_function"] = functionName
-                                                    data["field_${i}_format_type"] = if(type == "custom") "`${listForm.dataModel.name.tableNameAdjustment()}`" else type
+                                                    data["field_${i}_format_type"] = if(type == "custom") "`${listForm.dataModel.name.tableNameAdjustment()}`,`${field.name}`" else type
                                                 }
                                             }
                                         } else {
@@ -705,7 +705,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                                                     detailForm,
                                                                     true,
                                                                     functionName,
-                                                                    type)
+                                                                    if(type == "custom") "`${detailForm.dataModel.name.tableNameAdjustment()}`,`${field.name}`" else type)
                                                             }
                                                         }
 
@@ -775,7 +775,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                                                     data["field_${i + 1}_formatted"] = true
                                                                     data["field_${i + 1}_format_function"] =
                                                                         functionName
-                                                                    data["field_${i + 1}_format_type"] = type
+                                                                    data["field_${i + 1}_format_type"] = if(type == "custom") "`${detailForm.dataModel.name.tableNameAdjustment()}`,`${field.name}`" else type
                                                                 }
                                                             }
                                                         } else {
@@ -845,7 +845,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                                                         detailForm,
                                                                         true,
                                                                         functionName,
-                                                                        type)
+                                                                        if(type == "custom") "`${detailForm.dataModel.name.tableNameAdjustment()}`,`${field.name}`" else type)
                                                                 }
                                                             }
 
