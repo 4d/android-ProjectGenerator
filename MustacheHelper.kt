@@ -557,16 +557,22 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                         }
 
                                         var format = getFormatNameForType(field.fieldType, field.format) ?: field.format
-                                        Log.v("-- format -- $format (${field.format}) - fieldName = ${field.name}  -- > ${listForm.dataModel.name.tableNameAdjustment()}")
-                                        // CustomFormatter
+                                         // CustomFormatter
                                         if (format?.get(0) == '/') format = "custom"
                                         if (format != null) {
                                             formatTypeFunctionName[format]?.let { functionName ->
                                                 typeChoice[format]?.let { type ->
-                                                    // if(type == "custom") "${field.format?.replace("/","")}`" else type --> Enable to inject string directly
-                                                    data["field_${i}_formatted"] = true
-                                                    data["field_${i}_format_function"] = functionName
-                                                    data["field_${i}_format_type"] = if(type == "custom") "`${listForm.dataModel.name.tableNameAdjustment()}`,`${field.name}`" else type
+                                                    Log.e("-- format -- $format (${field.format}) - fieldName = ${field.name}  -- > ${listForm.dataModel.name.tableNameAdjustment()}")
+                                                    if(type == "custom"){
+                                                        data["field_${i}_isCustom"] = true
+                                                        data["field_${i}_tableName"] = listForm.dataModel.name.tableNameAdjustment()
+                                                        data["field_${i}_fieldName"]= field.name
+                                                    }else{
+                                                        data["field_${i}_isCustom"] = false
+                                                        data["field_${i}_formatted"] = true
+                                                        data["field_${i}_format_function"] = functionName
+                                                        data["field_${i}_format_type"] = type
+                                                    }
                                                 }
                                             }
                                         } else {

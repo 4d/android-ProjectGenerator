@@ -115,12 +115,21 @@ fun replaceTemplateText(oldFormText: String, formType: FormType): String {
         if (formType == FormType.LIST)
             "${indent}{{#field_${id}_defined}}\n" +
                     "${indent}{{^field_${id}_is_image}}\n" +
+                    "${indent}{{#field_${id}_isCustom}}\n" + //If is custom
+                    "${indent}app:tableName= \"@{`{{{field_${id}_tableName}}}`}\"\n" +
+                    "${indent}app:fieldName= \"@{`{{{field_${id}_fieldName}}}`}\"\n" +
+                    "${indent}app:value= \"@{ {{field_${id}_accessor}}{{field_${id}_name}}.toString()}\"\n" +
+                    "${indent}{{/field_${id}_isCustom}}\n" + // close custom
+                    "${indent}{{^field_${id}_isCustom}}\n" + // else custom
                     "${indent}{{#field_${id}_formatted}}\n" +
                     "${indent}android:text=\"@{Format.{{field_${id}_format_function}}({{field_${id}_format_type}},{{field_${id}_accessor}}{{field_${id}_name}}.toString())}\"\n" +
                     "${indent}{{/field_${id}_formatted}}\n" +
                     "${indent}{{^field_${id}_formatted}}\n" +
-                    "${indent}android:text=\"@{ {{field_${id}_accessor}}{{field_${id}_name}}.toString()}\"\n" +
+                    "${indent}android:text=\"@{ {{field_${id}_accessor}}{{field_${id}_name}}.toString()}\"\n" + // Update app here.
                     "${indent}{{/field_${id}_formatted}}\n" +
+                    "${indent}{{/field_${id}_isCustom}}\n" +//close custom
+
+
                     "${indent}{{/field_${id}_is_image}}\n" +
                     "${indent}{{/field_${id}_defined}}"
         else
