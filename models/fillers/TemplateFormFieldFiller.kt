@@ -6,6 +6,7 @@ data class TemplateFormFieldFiller(
     val isImage: Boolean,
     val accessor: String,
     val isFormatted: Boolean,
+    val isCustom:Boolean,
     val formatFunction: String,
     val formatType: String,
     val imageFieldName: String,

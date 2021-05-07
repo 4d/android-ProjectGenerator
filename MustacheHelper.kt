@@ -604,6 +604,9 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                     data.remove("field_${j}_format_function")
                                     data.remove("field_${j}_format_type")
                                     data.remove("field_${j}_accessor")
+                                    data.remove("field_${j}_isCustom")
+                                    data.remove("field_${j}_tableName")
+                                    data.remove("field_${j}_fieldName")
                                 }
                                 data.remove(RELATIONS)
                                 data.remove(IMAGE_FIELD_NAME)
@@ -693,26 +696,42 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                                         i + 1,
                                                         projectEditor.dataModelList,
                                                         detailForm,
-                                                        false)
+                                                        false,
+                                                    false)
 
                                                     var format = getFormatNameForType(field.fieldType, field.format)
                                                         ?: field.format
-                                                    Log.v("format :: $format")
+                                                    Log.e("Entered1 >>>>>>>>>>>>>>>>< format :: $format -- > ${field.name} -- >  ${detailForm.dataModel.name.tableNameAdjustment()}"  )
                                                     // CustomFormatter
                                                     if (format?.get(0) == '/') format = "custom"
 
                                                     if (format != null) {
                                                         formatTypeFunctionName[format]?.let { functionName ->
                                                             typeChoice[format]?.let { type ->
-                                                                Log.i("Adding free Field with format $field")
-                                                                formField = createDetailFormField(field,
-                                                                    i + 1,
-                                                                    projectEditor.dataModelList,
-                                                                    detailForm,
-                                                                    true,
-                                                                    functionName,
-                                                                    if(type == "custom") "`${detailForm.dataModel.name.tableNameAdjustment()}`,`${field.name}`" else type)
+                                                                //if(type == "custom") "`${detailForm.dataModel.name.tableNameAdjustment()}`,`${field.name}`" else
+                                                                if (type == "custom") {
+                                                                    Log.i("Adding free Field with format  >>>>> $field")
+                                                                    formField = createDetailFormField(field,
+                                                                        i + 1,
+                                                                        projectEditor.dataModelList,
+                                                                        detailForm,
+                                                                        false,
+                                                                        true,
+                                                                        functionName,
+                                                                        if (type == "custom") "`${detailForm.dataModel.name.tableNameAdjustment()}`,`${field.name}`" else type)
+                                                                } else {
+                                                                    Log.i("Adding free Field with format $field")
+                                                                    formField = createDetailFormField(field,
+                                                                        i + 1,
+                                                                        projectEditor.dataModelList,
+                                                                        detailForm,
+                                                                        true,
+                                                                        false,
+                                                                        functionName,
+                                                                        type)
+                                                                }
                                                             }
+
                                                         }
 
                                                     } else {
@@ -726,6 +745,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                                                     projectEditor.dataModelList,
                                                                     detailForm,
                                                                     true,
+                                                                    false,
                                                                     functionName,
                                                                     type)
                                                             }
@@ -771,6 +791,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
                                                         var format = getFormatNameForType(field.fieldType, field.format)
                                                             ?: field.format
+                                                        Log.e("Entered2 >>>>>>>>>>>>>>>>< format :: $format")
                                                         // CustomFormatter
                                                         if (format?.get(0) == '/') format = "custom"
                                                         Log.v("format :: $format")
@@ -835,11 +856,13 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                                             k + 1,
                                                             projectEditor.dataModelList,
                                                             detailForm,
+                                                            false,
                                                             false)
 
                                                         var format = getFormatNameForType(field.fieldType, field.format)
                                                             ?: field.format
                                                         Log.v("format :: $format")
+                                                        Log.e("Entered3 >>>>>>>>>>>>>>>>< format :: $format")
                                                         // CustomFormatter
                                                         if (format?.get(0) == '/') format = "custom"
                                                         if (format != null) {
@@ -850,7 +873,9 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                                                         projectEditor.dataModelList,
                                                                         detailForm,
                                                                         true,
+                                                                        false,
                                                                         functionName,
+
                                                                         if(type == "custom") "`${detailForm.dataModel.name.tableNameAdjustment()}`,`${field.name}`" else type)
                                                                 }
                                                             }
@@ -865,6 +890,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                                                         projectEditor.dataModelList,
                                                                         detailForm,
                                                                         true,
+                                                                        false,
                                                                         functionName,
                                                                         type)
                                                                 }

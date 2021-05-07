@@ -67,12 +67,20 @@ fun replaceTemplateText(oldFormText: String, formType: FormType): String {
                     "${indent}{{/isImage}}"
         else
             "${indent}{{^isImage}}\n" +
+                    "${indent}{{#isCustom}}\n" + //If is custom
+                    "${indent}app:tableName= \"@{`{{tableName}}`}\"\n" +
+                    "${indent}app:fieldName= \"@{`{{name}}`}\"\n" +
+                    "${indent}app:value= \"@{ {{accessor}}{{name}}.toString()}\"\n" +
+                    "${indent}{{/isCustom}}\n" + //End If Custom
+                    "${indent}{{^isCustom}}\n" +// Else Custom
                     "${indent}{{#isFormatted}}\n" +
                     "${indent}android:text=\"@{Format.{{formatFunction}}({{formatType}},{{accessor}}{{name}}.toString())}\"\n" +
                     "${indent}{{/isFormatted}}\n" +
                     "${indent}{{^isFormatted}}\n" +
                     "${indent}android:text=\"@{ {{accessor}}{{name}}.toString()}\"\n" +
                     "${indent}{{/isFormatted}}\n" +
+                    "${indent}{{/isCustom}}\n" +// End Else custom
+
                     "${indent}{{/isImage}}"
     }
 
