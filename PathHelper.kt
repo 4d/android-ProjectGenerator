@@ -17,22 +17,23 @@ import PathHelperConstants.PACKAGE_PH
 import PathHelperConstants.RECYCLER_VIEW_ITEM_PREFIX
 import PathHelperConstants.RES_PATH_KEY
 import PathHelperConstants.SRC_PATH_KEY
-import com.google.gson.Gson
-import com.google.gson.JsonObject
-import org.json.JSONObject
 import java.io.File
-import java.lang.IllegalArgumentException
+import java.io.FileReader
+import java.io.IOException
+import java.nio.file.Files
+import java.nio.file.Paths
+import java.nio.file.StandardCopyOption
 import java.util.zip.ZipFile
 
 class PathHelper(
-        val targetDirPath: String,
-        val templateFilesPath: String,
-        val templateFormsPath: String,
-        val hostDb: String,
-        val filesToCopy: String,
-        val companyWithCaps: String,
-        val appNameWithCaps: String,
-        val pkg: String
+    val targetDirPath: String,
+    val templateFilesPath: String,
+    val templateFormsPath: String,
+    val hostDb: String,
+    val filesToCopy: String,
+    val companyWithCaps: String,
+    val appNameWithCaps: String,
+    val pkg: String,
 ) {
 
 
@@ -69,6 +70,20 @@ class PathHelper(
         return replaceDirectoriesPath(subPath)
     }
 
+    //Getting images from customFormatter to drawable
+    fun getCustomDrawableImages(formatName: String) {
+            try {
+                val source = "$hostDb/Resources/Mobile/formatters$formatName/Images"
+                val target = resPath()+"/drawable/"
+                val listOfFile = File(source).listFiles()
+                listOfFile?.forEach {
+                    Files.copy(Paths.get(it.absolutePath), Paths.get(target+ it.name),StandardCopyOption.REPLACE_EXISTING)
+                }
+            }catch (e: Exception){
+                e.printStackTrace()
+            }
+    }
+
     val listFormTemplatesPath = templateFormsPath + File.separator + LIST_FORMS_KEY
 
     val detailFormTemplatesPath = templateFormsPath + File.separator + DETAIL_FORMS_KEY
@@ -101,14 +116,16 @@ class PathHelper(
 
     fun assetsPath(): String {
         val assetsPath = srcPath + File.separator +
-            MAIN_PATH_KEY + File.separator +
-            ASSETS_PATH_KEY
+                MAIN_PATH_KEY + File.separator +
+                ASSETS_PATH_KEY
         return assetsPath.replaceIfWindowsPath()
     }
 
-    fun getRecyclerViewItemPath(tableName: String) = layoutPath + File.separator + RECYCLER_VIEW_ITEM_PREFIX + tableName.toLowerCase().addXmlSuffix()
+    fun getRecyclerViewItemPath(tableName: String) =
+        layoutPath + File.separator + RECYCLER_VIEW_ITEM_PREFIX + tableName.toLowerCase().addXmlSuffix()
 
-    fun getDetailFormPath(tableName: String) = layoutPath + File.separator + DETAIL_FORM_PREFIX + tableName.toLowerCase().addXmlSuffix()
+    fun getDetailFormPath(tableName: String) =
+        layoutPath + File.separator + DETAIL_FORM_PREFIX + tableName.toLowerCase().addXmlSuffix()
 
     fun getTargetPath(dir: String): String {
         val path = srcPath + File.separator +

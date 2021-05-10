@@ -558,11 +558,17 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
                                         var format = getFormatNameForType(field.fieldType, field.format) ?: field.format
                                          // CustomFormatter
-                                        if (format?.get(0) == '/') format = "custom"
+                                        if (format?.get(0) == '/'){
+                                            field.format?.let{
+                                                fileHelper.pathHelper.getCustomDrawableImages(it) // Getting the Images From Formatter
+                                            }
+
+                                            format = "custom"
+                                        }
                                         if (format != null) {
                                             formatTypeFunctionName[format]?.let { functionName ->
                                                 typeChoice[format]?.let { type ->
-                                                    Log.e("-- format -- $format (${field.format}) - fieldName = ${field.name}  -- > ${listForm.dataModel.name.tableNameAdjustment()}")
+                                                    Log.v("-- format -- $format (${field.format}) - fieldName = ${field.name}  -- > ${listForm.dataModel.name.tableNameAdjustment()}")
                                                     if(type == "custom"){
                                                         data["field_${i}_isCustom"] = true
                                                         data["field_${i}_tableName"] = listForm.dataModel.name.tableNameAdjustment()
@@ -701,7 +707,6 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
                                                     var format = getFormatNameForType(field.fieldType, field.format)
                                                         ?: field.format
-                                                    Log.e("Entered1 >>>>>>>>>>>>>>>>< format :: $format -- > ${field.name} -- >  ${detailForm.dataModel.name.tableNameAdjustment()}"  )
                                                     // CustomFormatter
                                                     if (format?.get(0) == '/') format = "custom"
 
@@ -791,7 +796,6 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
                                                         var format = getFormatNameForType(field.fieldType, field.format)
                                                             ?: field.format
-                                                        Log.e("Entered2 >>>>>>>>>>>>>>>>< format :: $format")
                                                         // CustomFormatter
                                                         if (format?.get(0) == '/') format = "custom"
                                                         Log.v("format :: $format")
@@ -862,7 +866,6 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                                         var format = getFormatNameForType(field.fieldType, field.format)
                                                             ?: field.format
                                                         Log.v("format :: $format")
-                                                        Log.e("Entered3 >>>>>>>>>>>>>>>>< format :: $format")
                                                         // CustomFormatter
                                                         if (format?.get(0) == '/') format = "custom"
                                                         if (format != null) {
