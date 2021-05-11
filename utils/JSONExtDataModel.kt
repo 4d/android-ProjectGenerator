@@ -46,6 +46,7 @@ fun JSONObject.getDataModelList(): List<DataModel> {
                 newDataModel.id = keyDataModel.toString()
                 newDataModelJSONObject.getSafeObject(EMPTY_KEY)?.getSafeString(LABEL_KEY)?.let { newDataModel.label = it }
                 newDataModelJSONObject.getSafeObject(EMPTY_KEY)?.getSafeString(SHORTLABEL_KEY)?.let { newDataModel.shortLabel = it }
+                var missingIcon = true
                 newDataModelJSONObject.getSafeObject(EMPTY_KEY)?.getSafeString(ICON_KEY)?.let { iconPath ->
                     if (iconPath.contains(".")) {
                         val correctedIconPath = iconPath
@@ -57,8 +58,16 @@ fun JSONObject.getDataModelList(): List<DataModel> {
 
                         Log.d("correctedIconPath = $correctedIconPath")
                         newDataModel.iconPath = correctedIconPath
+                        missingIcon = false
                     }
                 }
+
+                if (missingIcon) {
+                    newDataModel.iconPath = "nav_icon_${newDataModel.id}"
+                }
+
+                Log.d("newDataModel.iconPath = ${newDataModel.iconPath}")
+
                 newDataModelJSONObject.getSafeObject(EMPTY_KEY)?.getSafeObject(FILTER_KEY)?.let {
                     if (it.getSafeBoolean(VALIDATED_KEY) == true)
                         newDataModel.query = it.getSafeString(STRING_KEY)
