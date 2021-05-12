@@ -21,7 +21,8 @@ fun String.replaceXmlTxtSuffix() =
 fun String.tableNameAdjustment() =
     this.condense().capitalize(Locale.getDefault()).replaceSpecialChars().firstCharForTable().validateWord()
 
-fun String.fieldAdjustment() = this.condense().replaceSpecialChars().validateWordDecapitalized()
+fun String.fieldAdjustment() =
+    this.condense().replaceSpecialChars().lowerCustomProperties().validateWordDecapitalized()
 
 fun String.dataBindingAdjustment(): String = this.condense().replaceSpecialChars().firstCharForTable()
     .split("_").joinToString("") { it.toLowerCase().capitalize() }
@@ -35,6 +36,12 @@ private fun String.replaceSpecialChars(): String {
         this.unaccent().replace("[^a-zA-Z0-9._]".toRegex(), "_")
     }
 }
+
+private fun String.lowerCustomProperties() =
+    if (this == "__KEY" || this == "__STAMP" || this == "__GlobalStamp" || this == "__TIMESTAMP")
+        this
+    else
+        this.toLowerCase(Locale.getDefault())
 
 private fun String.decapitalizeExceptID() =
     if (this == "ID") this.toLowerCase(Locale.getDefault()) else this.decapitalize(Locale.getDefault())
