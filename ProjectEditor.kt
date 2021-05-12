@@ -131,17 +131,17 @@ class ProjectEditor(projectEditorFile: File) {
     }
 
     private fun getSearchableColumns(datarecv: JSONObject?) {
-        datarecv.let {
-            if (datarecv!!.has("project")) {
-                val project = datarecv!!.getJSONObject("project")
+        datarecv?.let {
+            if (datarecv.has("project")) {
+                val project = datarecv.getJSONObject("project")
                 if (project.has("list")) {
                     val listForms = project.getJSONObject("list")
                     val listFormsKeys = listForms.names()
                     Log.i("listForms :: $listForms")
                     for (index in 0 until listFormsKeys.length()) {
-                        var tableSearchableFields = mutableListOf<String>()
-                        var tableIndex = listFormsKeys.getString(index)
-                        var tableName = getTableName(tableIndex) // get table name by id
+                        val tableSearchableFields = mutableListOf<String>()
+                        val tableIndex = listFormsKeys.getString(index)
+                        val tableName = getTableName(tableIndex) // get table name by id
                         val listForm = listForms.getJSONObject(tableIndex)
                         if (listForm.has("searchableField")) {
                             // could be an array or an object
@@ -157,9 +157,9 @@ class ProjectEditor(projectEditorFile: File) {
                                     }
                                 }
                             } else {
-                                var searchableFieldAsObject = listForm.getSafeObject("searchableField")
+                                val searchableFieldAsObject = listForm.getSafeObject("searchableField")
                                 if (searchableFieldAsObject != null) {
-                                    var fieldName = searchableFieldAsObject!!.get("name") as String
+                                    val fieldName = searchableFieldAsObject.get("name") as String
                                     if (!fieldName.contains(".")) {
                                         Log.v("${tableName}  SearchField fieldName.fieldAdjustment() :: ${fieldName.fieldAdjustment()}")
                                         tableSearchableFields.add(fieldName.fieldAdjustment())
@@ -175,7 +175,7 @@ class ProjectEditor(projectEditorFile: File) {
                         }
                         if (tableSearchableFields.size != 0) { // if has search field add it
                             if (tableName != null) {
-                                searchableFields.put(tableName!!.tableNameAdjustment(), tableSearchableFields)
+                                searchableFields.put(tableName.tableNameAdjustment(), tableSearchableFields)
                             } else {
                                 Log.e("Cannot get tablename for index ${tableIndex} when filling search fields")
                             }
