@@ -173,8 +173,11 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         }
 
         projectEditor.findJsonString("foregroundColor")?.let {
+
+            Log.i("foregroundColor = $it")
+
             if (data[COLORS_DEFINED] == true) {
-                data[THEME_COLOR_ON_PRIMARY] = it
+                data[THEME_COLOR_ON_PRIMARY] = if (it == "#00") "@color/black" else "@color/white"
             } else {
                 data[THEME_COLOR_ON_PRIMARY] = "@color/white"
             }
@@ -182,6 +185,8 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
             data[THEME_COLOR_ON_PRIMARY] = "@color/white"
         }
 
+
+        Log.i("data[THEME_COLOR_ON_PRIMARY] = ${data[THEME_COLOR_ON_PRIMARY]}")
         var entityClassesString = ""
 
         val dataModelRelationList = mutableListOf<TemplateRelationFiller>()
