@@ -17,7 +17,7 @@ fun JSONObject.getFormList(dataModelList: List<DataModel>, formType: FormType, n
     forms?.names()?.let {
         for (i in 0 until forms.names().length()) {
             val keyDataModel = forms.names().getString(i)
-            dataModelList.find { it.id == keyDataModel }?.let { dataModel ->
+            dataModelList.filter { it.isSlave == false }.find { it.id == keyDataModel }?.let { dataModel ->
                 val form = Form(dataModel = dataModel)
                 val newFormJSONObject = forms.getSafeObject(keyDataModel.toString())
                 newFormJSONObject?.getSafeString(FORM_KEY)?.let {
@@ -33,7 +33,7 @@ fun JSONObject.getFormList(dataModelList: List<DataModel>, formType: FormType, n
         }
     }
 
-    dataModelList.forEach { dataModel ->
+    dataModelList.filter { it.isSlave == false }.forEach { dataModel ->
         Log.d("dataModel.id = ${dataModel.id}")
         if (navigationTableList.contains(dataModel.id) && !formList.map { it.dataModel.id }.contains(dataModel.id)) {
             Log.d("adding empty form for dataModel : ${dataModel.name}")

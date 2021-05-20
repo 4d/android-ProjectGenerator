@@ -46,17 +46,28 @@ fun JSONObject.getDataModelList(): List<DataModel> {
                 newDataModel.id = keyDataModel.toString()
                 newDataModelJSONObject.getSafeObject(EMPTY_KEY)?.getSafeString(LABEL_KEY)?.let { newDataModel.label = it }
                 newDataModelJSONObject.getSafeObject(EMPTY_KEY)?.getSafeString(SHORTLABEL_KEY)?.let { newDataModel.shortLabel = it }
+                var missingIcon = true
                 newDataModelJSONObject.getSafeObject(EMPTY_KEY)?.getSafeString(ICON_KEY)?.let { iconPath ->
-                    val correctedIconPath =  iconPath
-                        .substring(0, iconPath.lastIndexOf('.')) // removes extension
-                        .replace(".+/".toRegex(), "")
-                        .removePrefix(File.separator)
-                        .toLowerCase()
-                        .replace("[^a-z0-9]+".toRegex(), "_")
+                    if (iconPath.contains(".")) {
+                        val correctedIconPath = iconPath
+                            .substring(0, iconPath.lastIndexOf('.')) // removes extension
+                            .replace(".+/".toRegex(), "")
+                            .removePrefix(File.separator)
+                            .toLowerCase()
+                            .replace("[^a-z0-9]+".toRegex(), "_")
 
-                    Log.d("correctedIconPath = $correctedIconPath")
-                    newDataModel.iconPath = correctedIconPath
+                        Log.d("correctedIconPath = $correctedIconPath")
+                        newDataModel.iconPath = correctedIconPath
+                        missingIcon = false
+                    }
                 }
+
+                if (missingIcon) {
+                    newDataModel.iconPath = "nav_icon_${newDataModel.id}"
+                }
+
+                Log.d("newDataModel.iconPath = ${newDataModel.iconPath}")
+
                 newDataModelJSONObject.getSafeObject(EMPTY_KEY)?.getSafeObject(FILTER_KEY)?.let {
                     if (it.getSafeBoolean(VALIDATED_KEY) == true)
                         newDataModel.query = it.getSafeString(STRING_KEY)
@@ -78,7 +89,7 @@ fun JSONObject.getDataModelList(): List<DataModel> {
                                 relationList.add(relation)
 
                                 if (relation.relationType == RelationType.MANY_TO_ONE) {
-                                    val relationKeyField = Field(name = "__${relation.name.validateWord()}Key")
+                                    val relationKeyField = Field(name = "__${relation.name.validateWordDecapitalized()}Key")
                                     Log.d("Many to One relation: adding relationKeyField = $relationKeyField")
                                     relationKeyField.fieldType = 0
                                     relationKeyField.fieldTypeString = typeStringFromTypeInt(relationKeyField.fieldType)
@@ -107,7 +118,7 @@ fun JSONObject.getDataModelList(): List<DataModel> {
                                                 slaveRelationList.add(relation)
 
                                                 if (relation.relationType == RelationType.MANY_TO_ONE) {
-                                                    val relationKeyField = Field(name = "__${relation.name.validateWord()}Key")
+                                                    val relationKeyField = Field(name = "__${relation.name.validateWordDecapitalized()}Key")
                                                     Log.d("Many to One relation: adding relationKeyField = $relationKeyField")
                                                     relationKeyField.fieldType = 0
                                                     relationKeyField.fieldTypeString = typeStringFromTypeInt(relationKeyField.fieldType)
@@ -213,6 +224,7 @@ fun JSONObject?.getDataModelField(keyField: String): Field {
             field.name = keyField
             field.relatedDataClass = relatedDataClass
             field.fieldTypeString = relatedDataClass
+            field.variableType = VariableType.VAR.string
         }
         this?.getSafeString(RELATEDENTITIES_KEY)?.let { relatedEntities -> // One-to-many relation
             field.name = keyField

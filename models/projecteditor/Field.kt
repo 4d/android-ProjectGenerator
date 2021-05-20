@@ -20,10 +20,10 @@ fun isPrivateRelationField(fieldName: String): Boolean = fieldName.startsWith("_
 fun Field.isImage() = this.fieldType == 3
 
 fun Field.getFieldName() =
-    if (this.name.fieldAdjustment().contains("."))
-        this.name.fieldAdjustment().split(".")[1]
+    if (this.name.contains("."))
+        this.name.split(".")[1]
     else
-        this.name.fieldAdjustment()
+        this.name
 
 fun Field.getFieldKeyAccessor(formType: FormType) =
     if (formType == FormType.LIST)

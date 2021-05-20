@@ -1,6 +1,7 @@
 import PathHelperConstants.XML_EXT
 import PathHelperConstants.XML_TXT_EXT
 import java.text.Normalizer
+import java.util.*
 
 fun String.isNumber(): Boolean = if (this.isEmpty()) false else this.all { Character.isDigit(it) }
 
@@ -10,15 +11,18 @@ fun String.isNumber(): Boolean = if (this.isEmpty()) false else this.all { Chara
 
 fun String.addXmlSuffix() = this + XML_EXT
 
-fun String.replaceXmlTxtSuffix() = if (this.endsWith(XML_TXT_EXT)) this.removeSuffix(XML_TXT_EXT).addXmlSuffix() else this
+fun String.replaceXmlTxtSuffix() =
+    if (this.endsWith(XML_TXT_EXT)) this.removeSuffix(XML_TXT_EXT).addXmlSuffix() else this
 
 /**
  * Field / Table name adjustments
  */
 
-fun String.tableNameAdjustment() = this.condense().capitalize().replaceSpecialChars().firstCharForTable().validateWord()
+fun String.tableNameAdjustment() =
+    this.condense().capitalize(Locale.getDefault()).replaceSpecialChars().firstCharForTable().validateWord()
 
-fun String.fieldAdjustment() = this.condense().replaceSpecialChars().validateWord()
+fun String.fieldAdjustment() =
+    this.condense().replaceSpecialChars().lowerCustomProperties().validateWordDecapitalized()
 
 fun String.dataBindingAdjustment(): String = this.condense().replaceSpecialChars().firstCharForTable()
     .split("_").joinToString("") { it.toLowerCase().capitalize() }
@@ -32,6 +36,15 @@ private fun String.replaceSpecialChars(): String {
         this.unaccent().replace("[^a-zA-Z0-9._]".toRegex(), "_")
     }
 }
+
+private fun String.lowerCustomProperties() =
+    if (this == "__KEY" || this == "__STAMP" || this == "__GlobalStamp" || this == "__TIMESTAMP")
+        this
+    else
+        this.toLowerCase(Locale.getDefault())
+
+private fun String.decapitalizeExceptID() =
+    if (this == "ID") this.toLowerCase(Locale.getDefault()) else this.decapitalize(Locale.getDefault())
 
 private fun String.firstCharForTable(): String =
     if (this.startsWith("_"))
@@ -48,8 +61,17 @@ private fun CharSequence.unaccent(): String {
 
 private const val prefixReservedKeywords = "qmobile"
 
-fun String.validateWord(): String =
-    if (reservedKeywords.contains(this)) "${prefixReservedKeywords}_$this" else this
+fun String.validateWord(): String {
+    return this.split(".").joinToString(".") {
+        if (reservedKeywords.contains(it)) "${prefixReservedKeywords}_$it" else it
+    }
+}
+
+fun String.validateWordDecapitalized(): String {
+    return this.decapitalizeExceptID().split(".").joinToString(".") {
+        if (reservedKeywords.contains(it)) "${prefixReservedKeywords}_$it" else it
+    }
+}
 
 val reservedKeywords = listOf(
     "as",
