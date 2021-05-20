@@ -19,13 +19,13 @@ fun isPrivateRelationField(fieldName: String): Boolean = fieldName.startsWith("_
 
 fun Field.isImage() = this.fieldType == 3
 
-fun Field.getImageFieldName() =
+fun Field.getFieldName() =
     if (this.name.fieldAdjustment().contains("."))
         this.name.fieldAdjustment().split(".")[1]
     else
         this.name.fieldAdjustment()
 
-fun Field.getImageKeyAccessor(formType: FormType) =
+fun Field.getFieldKeyAccessor(formType: FormType) =
     if (formType == FormType.LIST)
         if (this.name.fieldAdjustment().contains("."))
             this.name.fieldAdjustment().split(".")[0] + ".__KEY"
@@ -49,7 +49,7 @@ fun Field.getLayoutVariableAccessor(formType: FormType) =
         else
             "viewModel.entity."
 
-fun Field.getImageTableName(dataModelList: List<DataModel>, form: Form): String {
+fun Field.getFieldTableName(dataModelList: List<DataModel>, form: Form): String {
     if (this.name.fieldAdjustment().contains(".")) {
 
         val fieldFromDataModel: Field? =

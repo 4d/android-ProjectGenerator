@@ -20,6 +20,7 @@ object MustacheConstants {
     const val TABLENAMES_RELATIONS_DISTINCT = "tableNames_relations_distinct"
     const val TABLENAMES_LOWERCASE = "tableNames_lowercase"
     const val TABLENAMES_NAVIGATION = "tableNames_navigation"
+    const val CUSTOM_FORMATTERS_IMAGES = "custom_formatter_images"
     const val FIELDS = "fields"
     const val FIRST_FIELD = "first_field"
     const val FORM_FIELDS = "form_fields"

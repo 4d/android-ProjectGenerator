@@ -69,7 +69,7 @@ class GenerateCommand : CliktCommand(name = "generate") {
 
         Log.d("e ${projectEditorJson.name}...")
 
-        val projectEditor = ProjectEditor(projectEditorJson,hostDb = HOST_DB)
+        val projectEditor = ProjectEditor(projectEditorJson)
 
         Log.d("Reading project editor json file done.")
         Log.v("--------------------------------------")
@@ -122,6 +122,10 @@ class GenerateCommand : CliktCommand(name = "generate") {
 
         Log.i("Mustache templating done.")
         Log.v("-------------------------")
+
+        mustacheHelper.getCustomFormatters()
+
+        Log.i("Custom formatters successfully extracted.")
 
         mustacheHelper.makeQueries()
 

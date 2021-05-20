@@ -1,7 +1,5 @@
 import DefaultValues.DEFAULT_LOG_LEVEL
 import DefaultValues.DEFAULT_REMOTE_URL
-import PathHelperConstants.HOST_FORMATTERS_KEY
-import PathHelperConstants.HOST_FORMS
 import ProjectEditorConstants.AUTHENTICATION_KEY
 import ProjectEditorConstants.BACKGROUND_COLOR
 import ProjectEditorConstants.BOOLEAN_TYPE
@@ -32,21 +30,16 @@ import ProjectEditorConstants.STRING_TYPE
 import ProjectEditorConstants.TEAMID_KEY
 import ProjectEditorConstants.TIME_TYPE
 import ProjectEditorConstants.URLS_KEY
-import com.google.gson.Gson
-import com.google.gson.JsonObject
 import org.json.JSONObject
 import java.io.File
-import java.lang.IllegalArgumentException
 
-class ProjectEditor(projectEditorFile: File, hostDb : String) {
+class ProjectEditor(projectEditorFile: File) {
 
     lateinit var dataModelList: List<DataModel>
     lateinit var listFormList: List<Form>
     lateinit var detailFormList: List<Form>
     lateinit var navigationTableList: List<String>
-    private val searchableFields = HashMap<String, List<String>>()
-    val customFormat = HashMap<String,HashMap<String,FieldMapping>>()
-    private val hostFormattersPath = hostDb + File.separator + HOST_FORMATTERS_KEY
+    val searchableFields = HashMap<String, List<String>>()
 
     lateinit var jsonObj: JSONObject
     // Hold sort Filed
@@ -69,7 +62,6 @@ class ProjectEditor(projectEditorFile: File, hostDb : String) {
             Log.d("> DataModels list successfully read.")
 
             getSearchableColumns(jsonObj)
-            getCustomFormatterFields()
             Log.d("> Searchable fields successfully read.")
 
             listFormList = jsonObj.getFormList(dataModelList, FormType.LIST, navigationTableList)
@@ -112,7 +104,7 @@ class ProjectEditor(projectEditorFile: File, hostDb : String) {
         }
     }
 
-    fun getAppInfo(): AppInfo {
+    fun getAppInfo(customFormattersImagesMap: Map<String, Map<String, FieldMapping>>): AppInfo {
         val mailAuth = findJsonBoolean("mailAuth") ?: false
         var remoteUrl = findJsonString("productionUrl")
         if (remoteUrl.isNullOrEmpty())
@@ -128,7 +120,7 @@ class ProjectEditor(projectEditorFile: File, hostDb : String) {
             dumpedTables = mutableListOf(),
             searchableField = searchableFields,
             logLevel = DEFAULT_LOG_LEVEL,
-            customFormatters = customFormat
+            customFormatters = customFormattersImagesMap
         )
     }
 
@@ -197,51 +189,34 @@ class ProjectEditor(projectEditorFile: File, hostDb : String) {
     }
 
 
-    /** Read Custom Formatter **/
-    private fun getCustomFormatterFields(){
-        dataModelList.forEach {
-            val hashmap = HashMap<String,FieldMapping>()
-            it.fields?.forEach{field ->
-                if (field.format?.get(0) == '/'){
-                    hashmap.put(field.name,readCustomFormatterManifest(field.format,isCustomFormatterSearchable(it.name,field.name))!!)
-                 }
-                customFormat.put(it.name,hashmap)
-            }
-        }
-    }
+    /** Read Custom Formatters **/
+    /*private fun getCustomFormatterFields(fileHelper: FileHelper): Map<String, Map<String, FieldMapping>> {
 
-    private fun isCustomFormatterSearchable(tableName:String,name: String): Boolean{
-        if (searchableFields.containsKey(tableName)){
-            searchableFields.get(tableName)?.forEach {
-            if (it == name){
-                    return true
+        val customFormatMap = mutableMapOf<String, Map<String, FieldMapping>>()
+        dataModelList.forEach { dataModel ->
+            val map = mutableMapOf<String, FieldMapping>()
+            dataModel.fields?.forEach{ field ->
+                field.format?.let { format ->
+                    Log.d("ProjectEditor.kt  /  Format = $format")
+                    if (format.startsWith("/")) {
+
+                        val isSearchable = isCustomFormatterSearchable(dataModel.name,field.name, searchableFields)
+                        val formatPath = fileHelper.pathHelper.getCustomFormatterPath(format)
+                        getManifestJSONContent(formatPath)?.let {
+                            val fieldMapping = getFieldMapping(it, format, isSearchable)
+                            map.put(field.name, fieldMapping)
+                        }
+
+                    } else {
+                        customFormatMap.put(dataModel.name, map)
+                    }
+                } ?: kotlin.run {
+                    customFormatMap.put(dataModel.name, map)
                 }
             }
         }
-        return false
-    }
-
-
-    private fun readCustomFormatterManifest(customFormatter :String?, isSearchable: Boolean):FieldMapping?{
-        customFormatter?.let {
-            val isCustomFormatter = it[0] == '/'
-            if (isCustomFormatter){
-                val customFormatterPath = getFormatterPath(customFormatter)
-                val jsonObject = retrieveJSONObject(File(customFormatterPath).readFile())
-                return FieldMapping(jsonObject?.getSafeString("binding"),jsonObject?.getSafeObject("choiceList"),isSearchable = isSearchable,formatType = customFormatter)
-            }
-        }
-        return null
-    }
-
-    private fun getFormatterPath(name: String): String {
-        if (name.startsWith("/")) {
-            return hostFormattersPath + File.separator + name.removePrefix("/")+"/manifest.json"
-        }
-        throw IllegalArgumentException("Getting path of formatter $name that are not a host one ie. starting with '/' characters}")
-    }
-
-
+        return customFormatMap
+    }*/
 }
 
 

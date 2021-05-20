@@ -1,52 +1,54 @@
+object Key {
 
-object Key{
-    private var typeChoice = HashMap<String,String>()
-    private var formatTypeFunctionName = HashMap<String,String>()
-   fun getKeys():  HashMap<String,String>{
-       typeChoice.put("currencyEuro","TypeChoice.EuroCurrency.key.toString()")
-       typeChoice.put("currencyYen","TypeChoice.JapanCurrency.key.toString()")
-       typeChoice.put("currencyDollar","TypeChoice.USCurrency.key.toString()")
-       typeChoice.put("percent","TypeChoice.Percentage.key.toString()")
-       typeChoice.put("ordinal","TypeChoice.Ordinal.key.toString()")
-       typeChoice.put("spellOut","TypeChoice.SpellOut.key.toString()")
-       typeChoice.put("integer","TypeChoice.Number.Key.toString()")
-       typeChoice.put("real","TypeChoice.Real.key.toString()")
-       typeChoice.put("decimal","TypeChoice.Decimal.key.toString()")
-       typeChoice.put("noOrYes","TypeChoice.YesNo.key.toString()")
-       typeChoice.put("falseOrTrue","TypeChoice.TrueFalse.key.toString()")
-       typeChoice.put("boolInteger","TypeChoice.Number.Key.toString()")
-       typeChoice.put("shortTime","TypeChoice.ShortTime.key.toString()")
-       typeChoice.put("mediumTime","TypeChoice.Time.key.toString()")
-       typeChoice.put("duration","TypeChoice.Duration.key.toString()")
-       typeChoice.put("fullDate","TypeChoice.FullDate.key.toString()")
-       typeChoice.put("longDate","TypeChoice.LongDate.key.toString()")
-       typeChoice.put("mediumDate","TypeChoice.MediumDate.key.toString()")
-       typeChoice.put("shortDate","TypeChoice.ShortDate.key.toString()")
-       typeChoice.put("custom","custom")
-       return typeChoice
-   }
-    fun getFormatTypeFunctionName():HashMap<String,String>{
-        formatTypeFunctionName.put("noOrYes","formatBoolean")
-        formatTypeFunctionName.put("falseOrTrue","formatBoolean")
-        formatTypeFunctionName.put("boolInteger","formatBoolean")
-        formatTypeFunctionName.put("shortTime","time")
-        formatTypeFunctionName.put("mediumTime","time")
-        formatTypeFunctionName.put("duration","time")
-        formatTypeFunctionName.put("duration","time")
-        formatTypeFunctionName.put("fullDate","date")
-        formatTypeFunctionName.put("longDate","date")
-        formatTypeFunctionName.put("mediumDate","date")
-        formatTypeFunctionName.put("shortDate","date")
-        formatTypeFunctionName.put("currencyEuro","number")
-        formatTypeFunctionName.put("currencyYen","number")
-        formatTypeFunctionName.put("currencyDollar","number")
-        formatTypeFunctionName.put("percent","number")
-        formatTypeFunctionName.put("ordinal","number")
-        formatTypeFunctionName.put("spellOut","number")
-        formatTypeFunctionName.put("integer","number")
-        formatTypeFunctionName.put("real","number")
-        formatTypeFunctionName.put("decimal","number")
-        formatTypeFunctionName.put("custom","custom")
-        return formatTypeFunctionName
+    fun getKey(type: String?): String? {
+        return when (type) {
+            "currencyEuro" -> "TypeChoice.JapanCurrency.key.toString()"
+            "currencyYen" -> "TypeChoice.EuroCurrency.key.toString()"
+            "currencyDollar" -> "TypeChoice.USCurrency.key.toString()"
+            "percent" -> "TypeChoice.Percentage.key.toString()"
+            "ordinal" -> "TypeChoice.Ordinal.key.toString()"
+            "spellOut" -> "TypeChoice.SpellOut.key.toString()"
+            "integer" -> "TypeChoice.Number.Key.toString()"
+            "real" -> "TypeChoice.Real.key.toString()"
+            "decimal" -> "TypeChoice.Decimal.key.toString()"
+            "noOrYes" -> "TypeChoice.YesNo.key.toString()"
+            "falseOrTrue" -> "TypeChoice.TrueFalse.key.toString()"
+            "boolInteger" -> "TypeChoice.Number.Key.toString()"
+            "shortTime" -> "TypeChoice.ShortTime.key.toString()"
+            "mediumTime" -> "TypeChoice.Time.key.toString()"
+            "duration" -> "TypeChoice.Duration.key.toString()"
+            "fullDate" -> "TypeChoice.FullDate.key.toString()"
+            "longDate" -> "TypeChoice.LongDate.key.toString()"
+            "mediumDate" -> "TypeChoice.MediumDate.key.toString()"
+            "shortDate" -> "TypeChoice.ShortDate.key.toString()"
+            "custom" -> "custom"
+            else -> null
+        }
+    }
+
+    fun getFormatTypeFunctionName(type: String?): String? {
+        return when (type) {
+            "noOrYes" -> "formatBoolean"
+            "falseOrTrue" -> "formatBoolean"
+            "boolInteger" -> "formatBoolean"
+            "shortTime" -> "time"
+            "mediumTime" -> "time"
+            "duration" -> "time"
+            "fullDate" -> "date"
+            "longDate" -> "date"
+            "mediumDate" -> "date"
+            "shortDate" -> "date"
+            "currencyEuro" -> "number"
+            "currencyYen" -> "number"
+            "currencyDollar" -> "number"
+            "percent" -> "number"
+            "ordinal" -> "number"
+            "spellOut" -> "number"
+            "integer" -> "number"
+            "real" -> "number"
+            "decimal" -> "number"
+            "custom" -> "custom"
+            else -> null
+        }
     }
 }

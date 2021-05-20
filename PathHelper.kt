@@ -5,8 +5,10 @@ import PathHelperConstants.APP_PATH_KEY
 import PathHelperConstants.ASSETS_PATH_KEY
 import PathHelperConstants.DETAIL_FORMS_KEY
 import PathHelperConstants.DETAIL_FORM_PREFIX
+import PathHelperConstants.DRAWABLE_PATH_KEY
 import PathHelperConstants.HOST_FORMATTERS_KEY
 import PathHelperConstants.HOST_FORMS
+import PathHelperConstants.IMAGES_FORMATTER_KEY
 import PathHelperConstants.JAVA_PATH_KEY
 import PathHelperConstants.LAYOUT_PATH_KEY
 import PathHelperConstants.LIST_FORMS_KEY
@@ -20,6 +22,7 @@ import PathHelperConstants.SRC_PATH_KEY
 import java.io.File
 import java.io.FileReader
 import java.io.IOException
+import java.lang.IllegalArgumentException
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.nio.file.StandardCopyOption
@@ -33,9 +36,8 @@ class PathHelper(
     val filesToCopy: String,
     val companyWithCaps: String,
     val appNameWithCaps: String,
-    val pkg: String,
+    val pkg: String
 ) {
-
 
     fun getPath(currentPath: String): String {
         val path = targetDirPath + replacePath(currentPath)
@@ -71,18 +73,18 @@ class PathHelper(
     }
 
     //Getting images from customFormatter to drawable
-    fun getCustomDrawableImages(formatName: String) {
-            try {
-                val source = "$hostDb/Resources/Mobile/formatters$formatName/Images"
-                val target = resPath()+"/drawable/"
-                val listOfFile = File(source).listFiles()
-                listOfFile?.forEach {
-                    Files.copy(Paths.get(it.absolutePath), Paths.get(target+ it.name),StandardCopyOption.REPLACE_EXISTING)
-                }
-            }catch (e: Exception){
-                e.printStackTrace()
-            }
-    }
+//    fun getCustomDrawableImages(formatName: String) {
+//        try {
+//            val source = "$hostDb/Resources/Mobile/formatters$formatName/Images"
+//            val target = resPath()+"/drawable/"
+//            val listOfFile = File(source).listFiles()
+//            listOfFile?.forEach {
+//                Files.copy(Paths.get(it.absolutePath), Paths.get(target+ it.name),StandardCopyOption.REPLACE_EXISTING)
+//            }
+//        }catch (e: Exception){
+//            e.printStackTrace()
+//        }
+//    }
 
     val listFormTemplatesPath = templateFormsPath + File.separator + LIST_FORMS_KEY
 
@@ -120,6 +122,8 @@ class PathHelper(
                 ASSETS_PATH_KEY
         return assetsPath.replaceIfWindowsPath()
     }
+
+    fun drawablePath(): String = resPath() + File.separator + DRAWABLE_PATH_KEY
 
     fun getRecyclerViewItemPath(tableName: String) =
         layoutPath + File.separator + RECYCLER_VIEW_ITEM_PREFIX + tableName.toLowerCase().addXmlSuffix()
@@ -163,6 +167,9 @@ class PathHelper(
         return formPath + File.separator + APP_PATH_KEY
     }
 
+
+    fun getImagesFolderInFormatter(formatterPath: String): String = formatterPath + File.separator + IMAGES_FORMATTER_KEY
+
     fun getDefaultTemplateListFormPath() = listFormTemplatesPath + File.separator + DEFAULT_LIST_FORM
     fun getDefaultTemplateDetailFormPath() = detailFormTemplatesPath + File.separator + DEFAULT_DETAIL_FORM
 
@@ -198,6 +205,13 @@ class PathHelper(
             templatePath = detailFormTemplatesPath
         }
         return templatePath + File.separator + formName.removePrefix(File.separator)
+    }
+
+    fun getCustomFormatterPath(name: String): String {
+        if (name.startsWith("/")) {
+            return hostFormattersPath + File.separator + name.removePrefix(File.separator)
+        }
+        throw IllegalArgumentException("Getting path of formatter $name that is not a host one ie. starting with '/'")
     }
 
     private fun unzipTemplate(zipFile: File) {
