@@ -14,8 +14,6 @@
 //INCLUDE models/Team.kt
 //INCLUDE models/Queries.kt
 //INCLUDE models/Query.kt
-//INCLUDE constants/Key.kt
-//INCLUDE constants/DefaultFormatter.kt
 //INCLUDE models/fillers/TemplateFieldFiller.kt
 //INCLUDE models/fillers/TemplateFormatterFiller.kt
 //INCLUDE models/fillers/TemplateFormFieldFiller.kt

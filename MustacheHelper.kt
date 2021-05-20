@@ -52,6 +52,11 @@ import MustacheConstants.TYPES_AND_TABLES
 import PathHelperConstants.TEMPLATE_PLACEHOLDER
 import PathHelperConstants.TEMPLATE_RELATION_DAO_PLACEHOLDER
 import PathHelperConstants.TEMPLATE_RELATION_ENTITY_PLACEHOLDER
+import ProjectEditorConstants.BOOLEAN_TYPE
+import ProjectEditorConstants.DATE_TYPE
+import ProjectEditorConstants.FLOAT_TYPE
+import ProjectEditorConstants.INT_TYPE
+import ProjectEditorConstants.TIME_TYPE
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.samskivert.mustache.Mustache
@@ -672,7 +677,14 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
             }
         }
         if (format.isNullOrEmpty()) {
-            return DefaultFormatter.getKey(typeFromTypeInt(fieldType))
+            return when (typeFromTypeInt(fieldType)) {
+                BOOLEAN_TYPE -> "falseOrTrue"
+                DATE_TYPE -> "mediumDate"
+                TIME_TYPE -> "mediumTime"
+                INT_TYPE -> "integer"
+                FLOAT_TYPE -> "decimal"
+                else -> ""
+            }
         } else {
             return format
         }
@@ -820,7 +832,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
                                                 if (i < fieldList.size) {
                                                     val field = fieldList[i]
-                                                    val fieldTypeString = typeFromTypeInt(field.fieldType)
+//                                                    val fieldTypeString = typeFromTypeInt(field.fieldType)
 
                                                     if (field.inverseName == null) { // is not relation
                                                         Log.d("Adding specific Field ${field}")
