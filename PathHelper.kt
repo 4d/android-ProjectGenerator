@@ -249,22 +249,6 @@ class PathHelper(
         throw IllegalArgumentException("Getting path of formatter $name that is not a host one ie. starting with '/'")
     }
 
-    fun getLayoutManagerType(formPath: String): String {
-
-        Log.i("getLayoutManagerType: $formPath")
-
-        var type = "Collection"
-        getTemplateManifestJSONContent(formPath)?.let {
-            type = it.getSafeObject("tags")?.getSafeString("___LISTFORMTYPE___") ?: "Collection"
-        }
-
-        return when (type) {
-            "Collection" -> "GRID"
-            "Table" -> "LINEAR"
-            else -> "LINEAR"
-        }
-    }
-
     fun deleteTemporaryUnzippedDirectories() {
         tmpUnzippedTemplateListToBeDeleted.forEach { fileToBeDeleted ->
             Log.d("Dir to be deleted : ${fileToBeDeleted.absolutePath}")

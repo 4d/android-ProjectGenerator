@@ -304,7 +304,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                 projectEditor.listFormList.find { listform -> listform.dataModel.name.tableNameAdjustment() == tableName.tableNameAdjustment() }?.name
             var formPath = fileHelper.pathHelper.getFormPath(listFormName, FormType.LIST)
             formPath = fileHelper.pathHelper.verifyFormPath(formPath, FormType.LIST)
-            tableNamesForLayoutType.add(TemplateLayoutTypeFiller(name = tableName, layout_manager_type = fileHelper.pathHelper.getLayoutManagerType(formPath)))
+            tableNamesForLayoutType.add(TemplateLayoutTypeFiller(name = tableName, layout_manager_type = getLayoutManagerType(formPath)))
         }
 
         data[TABLENAMES_LAYOUT] = tableNamesForLayoutType
@@ -1100,6 +1100,19 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                     }
                 }
             }
+        }
+    }
+
+    fun getLayoutManagerType(formPath: String): String {
+        Log.i("getLayoutManagerType: $formPath")
+        var type = "Collection"
+        getManifestJSONContent(formPath)?.let {
+            type = it.getSafeObject("tags")?.getSafeString("___LISTFORMTYPE___") ?: "Collection"
+        }
+        return when (type) {
+            "Collection" -> "GRID"
+            "Table" -> "LINEAR"
+            else -> "LINEAR"
         }
     }
 
