@@ -551,8 +551,8 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                         data["field_${i}_name"] = ""
                                         data["field_${i}_accessor"] = ""
                                         data["field_${i}_format_type"] = ""
-                                        data["field_${i}_tableName"] = ""
-                                        data["field_${i}_fieldName"] = ""
+                                        data["field_${i}_field_name"] = ""
+                                        data["field_${i}_field_table_name"] = ""
 
                                     } else { // not a relation
 
@@ -562,17 +562,12 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                         data["field_${i}_label"] = field.getLabel()
                                         data["field_${i}_is_int"] = field.isInt()
                                         data["field_${i}_custom_formatted"] = false
-                                        data["field_${i}_tableName"] = ""
-                                        data["field_${i}_fieldName"] = ""
                                         data["field_${i}_format_type"] = ""
                                         data["field_${i}_accessor"] = field.getLayoutVariableAccessor(FormType.LIST)
+                                        data["field_${i}_field_name"] = field.getFieldName()
+                                        data["field_${i}_field_table_name"] = field.getFieldTableName(projectEditor.dataModelList, listForm)
                                         if (field.isImage()) {
-//                                            data[IMAGE_FIELD_NAME] = field.getFieldName()
-//                                            data[IMAGE_KEY_ACCESSOR] = field.getFieldKeyAccessor(FormType.LIST)
-//                                            data[IMAGE_TABLE_NAME] = field.getFieldTableName(projectEditor.dataModelList, listForm)
-                                            data["field_${i}_field_name"] = field.getFieldName()
                                             data["field_${i}_image_key_accessor"] = field.getFieldKeyAccessor(FormType.LIST)
-                                            data["field_${i}_field_table_name"] = field.getFieldTableName(projectEditor.dataModelList, listForm)
                                         }
 
                                         val format = getFormatNameForType(field.fieldType, field.format)
@@ -580,47 +575,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
                                         if (format.startsWith("/")) {
                                             data["field_${i}_custom_formatted"] = true
-                                            data["field_${i}_tableName"] = listForm.dataModel.name.tableNameAdjustment()
-                                            data["field_${i}_fieldName"]= field.name
                                         }
-
-                                         // CustomFormatter
-//                                        if (format?.get(0) == '/'){
-//                                            field.format?.let{
-//                                                fileHelper.pathHelper.getCustomDrawableImages(it) // Getting the Images From Formatter
-//                                            }
-//
-//                                            format = "custom"
-//                                        }
-                                        /*if (format != null) {
-                                            Key.getFormatTypeFunctionName(format)?.let { functionName ->
-                                                Key.getKey(format)?.let { type ->
-                                                    Log.v("-- format -- $format (${field.format}) - fieldName = ${field.name}  -- > ${listForm.dataModel.name.tableNameAdjustment()}")
-                                                    if(type == "custom"){
-                                                        data["field_${i}_isCustom"] = true
-                                                        data["field_${i}_tableName"] = listForm.dataModel.name.tableNameAdjustment()
-                                                        data["field_${i}_fieldName"]= field.name
-                                                    }else{
-                                                        data["field_${i}_isCustom"] = false
-                                                        data["field_${i}_formatted"] = true
-                                                        data["field_${i}_format_function"] = functionName
-//                                                        data["field_${i}_format_type"] = type
-                                                        data["field_${i}_format_type"] = format
-                                                    }
-                                                }
-                                            }
-                                        } else {
-                                            val defaultFormat =  DefaultFormatter.getKey(typeFromTypeInt(field.fieldType))
-                                            Log.v("defaultFormat  -- $defaultFormat")
-                                            Key.getFormatTypeFunctionName(defaultFormat)?.let { functionName ->
-                                                Key.getKey(defaultFormat)?.let { type ->
-                                                    data["field_${i}_formatted"] = true
-                                                    data["field_${i}_format_function"] = functionName
-//                                                    data["field_${i}_format_type"] = type
-                                                    data["field_${i}_format_type"] = defaultFormat ?: ""
-                                                }
-                                            }
-                                        }*/
                                     }
                                 }
 
@@ -636,20 +591,13 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                     data.remove("field_${j}_name")
                                     data.remove("field_${j}_label")
                                     data.remove("field_${j}_custom_formatted")
-//                                    data.remove("field_${j}_format_function")
                                     data.remove("field_${j}_format_type")
                                     data.remove("field_${j}_accessor")
-//                                    data.remove("field_${j}_Custom")
-                                    data.remove("field_${j}_tableName")
-                                    data.remove("field_${j}_fieldName")
                                     data.remove("field_${j}_field_name")
                                     data.remove("field_${j}_image_key_accessor")
                                     data.remove("field_${j}_field_table_name")
                                 }
                                 data.remove(RELATIONS)
-//                                data.remove(IMAGE_FIELD_NAME)
-//                                data.remove(IMAGE_KEY_ACCESSOR)
-//                                data.remove(IMAGE_TABLE_NAME)
                             } else { // any file to copy in project
                                 val newFile = File(fileHelper.pathHelper.getLayoutTemplatePath(currentFile.absolutePath,
                                     formPath))
@@ -735,78 +683,18 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
                                         if (specificFieldsCount == 0) { // template with no specific field
                                             for (i in fieldList.indices) {
-                                                var field = fieldList[i]
+                                                val field = fieldList[i]
                                                 if (field.name.isNotEmpty()) {
 
-                                                    var format = getFormatNameForType(field.fieldType, field.format)
-                                                    var formField = createDetailFormField(
+                                                    val format = getFormatNameForType(field.fieldType, field.format)
+                                                    val formField = createDetailFormField(
                                                         field = field,
                                                         i = i + 1,
                                                         dataModelList = projectEditor.dataModelList,
                                                         form = detailForm,
-//                                                        isFormatted = false,
-//                                                        isCustomFormat = false,
                                                         formatType = format
                                                     )
 
-//                                                        ?: field.format
-                                                    // CustomFormatter
-                                                   /* if (format?.get(0) == '/') format = "custom"
-
-                                                    if (format != null) {
-                                                        Key.getFormatTypeFunctionName(format)?.let { functionName ->
-                                                            Key.getKey(format)?.let { type ->
-                                                                //if(type == "custom") "`${detailForm.dataModel.name.tableNameAdjustment()}`,`${field.name}`" else
-                                                                if (type == "custom") {
-                                                                    Log.i("Adding free Field with format  >>>>> $field")
-                                                                    formField = createDetailFormField(
-                                                                        field = field,
-                                                                        i = i + 1,
-                                                                        dataModelList = projectEditor.dataModelList,
-                                                                        form = detailForm,
-//                                                                        isFormatted = false,
-                                                                        isCustomFormat = true,
-//                                                                        formatFunction = functionName,
-//                                                                        formatType = if (type == "custom") "`${detailForm.dataModel.name.tableNameAdjustment()}`,`${field.name}`" else type
-                                                                        formatType = if (type == "custom") "`${detailForm.dataModel.name.tableNameAdjustment()}`,`${field.name}`" else format ?: ""
-                                                                    )
-                                                                } else {
-                                                                    Log.i("Adding free Field with format $field")
-                                                                    formField = createDetailFormField(
-                                                                        field = field,
-                                                                        i = i + 1,
-                                                                        dataModelList = projectEditor.dataModelList,
-                                                                        form = detailForm,
-                                                                        isFormatted = true,
-                                                                        isCustomFormat = false,
-                                                                        formatFunction = functionName,
-//                                                                        formatType = type
-                                                                        formatType = format ?: ""
-                                                                    )
-                                                                }
-                                                            }
-                                                        }
-
-                                                    } else {
-                                                        var fieldTypeString = typeFromTypeInt(field.fieldType)
-                                                        val defaultKey =  DefaultFormatter.getKey(fieldTypeString)
-                                                        Key.getFormatTypeFunctionName(defaultKey)?.let { functionName ->
-                                                            Key.getKey(defaultKey)?.let { type ->
-                                                                Log.i("Adding free Field with default format $field")
-                                                                formField = createDetailFormField(
-                                                                    field = field,
-                                                                    i = i + 1,
-                                                                    dataModelList = projectEditor.dataModelList,
-                                                                    form = detailForm,
-                                                                    isFormatted = true,
-                                                                    isCustomFormat = false,
-                                                                    formatFunction = functionName,
-//                                                                    formatType = type
-                                                                    formatType = defaultKey ?: ""
-                                                                )
-                                                            }
-                                                        }
-                                                    }*/
                                                     formFieldList.add(formField)
                                                 } else {
                                                     // you can get null fields in json file
@@ -819,7 +707,6 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
                                                 if (i < fieldList.size) {
                                                     val field = fieldList[i]
-//                                                    val fieldTypeString = typeFromTypeInt(field.fieldType)
 
                                                     if (field.inverseName == null) { // is not relation
                                                         Log.d("Adding specific Field ${field}")
@@ -836,49 +723,18 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                                         data["field_${i + 1}_format_type"] = ""
                                                         data["field_${i + 1}_accessor"] =
                                                             field.getLayoutVariableAccessor(FormType.DETAIL)
+                                                        data["field_${i + 1}_field_name"] = field.getFieldName()
+                                                        data["field_${i + 1}_field_table_name"] = field.getFieldTableName(projectEditor.dataModelList, detailForm)
                                                         if (field.isImage()) {
-//                                                            data[IMAGE_FIELD_NAME] = field.getFieldName()
-//                                                            data[IMAGE_KEY_ACCESSOR] = field.getFieldKeyAccessor(FormType.DETAIL)
-//                                                            data[IMAGE_TABLE_NAME] = field.getFieldTableName(projectEditor.dataModelList, detailForm)
-                                                            data["field_${i + 1}_field_name"] = field.getFieldName()
                                                             data["field_${i + 1}_image_key_accessor"] = field.getFieldKeyAccessor(FormType.DETAIL)
-                                                            data["field_${i + 1}_field_table_name"] = field.getFieldTableName(projectEditor.dataModelList, detailForm)
                                                         }
 
                                                         val format = getFormatNameForType(field.fieldType, field.format)
                                                         data["field_${i + 1}_format_type"] = format
                                                         data["field_${i + 1}_custom_formatted"] = format.startsWith("/")
 
-//                                                        var format = getFormatNameForType(field.fieldType, field.format) ?: field.format
-                                                        // CustomFormatter
-//                                                        if (format?.get(0) == '/')
-//                                                            format = "custom"
                                                         Log.v("format :: $format")
                                                         Log.i("applyDetailFormTemplate fieldName :: ${field.name.fieldAdjustment()}")
-                                                       /* if (format != null) {
-                                                            Key.getFormatTypeFunctionName(format)?.let { functionName ->
-                                                                Key.getKey(format)?.let { type ->
-                                                                    data["field_${i + 1}_formatted"] = true
-                                                                    data["field_${i + 1}_format_function"] =
-                                                                        functionName
-//                                                                    data["field_${i + 1}_format_type"] = if(type == "custom") "`${detailForm.dataModel.name.tableNameAdjustment()}`,`${field.name}`" else type
-                                                                    data["field_${i + 1}_format_type"] = if(type == "custom") "`${detailForm.dataModel.name.tableNameAdjustment()}`,`${field.name}`" else format
-                                                                }
-                                                            }
-                                                        } else {
-                                                            val defaultFormat = DefaultFormatter.getKey(fieldTypeString)
-                                                            Log.d("Field type :: ${field.name} $fieldTypeString ${defaultFormat}")
-                                                            Key.getFormatTypeFunctionName(defaultFormat)?.let { functionName ->
-                                                                Key.getKey(format)?.let { type ->
-                                                                    Log.i("format $defaultFormat -- $functionName -- $type")
-                                                                    data["field_${i + 1}_formatted"] = true
-                                                                    data["field_${i + 1}_format_function"] =
-                                                                        functionName
-//                                                                    data["field_${i + 1}_format_type"] = type
-                                                                    data["field_${i + 1}_format_type"] = defaultFormat ?: ""
-                                                                }
-                                                            }
-                                                        }*/
 
                                                     } else {
                                                         Log.d("Field [${field.name}] not added in specifc field because it is a relation")
@@ -897,9 +753,6 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                                     data["field_${i + 1}_field_name"] = ""
                                                     data["field_${i + 1}_image_key_accessor"] = ""
                                                     data["field_${i + 1}_field_table_name"] = ""
-//                                                    data[IMAGE_FIELD_NAME] = ""
-//                                                    data[IMAGE_KEY_ACCESSOR] = ""
-//                                                    data[IMAGE_TABLE_NAME] = ""
                                                 }
                                             }
 
@@ -911,65 +764,22 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                                 for (i in specificFieldsCount until fieldList.size) {
                                                     Log.d("in for loop, i = $i")
                                                     Log.d("in for loop, k = $k")
-                                                    var field = fieldList[i]
-                                                    var fieldTypeString = typeFromTypeInt(field.fieldType)
+                                                    val field = fieldList[i]
                                                     Log.d("fieldList[i] = $field")
                                                     if (field.name.isNotEmpty()) {
                                                         Log.d("Adding free Field in specific template ${field}")
 
-                                                        var format = getFormatNameForType(field.fieldType, field.format)
+                                                        val format = getFormatNameForType(field.fieldType, field.format)
 
-                                                        var formField = createDetailFormField(
+                                                        val formField = createDetailFormField(
                                                             field = field,
                                                             i = k + 1,
                                                             dataModelList = projectEditor.dataModelList,
                                                             form = detailForm,
-//                                                            isFormatted = false,
-//                                                            isCustomFormat = false
                                                             formatType = format
                                                         )
 
-
-//                                                            ?: field.format
                                                         Log.v("format :: $format")
-                                                        // CustomFormatter
-                                                       /* if (format?.get(0) == '/') format = "custom"
-                                                        if (format != null) {
-                                                            Key.getFormatTypeFunctionName(format)?.let { functionName ->
-                                                                Key.getKey(format)?.let { type ->
-                                                                    formField = createDetailFormField(
-                                                                        field = field,
-                                                                        i = k + 1,
-                                                                        dataModelList = projectEditor.dataModelList,
-                                                                        form = detailForm,
-                                                                        isFormatted = true,
-                                                                        isCustomFormat = false,
-                                                                        formatFunction = functionName,
-//                                                                        formatType = if (type == "custom") "`${detailForm.dataModel.name.tableNameAdjustment()}`,`${field.name}`" else type
-                                                                        formatType = if (type == "custom") "`${detailForm.dataModel.name.tableNameAdjustment()}`,`${field.name}`" else format
-                                                                    )
-                                                                }
-                                                            }
-
-                                                        } else {
-                                                            // already defined
-                                                            val defaultFormat = DefaultFormatter.getKey(fieldTypeString)
-                                                            Key.getFormatTypeFunctionName(defaultFormat)?.let { functionName ->
-                                                                Key.getKey(format)?.let { type ->
-                                                                    formField = createDetailFormField(
-                                                                        field = field,
-                                                                        i = k + 1,
-                                                                        dataModelList = projectEditor.dataModelList,
-                                                                        form = detailForm,
-                                                                        isFormatted = true,
-                                                                        isCustomFormat = false,
-                                                                        formatFunction = functionName,
-//                                                                        formatType = type
-                                                                        formatType = defaultFormat ?: ""
-                                                                    )
-                                                                }
-                                                            }
-                                                        }*/
 
                                                         formFieldList.add(formField)
                                                         k++
@@ -992,9 +802,6 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
                                 // cleaning data for other templates
                                 data.remove(FORM_FIELDS)
-//                                data.remove(IMAGE_FIELD_NAME)
-//                                data.remove(IMAGE_KEY_ACCESSOR)
-//                                data.remove(IMAGE_TABLE_NAME)
                                 for (i in 1 until specificFieldsCount) {
                                     data.remove("field_${i}_defined")
                                     data.remove("field_${i}_is_image")
@@ -1002,12 +809,11 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                     data.remove("field_${i}_name")
                                     data.remove("field_${i}_label")
                                     data.remove("field_${i}_custom_formatted")
-//                                    data.remove("field_${i}_format_function")
                                     data.remove("field_${i}_format_type")
                                     data.remove("field_${i}_accessor")
                                     data.remove("field_${i}_field_name")
-                                    data.remove("field_${i + 1}_image_key_accessor")
-                                    data.remove("field_${i + 1}_field_table_name")
+                                    data.remove("field_${i}_image_key_accessor")
+                                    data.remove("field_${i}_field_table_name")
                                 }
 
                             } else { // any file to copy in project
@@ -1075,6 +881,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         }
     }
 
+    // TODO : to be removed, must copy icons in Project Editor and convert .svg to .xml
     fun getCustomFormatters() {
 
         projectEditor.dataModelList.forEach { dataModel ->
@@ -1092,7 +899,21 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                 ) && file.name != DS_STORE
                             }
                             .forEach { currentFile ->
-                                val newFile = File(fileHelper.pathHelper.drawablePath(), currentFile.name)
+
+                                val correctedFormatName =  format
+                                    .removePrefix("/")
+                                    .toLowerCase()
+                                    .replace("[^a-z0-9]+".toRegex(), "_")
+
+                                Log.d("correctedFormatName to copy = $correctedFormatName")
+
+                                val correctedImageName = currentFile.name
+                                    .substring(0, currentFile.name.lastIndexOf('.')) // removes extension
+                                    .toLowerCase()
+                                    .replace("[^a-z0-9]+".toRegex(), "_")
+
+                                Log.d("correctedImageName to copy = $correctedImageName")
+                                val newFile = File(fileHelper.pathHelper.drawablePath(), "${correctedFormatName}_${correctedImageName}.${currentFile.extension}")
                                 if (!currentFile.copyRecursively(target = newFile, overwrite = true)) {
                                     throw Exception("An error occurred while copying formatter files with target : ${newFile.absolutePath}")
                                 }
@@ -1138,6 +959,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
                             val imageMap = mutableMapOf<String, String>()
 
+                            Log.d("FieldMapping = $fieldMapping")
                             fieldMapping.formatchoice?.names()?.let { keysIndex ->
                                 for (i in 0 until keysIndex.length()) {
                                     val keyImage = fieldMapping.formatchoice.names().getString(i)
