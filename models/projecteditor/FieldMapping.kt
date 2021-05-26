@@ -1,3 +1,8 @@
-import org.json.JSONObject
-
-data class FieldMapping(val binding: String?, val formatchoice: JSONObject?, val isSearchable: Boolean?, val formatType: String?)
+data class FieldMapping(
+    val binding: String?,
+    val choiceList: Any?,  // choiceList can be a JSONObject or a JSONArray
+    val isSearchable: Boolean?,
+    val formatType: String?,
+    val imageWidth: Int?,
+    val imageHeight: Int?
+)

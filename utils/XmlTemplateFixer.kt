@@ -57,6 +57,10 @@ fun replaceTemplateText(oldFormText: String, formType: FormType): String {
                     "${indent}{{#isCustomFormat}}\n" + //If is custom
                     "${indent}app:tableName='@{\"{{fieldTableName}}\"}'\n" +
                     "${indent}app:fieldName='@{\"{{fieldName}}\"}'\n" +
+                    "${indent}{{#isImageNamed}}\n" + //If is imageNamed
+                    "${indent}app:imageWidth=\"@{ {{imageWidth}} }\"\n" +
+                    "${indent}app:imageHeight=\"@{ {{imageHeight}} }\"\n" +
+                    "${indent}{{/isImageNamed}}\n" + // End is imageNamed
                     "${indent}{{/isCustomFormat}}\n" + //End If Custom
                     "${indent}app:text=\"@{ {{accessor}}{{name}}.toString()}\"\n" +
                     "${indent}app:format='@{\"{{formatType}}\"}'\n" +
@@ -103,6 +107,10 @@ fun replaceTemplateText(oldFormText: String, formType: FormType): String {
                     "${indent}{{#field_${id}_custom_formatted}}\n" + //If is custom
                     "${indent}app:tableName='@{\"{{{field_${id}_field_table_name}}}\"}'\n" +
                     "${indent}app:fieldName='@{\"{{{field_${id}_field_name}}}\"}'\n" +
+                    "${indent}{{#field_${id}_custom_formatted_imageNamed}}\n" + //If is imageNamed
+                    "${indent}app:imageWidth=\"@{ {{field_${id}_field_image_width}} }\"\n" +
+                    "${indent}app:imageHeight=\"@{ {{field_${id}_field_image_height}} }\"\n" +
+                    "${indent}{{/field_${id}_custom_formatted_imageNamed}}\n" + // close is imageNamed
                     "${indent}{{/field_${id}_custom_formatted}}\n" + // close custom
                     "${indent}app:text=\"@{ {{field_${id}_accessor}}{{field_${id}_name}}.toString()}\"\n" +
                     "${indent}app:format='@{\"{{field_${id}_format_type}}\"}'\n" +
@@ -114,6 +122,10 @@ fun replaceTemplateText(oldFormText: String, formType: FormType): String {
                     "${indent}{{#field_${id}_custom_formatted}}\n" +
                     "${indent}app:tableName='@{\"{{{field_${id}_field_table_name}}}\"}'\n" +
                     "${indent}app:fieldName='@{\"{{{field_${id}_field_name}}}\"}'\n" +
+                    "${indent}{{#field_${id}_custom_formatted_imageNamed}}\n" + //If is imageNamed
+                    "${indent}app:imageWidth=\"@{ {{field_${id}_field_image_width}} }\"\n" +
+                    "${indent}app:imageHeight=\"@{ {{field_${id}_field_image_height}} }\"\n" +
+                    "${indent}{{/field_${id}_custom_formatted_imageNamed}}\n" + // close is imageNamed
                     "${indent}{{/field_${id}_custom_formatted}}\n" +
                     "${indent}app:text=\"@{ {{field_${id}_accessor}}{{field_${id}_name}}.toString()}\"\n" +
                     "${indent}app:format='@{\"{{field_${id}_format_type}}\"}'\n" +

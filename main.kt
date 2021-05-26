@@ -125,10 +125,6 @@ class GenerateCommand : CliktCommand(name = "generate") {
         Log.i("Mustache templating done.")
         Log.v("-------------------------")
 
-        mustacheHelper.getCustomFormatters()
-
-        Log.i("Custom formatters successfully extracted.")
-
         mustacheHelper.makeQueries()
 
         Log.i("Queries file successfully generated.")
