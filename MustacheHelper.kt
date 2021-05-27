@@ -943,35 +943,39 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                         getManifestJSONContent(formatPath)?.let {
                             val fieldMapping = getFieldMapping(it, format, isSearchable)
                             Log.d("fieldMapping = $fieldMapping")
-                            map[field.name] = fieldMapping
+                            if (fieldMapping.binding == "imageNamed" || fieldMapping.binding == "localizedText") {
+                                map[field.name] = fieldMapping
 
-                            if (isImageNamed(fieldMapping)) {
+                                if (isImageNamed(fieldMapping)) {
 
-                                val imageMap = mutableMapOf<String, String>()
+                                    val imageMap = mutableMapOf<String, String>()
 
-                                // choiceList can be Map<String, String> (JSONObject in appinfo.json)
-                                // or a List<String> (JSONArray in appinfo.json)
-                                when (fieldMapping.choiceList) {
-                                    is Map<*, *> -> {
-                                        fieldMapping.choiceList.values.forEach { imageName ->
-                                            if (imageName is String) {
-                                                if (imageName.contains(".")) {
-                                                    imageMap[imageName] = getResourceName(format, imageName)
+                                    // choiceList can be Map<String, String> (JSONObject in appinfo.json)
+                                    // or a List<String> (JSONArray in appinfo.json)
+                                    when (fieldMapping.choiceList) {
+                                        is Map<*, *> -> {
+                                            fieldMapping.choiceList.values.forEach { imageName ->
+                                                if (imageName is String) {
+                                                    if (imageName.contains(".")) {
+                                                        imageMap[imageName] = getResourceName(format, imageName)
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        is List<*> -> {
+                                            fieldMapping.choiceList.forEach { imageName ->
+                                                if (imageName is String) {
+                                                    if (imageName.contains(".")) {
+                                                        imageMap[imageName] = getResourceName(format, imageName)
+                                                    }
                                                 }
                                             }
                                         }
                                     }
-                                    is List<*> -> {
-                                        fieldMapping.choiceList.forEach { imageName ->
-                                            if (imageName is String) {
-                                                if (imageName.contains(".")) {
-                                                    imageMap[imageName] = getResourceName(format, imageName)
-                                                }
-                                            }
-                                        }
-                                    }
+                                    customFormattersImagesMap.putIfAbsent(format, imageMap)
                                 }
-                                customFormattersImagesMap.putIfAbsent(format, imageMap)
+                            } else {
+                                Log.d("Not adding this custom formatter as its binding is neither localizedText nor imageNamed")
                             }
                         }
 
