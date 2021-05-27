@@ -24,8 +24,10 @@ fun String.tableNameAdjustment() =
 fun String.fieldAdjustment() =
     this.condense().replaceSpecialChars().lowerCustomProperties().validateWordDecapitalized()
 
-fun String.dataBindingAdjustment(): String = this.condense().replaceSpecialChars().firstCharForTable()
-    .split("_").joinToString("") { it.toLowerCase().capitalize() }
+fun String.dataBindingAdjustment(): String =
+    this.condense().replaceSpecialChars().firstCharForTable()
+        .split("_")
+        .joinToString("") { it.toLowerCase(Locale.getDefault()).capitalize(Locale.getDefault()) }
 
 private fun String.condense() = this.replace("\\s".toRegex(), "")
 

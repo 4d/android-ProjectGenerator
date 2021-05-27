@@ -581,9 +581,12 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                         if (format.startsWith("/")) {
                                             data["field_${i}_custom_formatted"] = true
                                             if (isImageNamedBinding(listForm, field.name)) {
+                                                Log.d("Field : ${field.name}, table : ${listForm.dataModel.name}, is imageNamed binding")
                                                 data["field_${i}_custom_formatted_imageNamed"] = true
                                                 data["field_${i}_field_image_width"] = getImageSize(listForm, field.name, "width")
                                                 data["field_${i}_field_image_height"] = getImageSize(listForm, field.name, "height")
+                                            } else {
+                                                Log.d("Field : ${field.name}, table : ${listForm.dataModel.name}, is not imageNamed binding")
                                             }
                                         }
                                     }
@@ -944,7 +947,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                             val fieldMapping = getFieldMapping(it, format, isSearchable)
                             Log.d("fieldMapping = $fieldMapping")
                             if (fieldMapping.binding == "imageNamed" || fieldMapping.binding == "localizedText") {
-                                map[field.name] = fieldMapping
+                                map[field.name.fieldAdjustment()] = fieldMapping
 
                                 if (isImageNamed(fieldMapping)) {
 
@@ -980,10 +983,10 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                         }
 
                     } else {
-                        customFormatMap.put(dataModel.name, map)
+                        customFormatMap.put(dataModel.name.tableNameAdjustment(), map)
                     }
                 } ?: kotlin.run {
-                    customFormatMap.put(dataModel.name, map)
+                    customFormatMap.put(dataModel.name.tableNameAdjustment(), map)
                 }
             }
         }
@@ -1012,7 +1015,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
     }
 
     private fun getImageSize(form: Form, fieldName: String, type: String): Int {
-        customFormattersFields[form.dataModel.name]?.get(fieldName)?.let{ fieldMapping ->
+        customFormattersFields[form.dataModel.name.tableNameAdjustment()]?.get(fieldName.fieldAdjustment())?.let{ fieldMapping ->
             return when (type) {
                 "width" -> fieldMapping.imageWidth ?: 0
                 "height" -> fieldMapping.imageHeight ?: 0
@@ -1023,7 +1026,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
     }
 
     private fun isImageNamedBinding(form: Form, fieldName: String): Boolean {
-        customFormattersFields[form.dataModel.name]?.get(fieldName)?.let{ fieldMapping ->
+        customFormattersFields[form.dataModel.name.tableNameAdjustment()]?.get(fieldName.fieldAdjustment())?.let{ fieldMapping ->
             return isImageNamed(fieldMapping)
         }
         return false
