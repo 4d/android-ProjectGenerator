@@ -11,7 +11,7 @@ fun getFieldMapping(manifestContent: JSONObject, format: String, isSearchable: B
             ?: manifestContent.getSafeArray("choiceList")
                 .getStringList(),  // choiceList can be a JSONObject or a JSONArray
         isSearchable = isSearchable,
-        formatType = format,
+        name = format,
         imageWidth = getSize(manifestContent,"width"),
         imageHeight = getSize(manifestContent,"height")
     )

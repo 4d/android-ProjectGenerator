@@ -938,7 +938,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                     Log.d("ProjectEditor.kt  /  Format = $format")
                     if (format.startsWith("/")) {
 
-                        val isSearchable = isCustomFormatterSearchable(dataModel.name,field.name, projectEditor.searchableFields)
+                        val isSearchable = isCustomFormatterSearchable(dataModel.name, field.name, projectEditor.searchableFields)
                         val formatPath = fileHelper.pathHelper.getCustomFormatterPath(format)
                         getManifestJSONContent(formatPath)?.let {
                             val fieldMapping = getFieldMapping(it, format, isSearchable)
