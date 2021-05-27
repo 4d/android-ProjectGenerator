@@ -67,10 +67,12 @@ fun File.readFile(): String {
     }
 }
 
-fun getTemplateManifest(formPath: String): File = File(formPath + File.separator + "manifest.json")
+// Used for both custom templates and custom formatters
+fun getManifest(formPath: String): File = File(formPath + File.separator + "manifest.json")
 
-fun getTemplateManifestJSONContent(formPath: String): JSONObject? {
-    val manifest = getTemplateManifest(formPath)
+// Used for both custom templates and custom formatters
+fun getManifestJSONContent(formPath: String): JSONObject? {
+    val manifest = getManifest(formPath)
     return if (manifest.exists()) {
         val jsonString = manifest.readFile()
         retrieveJSONObject(jsonString)

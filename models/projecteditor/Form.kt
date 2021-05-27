@@ -9,9 +9,10 @@ fun createDetailFormField(
     i: Int,
     dataModelList: List<DataModel>,
     form: Form,
-    isFormatted: Boolean,
-    formatFunction: String = "",
-    formatType: String = ""
+    formatType: String,
+    isImageNamed: Boolean,
+    imageWidth: Int,
+    imageHeight: Int
 ): TemplateFormFieldFiller {
 
     return TemplateFormFieldFiller(
@@ -21,12 +22,14 @@ fun createDetailFormField(
         isRelation = field.inverseName != null,
         isImage = field.isImage(),
         accessor = field.getLayoutVariableAccessor(FormType.DETAIL),
-        isFormatted = isFormatted,
-        formatFunction = formatFunction,
+        isCustomFormat = formatType.startsWith("/"),
+        isImageNamed = isImageNamed,
         formatType = formatType,
-        imageFieldName = field.getImageFieldName(),
-        imageKeyAccessor = field.getImageKeyAccessor(FormType.DETAIL),
-        imageTableName = field.getImageTableName(dataModelList, form),
+        fieldName = field.getFieldName(),
+        imageKeyAccessor = field.getFieldKeyAccessor(FormType.DETAIL),
+        fieldTableName = field.getFieldTableName(dataModelList, form),
+        imageWidth = imageWidth,
+        imageHeight = imageHeight,
         isInt = field.isInt()
     )
 }

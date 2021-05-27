@@ -39,7 +39,7 @@ class ProjectEditor(projectEditorFile: File) {
     lateinit var listFormList: List<Form>
     lateinit var detailFormList: List<Form>
     lateinit var navigationTableList: List<String>
-    private val searchableFields = HashMap<String, List<String>>()
+    val searchableFields = HashMap<String, List<String>>()
 
     lateinit var jsonObj: JSONObject
     // Hold sort Filed
@@ -104,7 +104,7 @@ class ProjectEditor(projectEditorFile: File) {
         }
     }
 
-    fun getAppInfo(): AppInfo {
+    fun getAppInfo(customFormattersImagesMap: Map<String, Map<String, FieldMapping>>): AppInfo {
         val mailAuth = findJsonBoolean("mailAuth") ?: false
         var remoteUrl = findJsonString("productionUrl")
         if (remoteUrl.isNullOrEmpty())
@@ -120,7 +120,8 @@ class ProjectEditor(projectEditorFile: File) {
             dumpedTables = mutableListOf(),
             searchableField = searchableFields,
             logLevel = DEFAULT_LOG_LEVEL,
-            relations = true
+            relations = true,
+            customFormatters = customFormattersImagesMap
         )
     }
 
@@ -137,6 +138,7 @@ class ProjectEditor(projectEditorFile: File) {
                 if (project.has("list")) {
                     val listForms = project.getJSONObject("list")
                     val listFormsKeys = listForms.names()
+
                     Log.i("listForms :: $listForms")
                     for (index in 0 until listFormsKeys.length()) {
                         val tableSearchableFields = mutableListOf<String>()
@@ -186,7 +188,38 @@ class ProjectEditor(projectEditorFile: File) {
             }
         }
     }
+
+
+    /** Read Custom Formatters **/
+    /*private fun getCustomFormatterFields(fileHelper: FileHelper): Map<String, Map<String, FieldMapping>> {
+
+        val customFormatMap = mutableMapOf<String, Map<String, FieldMapping>>()
+        dataModelList.forEach { dataModel ->
+            val map = mutableMapOf<String, FieldMapping>()
+            dataModel.fields?.forEach{ field ->
+                field.format?.let { format ->
+                    Log.d("ProjectEditor.kt  /  Format = $format")
+                    if (format.startsWith("/")) {
+
+                        val isSearchable = isCustomFormatterSearchable(dataModel.name,field.name, searchableFields)
+                        val formatPath = fileHelper.pathHelper.getCustomFormatterPath(format)
+                        getManifestJSONContent(formatPath)?.let {
+                            val fieldMapping = getFieldMapping(it, format, isSearchable)
+                            map.put(field.name, fieldMapping)
+                        }
+
+                    } else {
+                        customFormatMap.put(dataModel.name, map)
+                    }
+                } ?: kotlin.run {
+                    customFormatMap.put(dataModel.name, map)
+                }
+            }
+        }
+        return customFormatMap
+    }*/
 }
+
 
 fun typeStringFromTypeInt(type: Int?): String = when (type) {
     0 -> STRING_TYPE

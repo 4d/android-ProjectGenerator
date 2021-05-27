@@ -17,6 +17,7 @@ import MustacheConstants.COLOR_PRIMARY_LIGHTER_PLUS
 import MustacheConstants.COLOR_PRIMARY_LIGHTER_PLUS_PLUS
 import MustacheConstants.COLOR_PRIMARY_NEUTRAL
 import MustacheConstants.COMPANY_HEADER
+import MustacheConstants.CUSTOM_FORMATTERS_IMAGES
 import MustacheConstants.DATE_DAY
 import MustacheConstants.DATE_MONTH
 import MustacheConstants.DATE_YEAR
@@ -24,9 +25,6 @@ import MustacheConstants.ENTITY_CLASSES
 import MustacheConstants.FIELDS
 import MustacheConstants.FIRST_FIELD
 import MustacheConstants.FORM_FIELDS
-import MustacheConstants.IMAGE_FIELD_NAME
-import MustacheConstants.IMAGE_KEY_ACCESSOR
-import MustacheConstants.IMAGE_TABLE_NAME
 import MustacheConstants.PACKAGE
 import MustacheConstants.RELATIONS
 import MustacheConstants.RELATIONS_IMPORT
@@ -54,10 +52,16 @@ import MustacheConstants.TYPES_AND_TABLES
 import PathHelperConstants.TEMPLATE_PLACEHOLDER
 import PathHelperConstants.TEMPLATE_RELATION_DAO_PLACEHOLDER
 import PathHelperConstants.TEMPLATE_RELATION_ENTITY_PLACEHOLDER
+import ProjectEditorConstants.BOOLEAN_TYPE
+import ProjectEditorConstants.DATE_TYPE
+import ProjectEditorConstants.FLOAT_TYPE
+import ProjectEditorConstants.INT_TYPE
+import ProjectEditorConstants.TIME_TYPE
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.samskivert.mustache.Mustache
 import com.samskivert.mustache.Template
+import org.json.JSONObject
 import java.io.File
 import java.io.FileReader
 import java.lang.Integer.toHexString
@@ -77,12 +81,12 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
     private var tableNames = mutableListOf<TemplateTableFiller>()
     private var tableNames_lowercase = mutableListOf<TemplateLayoutFiller>()
     private var relations = mutableListOf<TemplateRelationFiller>()
+    private var customFormatterImages = mutableListOf<TemplateFormatterFiller>()
 
-    private val defaultFormatter = DefaultFormatter.getKeys()
-
-    //TypeChoice Key
-    private val typeChoice = Key.getKeys()
-    private val formatTypeFunctionName = Key.getFormatTypeFunctionName()
+    // <formatName, <imageName, resourceName>>
+    private lateinit var customFormattersImagesMap: Map<String, Map<String, String>>
+    // <tableName, <fieldName, fieldMapping>>
+    private val customFormattersFields: Map<String, Map<String, FieldMapping>> = getCustomFormatterFields()
 
     init {
         Log.plantTree(this::class.java.canonicalName)
@@ -96,12 +100,12 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
         // for network_security_config.xml
         // whitelist production host address if defined, else, server host address, else localhost
-        var remoteAddress =  projectEditor.findJsonString("productionUrl")
+        var remoteAddress = projectEditor.findJsonString("productionUrl")
         Log.d("remoteAddress = $remoteAddress")
         if (remoteAddress.isNullOrEmpty())
             remoteAddress = projectEditor.findJsonString("remoteUrl")
-            if (remoteAddress.isNullOrEmpty())
-                remoteAddress = DEFAULT_REMOTE_URL
+        if (remoteAddress.isNullOrEmpty())
+            remoteAddress = DEFAULT_REMOTE_URL
         data[REMOTE_ADDRESS] = remoteAddress.removePrefix("https://").removePrefix("http://").split(":")[0]
         Log.d("data[REMOTE_ADDRESS] = ${data[REMOTE_ADDRESS]}")
 
@@ -155,12 +159,18 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
             data[COLOR_PRIMARY_NEUTRAL] = it
 
             val backgroundColor: Int = Color.parseColor(it)
-            data[COLOR_PRIMARY_DARKER] =  "#" + toHexString(manipulateColor(backgroundColor, 0.8f)).toUpperCase() // darker +
-            data[COLOR_PRIMARY_DARKER_PLUS] = "#" + toHexString(manipulateColor(backgroundColor, 0.6f)).toUpperCase() // darker ++
-            data[COLOR_PRIMARY_DARKER_PLUS_PLUS] = "#" + toHexString(manipulateColor(backgroundColor, 0.4f)).toUpperCase() // darker +++
-            data[COLOR_PRIMARY_LIGHTER] = "#" + toHexString(manipulateColor(backgroundColor, 1.2f)).toUpperCase() // lighter +
-            data[COLOR_PRIMARY_LIGHTER_PLUS] = "#" + toHexString(manipulateColor(backgroundColor, 1.4f)).toUpperCase() // lighter ++
-            data[COLOR_PRIMARY_LIGHTER_PLUS_PLUS] = "#" + toHexString(manipulateColor(backgroundColor, 1.6f)).toUpperCase() // lighter +++
+            data[COLOR_PRIMARY_DARKER] =
+                "#" + toHexString(manipulateColor(backgroundColor, 0.8f)).toUpperCase() // darker +
+            data[COLOR_PRIMARY_DARKER_PLUS] =
+                "#" + toHexString(manipulateColor(backgroundColor, 0.6f)).toUpperCase() // darker ++
+            data[COLOR_PRIMARY_DARKER_PLUS_PLUS] =
+                "#" + toHexString(manipulateColor(backgroundColor, 0.4f)).toUpperCase() // darker +++
+            data[COLOR_PRIMARY_LIGHTER] =
+                "#" + toHexString(manipulateColor(backgroundColor, 1.2f)).toUpperCase() // lighter +
+            data[COLOR_PRIMARY_LIGHTER_PLUS] =
+                "#" + toHexString(manipulateColor(backgroundColor, 1.4f)).toUpperCase() // lighter ++
+            data[COLOR_PRIMARY_LIGHTER_PLUS_PLUS] =
+                "#" + toHexString(manipulateColor(backgroundColor, 1.6f)).toUpperCase() // lighter +++
 
             data[THEME_COLOR_PRIMARY] = "@color/primary_neutral"
             data[THEME_COLOR_PRIMARY_DARKER] = "@color/primary_darker_3"
@@ -185,8 +195,8 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
             data[THEME_COLOR_ON_PRIMARY] = "@color/white"
         }
 
-
         Log.i("data[THEME_COLOR_ON_PRIMARY] = ${data[THEME_COLOR_ON_PRIMARY]}")
+
         var entityClassesString = ""
 
         val dataModelRelationList = mutableListOf<TemplateRelationFiller>()
@@ -238,9 +248,18 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
         val typesAndTables = mutableListOf<TemplateTableFiller>()
         typesAndTables.addAll(tableNames)
-        typesAndTables.add(TemplateTableFiller(name = "Photo", name_original = "Photo", nameCamelCase = "photo", concat_fields = ""))
-        typesAndTables.add(TemplateTableFiller(name = "Date", name_original = "Date", nameCamelCase = "date", concat_fields = ""))
-        typesAndTables.add(TemplateTableFiller(name = "Time", name_original = "Time", nameCamelCase = "time", concat_fields = ""))
+        typesAndTables.add(TemplateTableFiller(name = "Photo",
+            name_original = "Photo",
+            nameCamelCase = "photo",
+            concat_fields = ""))
+        typesAndTables.add(TemplateTableFiller(name = "Date",
+            name_original = "Date",
+            nameCamelCase = "date",
+            concat_fields = ""))
+        typesAndTables.add(TemplateTableFiller(name = "Time",
+            name_original = "Time",
+            nameCamelCase = "time",
+            concat_fields = ""))
         data[TYPES_AND_TABLES] = typesAndTables
 
 
@@ -263,14 +282,15 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
                     navigationTableCounter++
 
-                    dataModel.relationList?.filter { it.relationType == RelationType.MANY_TO_ONE }?.forEach { relation ->
-                        layoutRelationList.add(
-                            TemplateRelationFiller(
-                                relation_source = relation.source.dataBindingAdjustment(),
-                                relation_target = relation.target.tableNameAdjustment(),
-                                relation_name = relation.name.fieldAdjustment()
-                        ))
-                    }
+                    dataModel.relationList?.filter { it.relationType == RelationType.MANY_TO_ONE }
+                        ?.forEach { relation ->
+                            layoutRelationList.add(
+                                TemplateRelationFiller(
+                                    relation_source = relation.source.dataBindingAdjustment(),
+                                    relation_target = relation.target.tableNameAdjustment(),
+                                    relation_name = relation.name.fieldAdjustment()
+                                ))
+                        }
                 } else {
                     Log.w("Not adding [${dataModel.name}] in navigation table list")
                 }
@@ -281,14 +301,28 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
         // Specifying if list layout is table or collection (LinearLayout or GridLayout)
         tableNamesForNavigation.map { it.name }.forEach { tableName ->
-            val listFormName = projectEditor.listFormList.find { listform -> listform.dataModel.name.tableNameAdjustment() == tableName.tableNameAdjustment() }?.name
+            val listFormName =
+                projectEditor.listFormList.find { listform -> listform.dataModel.name.tableNameAdjustment() == tableName.tableNameAdjustment() }?.name
             var formPath = fileHelper.pathHelper.getFormPath(listFormName, FormType.LIST)
             formPath = fileHelper.pathHelper.verifyFormPath(formPath, FormType.LIST)
-            tableNamesForLayoutType.add(TemplateLayoutTypeFiller(name = tableName, layout_manager_type = fileHelper.pathHelper.getLayoutManagerType(formPath)))
+            tableNamesForLayoutType.add(TemplateLayoutTypeFiller(name = tableName, layout_manager_type = getLayoutManagerType(formPath)))
         }
 
         data[TABLENAMES_LAYOUT] = tableNamesForLayoutType
-        Log.d("TABLENAMES" ,"${data[TABLENAMES]}")
+        Log.d("TABLENAMES", "${data[TABLENAMES]}")
+
+        customFormatterImages = mutableListOf()
+
+        for ((formatterName, imageMap) in customFormattersImagesMap) {
+            for ((imageName, resourceName) in imageMap) {
+                customFormatterImages.add(TemplateFormatterFiller(
+                    formatterName = formatterName,
+                    imageName = imageName,
+                    resourceName = resourceName
+                ))
+            }
+        }
+        data[CUSTOM_FORMATTERS_IMAGES] = customFormatterImages
     }
 
     /**
@@ -298,156 +332,164 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         File(fileHelper.pathHelper.templateFilesPath).walkTopDown()
             .filter { folder -> !folder.isHidden && folder.isDirectory }.forEach { currentFolder ->
 
-            compiler = generateCompilerFolder(currentFolder.absolutePath)
+                compiler = generateCompilerFolder(currentFolder.absolutePath)
 
-            currentFolder.walkTopDown()
-                .filter { file -> !file.isHidden && file.isFile && currentFolder.absolutePath.contains(file.parent) && file.name != DS_STORE }
-                .forEach { currentFile ->
+                currentFolder.walkTopDown()
+                    .filter { file -> !file.isHidden && file.isFile && currentFolder.absolutePath.contains(file.parent) && file.name != DS_STORE }
+                    .forEach { currentFile ->
 
-                    Log.d("Processed file"  ,"$currentFile")
+                        Log.d("Processed file", "$currentFile")
 
-                    template = compiler.compile("{{>${currentFile.name}}}")
+                        template = compiler.compile("{{>${currentFile.name}}}")
 
-                    val newFilePath = fileHelper.pathHelper.getPath(currentFile.absolutePath.replaceXmlTxtSuffix())
+                        val newFilePath = fileHelper.pathHelper.getPath(currentFile.absolutePath.replaceXmlTxtSuffix())
 
-                    relations.clear()
-                    projectEditor.dataModelList.forEach { dataModel ->
-                        dataModel.relationList?.filter { it.relationType == RelationType.MANY_TO_ONE }
-                            ?.forEach { relation ->
-                                relations.add(TemplateRelationFiller(relation_source = relation.source.tableNameAdjustment(),
-                                    relation_target = relation.target.tableNameAdjustment(),
-                                    relation_name = relation.name.fieldAdjustment()))
-                            }
-                    }
-                    data[RELATIONS] = relations
-
-                    if (currentFile.isWithTemplateName()) {
-
-                        for (tableName in tableNames) { // file will be duplicated
-
-                            if (newFilePath.contains(fileHelper.pathHelper.navigationPath())) {
-                                val isTableInNavigation = tableNamesForNavigation.find { it.name == tableName.name }
-                                if (isTableInNavigation == null) {
-                                    continue
+                        relations.clear()
+                        projectEditor.dataModelList.forEach { dataModel ->
+                            dataModel.relationList?.filter { it.relationType == RelationType.MANY_TO_ONE }
+                                ?.forEach { relation ->
+                                    relations.add(TemplateRelationFiller(relation_source = relation.source.tableNameAdjustment(),
+                                        relation_target = relation.target.tableNameAdjustment(),
+                                        relation_name = relation.name.fieldAdjustment()))
                                 }
-                            }
+                        }
+                        data[RELATIONS] = relations
 
-                            data[TABLENAME] = tableName.name.tableNameAdjustment()
+                        if (currentFile.isWithTemplateName()) {
 
-                            data[TABLENAME_ORIGINAL] = tableName.name_original
-                            projectEditor.dataModelList.find { it.name.tableNameAdjustment() == tableName.name.tableNameAdjustment() }?.let { datamodel ->
-                                data[TABLENAME_ORIGINAL] = datamodel.getLabel()
-                            }
+                            for (tableName in tableNames) { // file will be duplicated
 
-                            data[TABLENAME_LOWERCASE] = tableName.name.toLowerCase().fieldAdjustment()
-                            projectEditor.dataModelList.find { it.name.tableNameAdjustment() == tableName.name.tableNameAdjustment() }?.fields?.let { fields ->
-                                val fieldList = mutableListOf<TemplateFieldFiller>()
-                                for (field in fields) {
-                                    field.fieldTypeString?.let { fieldTypeString ->
-                                        fieldList.add(
-                                            TemplateFieldFiller(
-                                                name = field.name.fieldAdjustment(),
-                                                fieldTypeString = fieldTypeString.tableNameAdjustment(),
-                                                variableType = field.variableType,
-                                                name_original = field.name
-                                            )
-                                        )
-
-                                    } ?: kotlin.run {
-                                        throw Exception("An error occurred while parsing the fieldType of field : $field")
+                                if (newFilePath.contains(fileHelper.pathHelper.navigationPath())) {
+                                    val isTableInNavigation = tableNamesForNavigation.find { it.name == tableName.name }
+                                    if (isTableInNavigation == null) {
+                                        continue
                                     }
                                 }
 
-                                data[FIELDS] = fieldList
-                                Log.d("FIELDS","${data[FIELDS]}")
-                                val firstField: String = fieldList.firstOrNull()?.name ?: ""
-                                data[FIRST_FIELD] = firstField
+                                data[TABLENAME] = tableName.name.tableNameAdjustment()
+
+                                data[TABLENAME_ORIGINAL] = tableName.name_original
+                                projectEditor.dataModelList.find { it.name.tableNameAdjustment() == tableName.name.tableNameAdjustment() }
+                                    ?.let { datamodel ->
+                                        data[TABLENAME_ORIGINAL] = datamodel.getLabel()
+                                    }
+
+                                data[TABLENAME_LOWERCASE] = tableName.name.toLowerCase().fieldAdjustment()
+                                projectEditor.dataModelList.find { it.name.tableNameAdjustment() == tableName.name.tableNameAdjustment() }?.fields?.let { fields ->
+                                    val fieldList = mutableListOf<TemplateFieldFiller>()
+                                    for (field in fields) {
+                                        field.fieldTypeString?.let { fieldTypeString ->
+                                            fieldList.add(
+                                                TemplateFieldFiller(
+                                                    name = field.name.fieldAdjustment(),
+                                                    fieldTypeString = fieldTypeString.tableNameAdjustment(),
+                                                    variableType = field.variableType,
+                                                    name_original = field.name
+                                                )
+                                            )
+
+                                        } ?: kotlin.run {
+                                            throw Exception("An error occurred while parsing the fieldType of field : $field")
+                                        }
+                                    }
+
+                                    data[FIELDS] = fieldList
+                                    Log.d("FIELDS", "${data[FIELDS]}")
+                                    val firstField: String = fieldList.firstOrNull()?.name ?: ""
+                                    data[FIRST_FIELD] = firstField
+                                }
+
+                                relations.clear()
+                                val relationsImport =
+                                    mutableListOf<TemplateRelationFiller>() // need another list, to remove double in import section
+
+                                projectEditor.dataModelList.find { it.name.tableNameAdjustment() == tableName.name.tableNameAdjustment() }?.relationList?.filter { it.relationType == RelationType.MANY_TO_ONE }
+                                    ?.forEach { relation ->
+
+                                        relations.add(TemplateRelationFiller(
+                                            relation_source = relation.source.tableNameAdjustment(),
+                                            relation_target = relation.target.tableNameAdjustment(),
+                                            relation_name = relation.name.fieldAdjustment()))
+
+                                        var isAlreadyImported = false
+                                        for (relationImport in relationsImport) {
+                                            if (relationImport.relation_source == relation.source.tableNameAdjustment() && relationImport.relation_target == relation.target.tableNameAdjustment())
+                                                isAlreadyImported = true
+                                        }
+                                        if (!isAlreadyImported)
+                                            relationsImport.add(TemplateRelationFiller(
+                                                relation_source = relation.source.tableNameAdjustment(),
+                                                relation_target = relation.target.tableNameAdjustment(),
+                                                relation_name = relation.name.fieldAdjustment())) // name is unused
+                                    }
+
+                                data[RELATIONS] = relations
+                                data[RELATIONS_IMPORT] = relationsImport
+
+                                val replacedPath = if (newFilePath.contains(fileHelper.pathHelper.resPath()))
+                                    newFilePath.replace(TEMPLATE_PLACEHOLDER, tableName.name.toLowerCase())
+                                else
+                                    newFilePath.replace(TEMPLATE_PLACEHOLDER, tableName.name)
+
+                                applyTemplate(replacedPath)
+
+                                //cleaning
+                                data.remove(FIELDS)
+                                data.remove(RELATIONS)
+                                data.remove(FIRST_FIELD)
                             }
 
-                        relations.clear()
-                        val relationsImport = mutableListOf<TemplateRelationFiller>() // need another list, to remove double in import section
+                        } else if (currentFile.isWithRelationDaoTemplateName()) {
 
-                        projectEditor.dataModelList.find { it.name.tableNameAdjustment() == tableName.name.tableNameAdjustment() }?.relationList?.filter { it.relationType == RelationType.MANY_TO_ONE }?.forEach { relation ->
+                            projectEditor.dataModelList.forEach { dataModel ->
+                                dataModel.relationList?.filter { it.relationType == RelationType.MANY_TO_ONE }
+                                    ?.forEach { relation ->
 
-                            relations.add(TemplateRelationFiller(
-                                relation_source = relation.source.tableNameAdjustment(),
-                                relation_target = relation.target.tableNameAdjustment(),
-                                relation_name = relation.name.fieldAdjustment()))
+                                        data[RELATION_SOURCE] = relation.source.tableNameAdjustment()
+                                        data[RELATION_TARGET] = relation.target.tableNameAdjustment()
 
-                            var isAlreadyImported = false
-                            for (relationImport in relationsImport) {
-                                if (relationImport.relation_source == relation.source.tableNameAdjustment() && relationImport.relation_target == relation.target.tableNameAdjustment())
-                                    isAlreadyImported = true
+                                        val replacedPath = newFilePath.replace(TEMPLATE_RELATION_DAO_PLACEHOLDER,
+                                            "${relation.source.tableNameAdjustment()}Has${relation.target.tableNameAdjustment()}")
+
+                                        applyTemplate(replacedPath)
+
+                                        //cleaning
+                                        data.remove(RELATION_SOURCE)
+                                        data.remove(RELATION_TARGET)
+                                    }
                             }
-                            if (!isAlreadyImported)
-                                relationsImport.add(TemplateRelationFiller(
-                                    relation_source = relation.source.tableNameAdjustment(),
-                                    relation_target = relation.target.tableNameAdjustment(),
-                                    relation_name = relation.name.fieldAdjustment())) // name is unused
-                        }
 
-                        data[RELATIONS] = relations
-                        data[RELATIONS_IMPORT] = relationsImport
+                        } else if (currentFile.isWithRelationEntityTemplateName()) {
 
-                        val replacedPath = if (newFilePath.contains(fileHelper.pathHelper.resPath()))
-                            newFilePath.replace(TEMPLATE_PLACEHOLDER, tableName.name.toLowerCase())
-                        else
-                            newFilePath.replace(TEMPLATE_PLACEHOLDER, tableName.name)
+                            projectEditor.dataModelList.forEach { dataModel ->
+                                dataModel.relationList?.filter { it.relationType == RelationType.MANY_TO_ONE }
+                                    ?.forEach { relation ->
 
-                        applyTemplate(replacedPath)
+                                        data[RELATION_SOURCE] = relation.source.tableNameAdjustment()
+                                        data[RELATION_TARGET] = relation.target.tableNameAdjustment()
+                                        data[RELATION_NAME] = relation.name.fieldAdjustment()
+                                        data[RELATION_SAME_TYPE] = relation.source == relation.target
 
-                        //cleaning
-                        data.remove(FIELDS)
-                        data.remove(RELATIONS)
-                        data.remove(FIRST_FIELD)
-                    }
+                                        val replacedPath = newFilePath.replace(TEMPLATE_RELATION_ENTITY_PLACEHOLDER,
+                                            "${relation.source.tableNameAdjustment()}And${relation.target.tableNameAdjustment()}")
 
-                } else if (currentFile.isWithRelationDaoTemplateName()) {
+                                        applyTemplate(replacedPath)
 
-                    projectEditor.dataModelList.forEach { dataModel ->
-                        dataModel.relationList?.filter { it.relationType == RelationType.MANY_TO_ONE }?.forEach { relation ->
+                                        //cleaning
+                                        data.remove(RELATION_NAME)
+                                        data.remove(RELATION_SOURCE)
+                                        data.remove(RELATION_TARGET)
+                                        data.remove(RELATION_SAME_TYPE)
+                                    }
+                            }
 
-                            data[RELATION_SOURCE] = relation.source.tableNameAdjustment()
-                            data[RELATION_TARGET] = relation.target.tableNameAdjustment()
-
-                            val replacedPath = newFilePath.replace(TEMPLATE_RELATION_DAO_PLACEHOLDER, "${relation.source.tableNameAdjustment()}Has${relation.target.tableNameAdjustment()}")
-
-                            applyTemplate(replacedPath)
-
-                            //cleaning
-                            data.remove(RELATION_SOURCE)
-                            data.remove(RELATION_TARGET)
+                        } else {
+                            applyTemplate(newFilePath)
                         }
                     }
-
-                } else if (currentFile.isWithRelationEntityTemplateName()) {
-
-                    projectEditor.dataModelList.forEach { dataModel ->
-                        dataModel.relationList?.filter { it.relationType == RelationType.MANY_TO_ONE }?.forEach { relation ->
-
-                            data[RELATION_SOURCE] = relation.source.tableNameAdjustment()
-                            data[RELATION_TARGET] = relation.target.tableNameAdjustment()
-                            data[RELATION_NAME] = relation.name.fieldAdjustment()
-                            data[RELATION_SAME_TYPE] = relation.source == relation.target
-
-                            val replacedPath = newFilePath.replace(TEMPLATE_RELATION_ENTITY_PLACEHOLDER, "${relation.source.tableNameAdjustment()}And${relation.target.tableNameAdjustment()}")
-
-                            applyTemplate(replacedPath)
-
-                            //cleaning
-                            data.remove(RELATION_NAME)
-                            data.remove(RELATION_SOURCE)
-                            data.remove(RELATION_TARGET)
-                            data.remove(RELATION_SAME_TYPE)
-                        }
-                    }
-
-                } else {
-                    applyTemplate(newFilePath)
-                }
             }
-        }
     }
+
 
     fun applyListFormTemplate() {
         projectEditor.listFormList.forEach { listForm ->
@@ -462,365 +504,369 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
             val appFolderInTemplate = fileHelper.pathHelper.getAppFolderInTemplate(formPath)
 
-            File(appFolderInTemplate).walkTopDown().filter { folder -> !folder.isHidden && folder.isDirectory }.forEach { currentFolder ->
+            File(appFolderInTemplate).walkTopDown().filter { folder -> !folder.isHidden && folder.isDirectory }
+                .forEach { currentFolder ->
 
-                compiler = generateCompilerFolder(currentFolder.absolutePath)
+                    compiler = generateCompilerFolder(currentFolder.absolutePath)
 
-                currentFolder.walkTopDown()
-                    .filter { file -> !file.isHidden && file.isFile && currentFolder.absolutePath.contains(file.parent) && file.name != DS_STORE }
-                    .forEach { currentFile ->
+                    currentFolder.walkTopDown()
+                        .filter { file -> !file.isHidden && file.isFile && currentFolder.absolutePath.contains(file.parent) && file.name != DS_STORE }
+                        .forEach { currentFile ->
 
-                        Log.i(" > Processed template file : $currentFile")
+                            Log.i(" > Processed template file : $currentFile")
 
-                        template = compiler.compile("{{>${currentFile.name}}}")
+                            template = compiler.compile("{{>${currentFile.name}}}")
 
-                        if (currentFile.name == LAYOUT_FILE) {
-                            val oldFormText = readFileDirectlyAsText(currentFile)
-                            val newFormText = replaceTemplateText(oldFormText, FormType.LIST)
-                            template = compiler.compile(newFormText)
+                            if (currentFile.name == LAYOUT_FILE) {
+                                val oldFormText = readFileDirectlyAsText(currentFile)
+                                val newFormText = replaceTemplateText(oldFormText, FormType.LIST)
+                                template = compiler.compile(newFormText)
 
-                            data[TABLENAME_LOWERCASE] = listForm.dataModel.name.toLowerCase().fieldAdjustment()
-                            data[TABLENAME] = listForm.dataModel.name.tableNameAdjustment()
-                            relations.clear()
-                            projectEditor.dataModelList.find { it.name.tableNameAdjustment() == listForm.dataModel.name.tableNameAdjustment() }?.relationList?.filter { it.relationType == RelationType.MANY_TO_ONE }?.forEach { relation ->
-                                relations.add(TemplateRelationFiller(
-                                    relation_source = relation.source.tableNameAdjustment(),
-                                    relation_target = relation.target.tableNameAdjustment(),
-                                    relation_name = relation.name.fieldAdjustment()))
-                            }
-                            data[RELATIONS] = relations
-
-                            listForm.fields?.forEach {
-                                Log.d("LIST : ${listForm.name} / field = $it")
-                            }
-
-                            var i = 0
-                            listForm.fields?.forEach { field -> // Could also iter over specificFieldsCount as Detail form
-                                i++
-
-                                if ((field.inverseName != null) || (fileHelper.pathHelper.isDefaultTemplateListFormPath(formPath) && field.isImage())) { // is relation or image in default template
-
-                                    data["field_${i}_defined"] = false
-                                    data["field_${i}_formatted"] = false
-                                    data["field_${i}_label"] = ""
-                                    data["field_${i}_name"] = ""
-                                    data["field_${i}_accessor"] = ""
-
-                                } else { // not a relation
-
-                                    data["field_${i}_name"] = field.name.fieldAdjustment()
-                                    data["field_${i}_defined"] = field.name.isNotEmpty()
-                                    data["field_${i}_is_image"] = field.isImage()
-                                    data["field_${i}_label"] = field.getLabel()
-                                    data["field_${i}_is_int"] = field.isInt()
-                                    data["field_${i}_formatted"] = false
-                                    data["field_${i}_accessor"] = field.getLayoutVariableAccessor(FormType.LIST)
-                                    if (field.isImage()) {
-                                        data[IMAGE_FIELD_NAME] = field.getImageFieldName()
-                                        data[IMAGE_KEY_ACCESSOR] = field.getImageKeyAccessor(FormType.LIST)
-                                        data[IMAGE_TABLE_NAME] = field.getImageTableName(projectEditor.dataModelList, listForm)
+                                data[TABLENAME_LOWERCASE] = listForm.dataModel.name.toLowerCase().fieldAdjustment()
+                                data[TABLENAME] = listForm.dataModel.name.tableNameAdjustment()
+                                relations.clear()
+                                projectEditor.dataModelList.find { it.name.tableNameAdjustment() == listForm.dataModel.name.tableNameAdjustment() }?.relationList?.filter { it.relationType == RelationType.MANY_TO_ONE }
+                                    ?.forEach { relation ->
+                                        relations.add(TemplateRelationFiller(
+                                            relation_source = relation.source.tableNameAdjustment(),
+                                            relation_target = relation.target.tableNameAdjustment(),
+                                            relation_name = relation.name.fieldAdjustment()))
                                     }
+                                data[RELATIONS] = relations
 
-                                    val format = getFormatNameForType(field.fieldType, field.format)?: field.format
-                                    Log.v("format -- $format (${field.format}) -- > ${field.name.fieldAdjustment()}  -- fieldType :: ${field.fieldType}")
+                                listForm.fields?.forEach {
+                                    Log.d("LIST : ${listForm.name} / field = $it")
+                                }
 
-                                    if (format != null) {
-                                        formatTypeFunctionName[format]?.let { functionName ->
-                                                typeChoice[format]?.let { type ->
-                                                    data["field_${i}_formatted"] = true
-                                                    data["field_${i}_format_function"] = functionName
-                                                    data["field_${i}_format_type"] = type
-                                                }
+                                var i = 0
+                                listForm.fields?.forEach { field -> // Could also iter over specificFieldsCount as Detail form
+                                    i++
+
+                                    if ((field.inverseName != null) || (fileHelper.pathHelper.isDefaultTemplateListFormPath(
+                                            formPath) && field.isImage())
+                                    ) { // is relation or image in default template
+
+                                        data["field_${i}_defined"] = false
+                                        data["field_${i}_custom_formatted"] = false
+                                        data["field_${i}_custom_formatted_imageNamed"] = false
+                                        data["field_${i}_label"] = ""
+                                        data["field_${i}_name"] = ""
+                                        data["field_${i}_accessor"] = ""
+                                        data["field_${i}_format_type"] = ""
+                                        data["field_${i}_field_name"] = ""
+                                        data["field_${i}_field_table_name"] = ""
+                                        data["field_${i}_field_image_width"] = 0
+                                        data["field_${i}_field_image_height"] = 0
+
+                                    } else { // not a relation
+
+                                        data["field_${i}_name"] = field.name.fieldAdjustment()
+                                        data["field_${i}_defined"] = field.name.isNotEmpty()
+                                        data["field_${i}_is_image"] = field.isImage()
+                                        data["field_${i}_label"] = field.getLabel()
+                                        data["field_${i}_is_int"] = field.isInt()
+                                        data["field_${i}_custom_formatted"] = false
+                                        data["field_${i}_custom_formatted_imageNamed"] = false
+                                        data["field_${i}_format_type"] = ""
+                                        data["field_${i}_accessor"] = field.getLayoutVariableAccessor(FormType.LIST)
+                                        data["field_${i}_field_name"] = field.getFieldName()
+                                        data["field_${i}_field_table_name"] = field.getFieldTableName(projectEditor.dataModelList, listForm)
+                                        if (field.isImage()) {
+                                            data["field_${i}_image_key_accessor"] = field.getFieldKeyAccessor(FormType.LIST)
                                         }
-                                    } else {
-                                        val defaultFormat = defaultFormatter[typeFromTypeInt(field.fieldType)]
-                                        Log.v("defaultFormat  -- $defaultFormat")
-                                        formatTypeFunctionName[defaultFormat]?.let { functionName ->
-                                            typeChoice[defaultFormat]?.let { type ->
-                                                data["field_${i}_formatted"] = true
-                                                data["field_${i}_format_function"] = functionName
-                                                data["field_${i}_format_type"] = type
+
+                                        val format = getFormatNameForType(field.fieldType, field.format)
+                                        data["field_${i}_format_type"] = format
+
+                                        if (format.startsWith("/")) {
+                                            data["field_${i}_custom_formatted"] = true
+                                            if (isImageNamedBinding(listForm, field.name)) {
+                                                data["field_${i}_custom_formatted_imageNamed"] = true
+                                                data["field_${i}_field_image_width"] = getImageSize(listForm, field.name, "width")
+                                                data["field_${i}_field_image_height"] = getImageSize(listForm, field.name, "height")
                                             }
                                         }
                                     }
                                 }
-                            }
 
-                            val newFilePath = fileHelper.pathHelper.getRecyclerViewItemPath(listForm.dataModel.name.tableNameAdjustment())
-                            applyTemplate(newFilePath)
+                                val newFilePath =
+                                    fileHelper.pathHelper.getRecyclerViewItemPath(listForm.dataModel.name.tableNameAdjustment())
+                                applyTemplate(newFilePath)
 
-                            // cleaning data for other templates
-                            for (j in 1 until i + 1) {
-                                data.remove("field_${j}_defined")
-                                data.remove("field_${j}_is_image")
-                                data.remove("field_${j}_is_int")
-                                data.remove("field_${j}_name")
-                                data.remove("field_${j}_label")
-                                data.remove("field_${j}_formatted")
-                                data.remove("field_${j}_format_function")
-                                data.remove("field_${j}_format_type")
-                                data.remove("field_${j}_accessor")
-                            }
-                            data.remove(RELATIONS)
-                            data.remove(IMAGE_FIELD_NAME)
-                            data.remove(IMAGE_KEY_ACCESSOR)
-                            data.remove(IMAGE_TABLE_NAME)
-                        } else { // any file to copy in project
-                            val newFile = File(fileHelper.pathHelper.getLayoutTemplatePath(currentFile.absolutePath, formPath))
-                            Log.i("File to copy : ${currentFile.absolutePath}; target : ${newFile.absolutePath}")
-                            if (!currentFile.copyRecursively(target = newFile, overwrite = true)) {
-                                throw Exception("An error occurred while copying template files with target : ${newFile.absolutePath}")
+                                // cleaning data for other templates
+                                for (j in 1 until i + 1) {
+                                    data.remove("field_${j}_defined")
+                                    data.remove("field_${j}_is_image")
+                                    data.remove("field_${j}_is_int")
+                                    data.remove("field_${j}_name")
+                                    data.remove("field_${j}_label")
+                                    data.remove("field_${j}_custom_formatted")
+                                    data.remove("field_${j}_custom_formatted_imageNamed")
+                                    data.remove("field_${j}_format_type")
+                                    data.remove("field_${j}_accessor")
+                                    data.remove("field_${j}_field_name")
+                                    data.remove("field_${j}_image_key_accessor")
+                                    data.remove("field_${j}_field_table_name")
+                                    data.remove("field_${j}_field_image_width")
+                                    data.remove("field_${j}_field_image_height")
+                                }
+                                data.remove(RELATIONS)
+                            } else { // any file to copy in project
+                                val newFile = File(fileHelper.pathHelper.getLayoutTemplatePath(currentFile.absolutePath,
+                                    formPath))
+                                Log.i("File to copy : ${currentFile.absolutePath}; target : ${newFile.absolutePath}")
+                                if (!currentFile.copyRecursively(target = newFile, overwrite = true)) {
+                                    throw Exception("An error occurred while copying template files with target : ${newFile.absolutePath}")
+                                }
                             }
                         }
-                    }
-            }
+                }
         }
     }
 
 
-    private fun getFormatNameForType(fieldType : Int? , key :String?):String?{
-        if(fieldType == 6 && key.equals("integer")) return "boolInteger"
-        return null
+    private fun getFormatNameForType(fieldType: Int?, format: String?): String {
+        if (format.equals("integer")) {
+            return when (fieldType) {
+                6 -> "boolInteger" // Boolean
+                11 -> "timeInteger" // Time
+                else -> "integer"
+            }
+        }
+        if (format.isNullOrEmpty()) {
+            return when (typeFromTypeInt(fieldType)) {
+                BOOLEAN_TYPE -> "falseOrTrue"
+                DATE_TYPE -> "mediumDate"
+                TIME_TYPE -> "mediumTime"
+                INT_TYPE -> "integer"
+                FLOAT_TYPE -> "decimal"
+                else -> ""
+            }
+        } else {
+            return format
+        }
     }
 
-   fun applyDetailFormTemplate() {
+    fun applyDetailFormTemplate() {
 
-       projectEditor.detailFormList.forEach { detailForm ->
+        projectEditor.detailFormList.forEach { detailForm ->
 
-           var formPath = fileHelper.pathHelper.getFormPath(detailForm.name, FormType.DETAIL)
-           formPath = fileHelper.pathHelper.verifyFormPath(formPath, FormType.DETAIL)
+            var formPath = fileHelper.pathHelper.getFormPath(detailForm.name, FormType.DETAIL)
+            formPath = fileHelper.pathHelper.verifyFormPath(formPath, FormType.DETAIL)
 
-           // not used in list form
-           var specificFieldsCount = 0
-           getTemplateManifestJSONContent(formPath)?.let {
-               specificFieldsCount = it.getSafeObject("fields")?.getSafeInt("count") ?: 0
-           }
+            // not used in list form
+            var specificFieldsCount = 0
+            getManifestJSONContent(formPath)?.let {
+                specificFieldsCount = it.getSafeObject("fields")?.getSafeInt("count") ?: 0
+            }
 
-           val appFolderInTemplate = fileHelper.pathHelper.getAppFolderInTemplate(formPath)
+            val appFolderInTemplate = fileHelper.pathHelper.getAppFolderInTemplate(formPath)
 
-           File(appFolderInTemplate).walkTopDown().filter { folder -> !folder.isHidden && folder.isDirectory }.forEach { currentFolder ->
+            File(appFolderInTemplate).walkTopDown().filter { folder -> !folder.isHidden && folder.isDirectory }
+                .forEach { currentFolder ->
 
-               compiler = generateCompilerFolder(currentFolder.absolutePath)
+                    compiler = generateCompilerFolder(currentFolder.absolutePath)
 
-               currentFolder.walkTopDown()
-                   .filter { file -> !file.isHidden && file.isFile && currentFolder.absolutePath.contains(file.parent)  && file.name != DS_STORE }
-                   .forEach { currentFile ->
+                    currentFolder.walkTopDown()
+                        .filter { file -> !file.isHidden && file.isFile && currentFolder.absolutePath.contains(file.parent) && file.name != DS_STORE }
+                        .forEach { currentFile ->
 
-                       Log.i(" > Processed template file : $currentFile")
+                            Log.i(" > Processed template file : $currentFile")
 
-                       template = compiler.compile("{{>${currentFile.name}}}")
+                            template = compiler.compile("{{>${currentFile.name}}}")
 
-                       if (currentFile.name == LAYOUT_FILE) {
-                           val oldFormText = readFileDirectlyAsText(currentFile)
-                           val newFormText = replaceTemplateText(oldFormText, FormType.DETAIL)
+                            if (currentFile.name == LAYOUT_FILE) {
+                                val oldFormText = readFileDirectlyAsText(currentFile)
+                                val newFormText = replaceTemplateText(oldFormText, FormType.DETAIL)
 
-                           template = compiler.compile(newFormText)
+                                template = compiler.compile(newFormText)
 
-                           data[TABLENAME_LOWERCASE] = detailForm.dataModel.name.toLowerCase().fieldAdjustment()
-                           data[TABLENAME] = detailForm.dataModel.name.tableNameAdjustment()
+                                data[TABLENAME_LOWERCASE] = detailForm.dataModel.name.toLowerCase().fieldAdjustment()
+                                data[TABLENAME] = detailForm.dataModel.name.tableNameAdjustment()
 
-                           val formFieldList = mutableListOf<TemplateFormFieldFiller>()
+                                val formFieldList = mutableListOf<TemplateFormFieldFiller>()
 
-                           detailForm.fields?.let { fieldList ->
+                                detailForm.fields?.let { fieldList ->
 
-                               fieldList.forEach {
-                                   Log.d("DETAIL ${detailForm.name} / field = $it")
-                               }
+                                    fieldList.forEach {
+                                        Log.d("DETAIL ${detailForm.name} / field = $it")
+                                    }
 
-                               if (fieldList.isNotEmpty()) {
+                                    if (fieldList.isNotEmpty()) {
 
-                                   if (specificFieldsCount == 0) { // template with no specific field
-                                       for (i in fieldList.indices) {
-                                           var field = fieldList[i]
-                                           if (field.name.isNotEmpty()) {
+                                        if (specificFieldsCount == 0) { // template with no specific field
+                                            for (i in fieldList.indices) {
+                                                val field = fieldList[i]
+                                                if (field.name.isNotEmpty()) {
 
-                                               var formField = createDetailFormField(field, i + 1, projectEditor.dataModelList, detailForm, false)
+                                                    val format = getFormatNameForType(field.fieldType, field.format)
+                                                    val formField = createDetailFormField(
+                                                        field = field,
+                                                        i = i + 1,
+                                                        dataModelList = projectEditor.dataModelList,
+                                                        form = detailForm,
+                                                        formatType = format,
+                                                        isImageNamed = isImageNamedBinding(detailForm, field.name),
+                                                        imageWidth = getImageSize(detailForm, field.name, "width"),
+                                                        imageHeight = getImageSize(detailForm, field.name, "height")
+                                                    )
 
-                                               val format = getFormatNameForType(field.fieldType, field.format)?: field.format
-                                               Log.v("format :: $format")
+                                                    formFieldList.add(formField)
+                                                } else {
+                                                    // you can get null fields in json file
+                                                    // occurs when you select a form, and then select back Blank form
+                                                }
+                                            }
+                                        } else { // template with specific fields
 
-                                               if (format != null) {
-                                                   formatTypeFunctionName[format]?.let { functionName ->
-                                                       typeChoice[format]?.let { type ->
-                                                           Log.i("Adding free Field with format $field")
-                                                           formField = createDetailFormField(field, i + 1, projectEditor.dataModelList, detailForm,true, functionName, type)
-                                                       }
-                                                   }
+                                            for (i in 0 until specificFieldsCount) {
 
-                                               } else {
-                                                   var fieldTypeString = typeFromTypeInt(field.fieldType)
-                                                   val defaultKey = defaultFormatter[fieldTypeString]
-                                                   formatTypeFunctionName[defaultKey]?.let { functionName ->
-                                                       typeChoice[defaultKey]?.let { type ->
-                                                           Log.i("Adding free Field with default format $field")
-                                                           formField = createDetailFormField(field, i + 1, projectEditor.dataModelList, detailForm,true, functionName, type)
-                                                       }
-                                                   }
+                                                if (i < fieldList.size) {
+                                                    val field = fieldList[i]
 
-                                               }
-                                               formFieldList.add(formField)
-                                           } else {
-                                               // you can get null fields in json file
-                                               // occurs when you select a form, and then select back Blank form
-                                           }
-                                       }
-                                   } else { // template with specific fields
+                                                    if (field.inverseName == null) { // is not relation
+                                                        Log.d("Adding specific Field $field")
+                                                        Log.d("fieldList[i].getLayoutVariableAccessor() = ${
+                                                            field.getLayoutVariableAccessor(FormType.DETAIL)
+                                                        }")
 
-                                       for (i in 0 until specificFieldsCount) {
+                                                        data["field_${i + 1}_defined"] = field.name.isNotEmpty()
+                                                        data["field_${i + 1}_is_image"] = field.isImage()
+                                                        data["field_${i + 1}_is_int"] = field.isInt()
+                                                        data["field_${i + 1}_name"] = field.name.fieldAdjustment()
+                                                        data["field_${i + 1}_label"] = field.getLabel()
+                                                        data["field_${i + 1}_custom_formatted"] = false
+                                                        data["field_${i + 1}_custom_formatted_imageNamed"] = false
+                                                        data["field_${i + 1}_format_type"] = ""
+                                                        data["field_${i + 1}_accessor"] =
+                                                            field.getLayoutVariableAccessor(FormType.DETAIL)
+                                                        data["field_${i + 1}_field_name"] = field.getFieldName()
+                                                        data["field_${i + 1}_field_table_name"] = field.getFieldTableName(projectEditor.dataModelList, detailForm)
+                                                        if (field.isImage()) {
+                                                            data["field_${i + 1}_image_key_accessor"] = field.getFieldKeyAccessor(FormType.DETAIL)
+                                                        }
 
-                                           if (i < fieldList.size) {
-                                               val field = fieldList[i]
-                                               val fieldTypeString = typeFromTypeInt(field.fieldType)
+                                                        val format = getFormatNameForType(field.fieldType, field.format)
+                                                        data["field_${i + 1}_format_type"] = format
+                                                        if (format.startsWith("/")) { // custom format
+                                                            data["field_${i + 1}_custom_formatted"] = true
 
-                                               if (field.inverseName == null) { // is not relation
-                                                   Log.d("Adding specific Field ${field}")
-                                                   Log.d("fieldList[i].getLayoutVariableAccessor() = ${field.getLayoutVariableAccessor(FormType.DETAIL)}")
+                                                            if (isImageNamedBinding(detailForm, field.name)) {
+                                                                data["field_${i + 1}_custom_formatted_imageNamed"] = true
+                                                                data["field_${i + 1}_field_image_width"] = getImageSize(detailForm, field.name, "width")
+                                                                data["field_${i + 1}_field_image_height"] = getImageSize(detailForm, field.name, "height")
+                                                            }
+                                                        }
 
-                                                   data["field_${i + 1}_defined"] = field.name.isNotEmpty()
-                                                   data["field_${i + 1}_is_image"] = field.isImage()
-                                                   data["field_${i + 1}_is_int"] = field.isInt()
-                                                   data["field_${i + 1}_name"] = field.name.fieldAdjustment()
-                                                   data["field_${i + 1}_label"] = field.getLabel()
-                                                   data["field_${i + 1}_formatted"] = false
-                                                   data["field_${i + 1}_accessor"] = field.getLayoutVariableAccessor(FormType.DETAIL)
-                                                   if (field.isImage()) {
-                                                       data[IMAGE_FIELD_NAME] = field.getImageFieldName()
-                                                       data[IMAGE_KEY_ACCESSOR] = field.getImageKeyAccessor(FormType.DETAIL)
-                                                       data[IMAGE_TABLE_NAME] = field.getImageTableName(projectEditor.dataModelList, detailForm)
-                                                   }
+                                                        Log.v("format :: $format")
+                                                        Log.i("applyDetailFormTemplate fieldName :: ${field.name.fieldAdjustment()}")
 
-                                                   val format = getFormatNameForType(field.fieldType, field.format) ?: field.format
-                                                   Log.v("format :: $format")
-                                                   Log.i("applyDetailFormTemplate fieldName :: ${field.name.fieldAdjustment()}")
-                                                   if (format != null) {
-                                                       formatTypeFunctionName[format]?.let { functionName ->
-                                                           typeChoice[format]?.let { type ->
-                                                               data["field_${i + 1}_formatted"] = true
-                                                               data["field_${i + 1}_format_function"] = functionName
-                                                               data["field_${i + 1}_format_type"] = type
-                                                           }
-                                                       }
-                                                   } else {
-                                                       val defaultFormat = defaultFormatter[fieldTypeString]
-                                                       Log.d("Field type :: ${field.name} $fieldTypeString ${defaultFormat}")
-                                                       formatTypeFunctionName[defaultFormat]?.let { functionName ->
-                                                           typeChoice[defaultFormat]?.let { type ->
-                                                               Log.i("format $defaultFormat -- $functionName -- $type")
-                                                               data["field_${i + 1}_formatted"] = true
-                                                               data["field_${i + 1}_format_function"] = functionName
-                                                               data["field_${i + 1}_format_type"] = type
-                                                           }
-                                                       }
-                                                   }
+                                                    } else {
+                                                        Log.d("Field [${field.name}] not added in specifc field because it is a relation")
+                                                    }
 
-                                               } else {
-                                                   Log.d("Field [${field.name}] not added in specifc field because it is a relation")
-                                               }
+                                                } else {
+                                                    Log.d("Field list shorter than specific fields count")
+                                                    data["field_${i + 1}_defined"] = false
+                                                    data["field_${i + 1}_is_image"] = false
+                                                    data["field_${i + 1}_is_int"] = false
+                                                    data["field_${i + 1}_name"] = ""
+                                                    data["field_${i + 1}_label"] = ""
+                                                    data["field_${i + 1}_custom_formatted"] = false
+                                                    data["field_${i + 1}_custom_formatted_imageNamed"] = false
+                                                    data["field_${i + 1}_format_type"] = ""
+                                                    data["field_${i + 1}_accessor"] = ""
+                                                    data["field_${i + 1}_field_name"] = ""
+                                                    data["field_${i + 1}_image_key_accessor"] = ""
+                                                    data["field_${i + 1}_field_table_name"] = ""
+                                                    data["field_${i + 1}_field_image_width"] = 0
+                                                    data["field_${i + 1}_field_image_height"] = 0
+                                                }
+                                            }
 
-                                           } else {
-                                               Log.d("Field list shorter than specific fields count")
-                                               data["field_${i + 1}_defined"] = false
-                                               data["field_${i + 1}_is_image"] = false
-                                               data["field_${i + 1}_is_int"] = false
-                                               data["field_${i + 1}_name"] = ""
-                                               data["field_${i + 1}_label"] = ""
-                                               data["field_${i + 1}_formatted"] = false
-                                               data["field_${i + 1}_accessor"] = ""
-                                               data[IMAGE_FIELD_NAME] = ""
-                                               data[IMAGE_KEY_ACCESSOR] = ""
-                                               data[IMAGE_TABLE_NAME] = ""
-                                           }
-                                       }
+                                            Log.i("fieldList.size = ${fieldList.size}")
+                                            Log.i("specificFieldsCount = $specificFieldsCount")
 
-                                       Log.i("fieldList.size = ${fieldList.size}")
-                                       Log.i("specificFieldsCount = $specificFieldsCount")
+                                            if (fieldList.size > specificFieldsCount) {
+                                                var k = specificFieldsCount // another counter to avoid null field
+                                                for (i in specificFieldsCount until fieldList.size) {
+                                                    Log.d("in for loop, i = $i")
+                                                    Log.d("in for loop, k = $k")
+                                                    val field = fieldList[i]
+                                                    Log.d("fieldList[i] = $field")
+                                                    if (field.name.isNotEmpty()) {
+                                                        Log.d("Adding free Field in specific template $field")
 
-                                       if (fieldList.size > specificFieldsCount) {
-                                           var k = specificFieldsCount // another counter to avoid null field
-                                           for (i in specificFieldsCount until fieldList.size) {
-                                               Log.d("in for loop, i = $i")
-                                               Log.d("in for loop, k = $k")
-                                               var field = fieldList[i]
-                                               var fieldTypeString = typeFromTypeInt(field.fieldType)
-                                               Log.d("fieldList[i] = $field")
-                                               if (field.name.isNotEmpty()) {
-                                                   Log.d("Adding free Field in specific template ${field}")
+                                                        val format = getFormatNameForType(field.fieldType, field.format)
+                                                        val formField = createDetailFormField(
+                                                            field = field,
+                                                            i = k + 1,
+                                                            dataModelList = projectEditor.dataModelList,
+                                                            form = detailForm,
+                                                            formatType = format,
+                                                            isImageNamed = isImageNamedBinding(detailForm, field.name),
+                                                            imageWidth = getImageSize(detailForm, field.name, "width"),
+                                                            imageHeight = getImageSize(detailForm, field.name, "height")
+                                                        )
 
-                                                   var formField = createDetailFormField(field, k + 1, projectEditor.dataModelList, detailForm,false)
+                                                        Log.v("format :: $format")
 
-                                                   val format = getFormatNameForType(field.fieldType, field.format)?: field.format
-                                                   Log.v("format :: $format")
-                                                   
-                                                   if (format != null) {
-                                                       formatTypeFunctionName[format]?.let { functionName ->
-                                                           typeChoice[format]?.let { type ->
-                                                               formField =  createDetailFormField(field, k + 1, projectEditor.dataModelList, detailForm,true, functionName, type)
-                                                           }
-                                                       }
+                                                        formFieldList.add(formField)
+                                                        k++
+                                                    } else {
+                                                        // don't add null field
+                                                    }
+                                                }
+                                            } else {
+                                                // no additional field given
+                                            }
+                                        }
 
-                                                   } else {
-                                                       // already defined
-                                                       val defaultFormat = defaultFormatter[fieldTypeString]
-                                                       formatTypeFunctionName[defaultFormat]?.let { functionName ->
-                                                           typeChoice[defaultFormat]?.let { type ->
-                                                               formField =  createDetailFormField(field, k + 1, projectEditor.dataModelList, detailForm,true, functionName, type)
-                                                           }
-                                                       }
-                                                   }
+                                    }
+                                    data[FORM_FIELDS] = formFieldList
+                                }
 
-                                                   formFieldList.add(formField)
-                                                   k++
-                                               } else {
-                                                   // don't add null field
-                                               }
-                                           }
-                                       } else {
-                                           // no additional field given
-                                       }
-                                   }
+                                val newFilePath =
+                                    fileHelper.pathHelper.getDetailFormPath(detailForm.dataModel.name.tableNameAdjustment())
+                                applyTemplate(newFilePath)
 
-                               }
-                               data[FORM_FIELDS] = formFieldList
-                           }
+                                // cleaning data for other templates
+                                data.remove(FORM_FIELDS)
+                                for (i in 1 until specificFieldsCount) {
+                                    data.remove("field_${i}_defined")
+                                    data.remove("field_${i}_is_image")
+                                    data.remove("field_${i}_is_int")
+                                    data.remove("field_${i}_name")
+                                    data.remove("field_${i}_label")
+                                    data.remove("field_${i}_custom_formatted")
+                                    data.remove("field_${i}_custom_formatted_imageNamed")
+                                    data.remove("field_${i}_format_type")
+                                    data.remove("field_${i}_accessor")
+                                    data.remove("field_${i}_field_name")
+                                    data.remove("field_${i}_image_key_accessor")
+                                    data.remove("field_${i}_field_table_name")
+                                }
 
-                           val newFilePath = fileHelper.pathHelper.getDetailFormPath(detailForm.dataModel.name.tableNameAdjustment())
-                           applyTemplate(newFilePath)
-
-                           // cleaning data for other templates
-                           data.remove(FORM_FIELDS)
-                           data.remove(IMAGE_FIELD_NAME)
-                           data.remove(IMAGE_KEY_ACCESSOR)
-                           data.remove(IMAGE_TABLE_NAME)
-                           for (i in 1 until specificFieldsCount) {
-                               data.remove("field_${i}_defined")
-                               data.remove("field_${i}_is_image")
-                               data.remove("field_${i}_is_int")
-                               data.remove("field_${i}_name")
-                               data.remove("field_${i}_label")
-                               data.remove("field_${i}_formatted")
-                               data.remove("field_${i}_format_function")
-                               data.remove("field_${i}_format_type")
-                               data.remove("field_${i}_accessor")
-                           }
-
-                       } else { // any file to copy in project
-                           val newFile = File(fileHelper.pathHelper.getLayoutTemplatePath(currentFile.absolutePath, formPath))
-                           Log.i("File to copy : ${currentFile.absolutePath}; target : ${newFile.absolutePath}")
-                           if (!currentFile.copyRecursively(target = newFile, overwrite = true)) {
-                               throw Exception("An error occurred while copying template files with target : ${newFile.absolutePath}")
-                           }
-                       }
-                   }
-           }
-       }
-   }
+                            } else { // any file to copy in project
+                                val newFile = File(fileHelper.pathHelper.getLayoutTemplatePath(currentFile.absolutePath,
+                                    formPath))
+                                Log.i("File to copy : ${currentFile.absolutePath}; target : ${newFile.absolutePath}")
+                                if (!currentFile.copyRecursively(target = newFile, overwrite = true)) {
+                                    throw Exception("An error occurred while copying template files with target : ${newFile.absolutePath}")
+                                }
+                            }
+                        }
+                }
+        }
+    }
 
     private fun applyTemplate(newPath: String) {
         var newFile = File(newPath.replaceXmlTxtSuffix())
         val fileName = newFile.nameWithoutExtension
         println("fileName= $fileName")
         if (reservedKeywords.contains(fileName)) {
-            newFile =  File(newFile.parent.removeSuffix("/").removeSuffix("\\") + File.separator + fileName.validateWord() + "." + newFile.extension)
+            newFile = File(newFile.parent.removeSuffix("/")
+                .removeSuffix("\\") + File.separator + fileName.validateWord() + "." + newFile.extension)
             println("===== newFile = ${newFile.absolutePath}")
         }
         if (newFile.exists()) {
@@ -851,17 +897,137 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
     }
 
     fun makeAppInfo() {
+
         val appInfoFile = File(fileHelper.pathHelper.assetsPath(), APP_INFO_FILENAME)
         appInfoFile.parentFile.mkdirs()
         if (!appInfoFile.createNewFile()) {
             throw Exception("An error occurred while creating new file : $appInfoFile")
         }
-        appInfoFile.writeText(gson.toJson(projectEditor.getAppInfo()))
+        appInfoFile.writeText(gson.toJson(projectEditor.getAppInfo(customFormattersFields)))
     }
 
     private fun generateCompilerFolder(templateFileFolder: String): Mustache.Compiler {
-        return Mustache.compiler().withLoader { name ->
+        return Mustache.compiler().escapeHTML(false).withLoader { name ->
             FileReader(File(templateFileFolder, name))
         }
     }
+
+    private fun getLayoutManagerType(formPath: String): String {
+        Log.i("getLayoutManagerType: $formPath")
+        var type = "Collection"
+        getManifestJSONContent(formPath)?.let {
+            type = it.getSafeObject("tags")?.getSafeString("___LISTFORMTYPE___") ?: "Collection"
+        }
+        return when (type) {
+            "Collection" -> "GRID"
+            "Table" -> "LINEAR"
+            else -> "LINEAR"
+        }
+    }
+
+    // <tableName, <fieldName, fieldMapping>>
+    private fun getCustomFormatterFields(): Map<String, Map<String, FieldMapping>> {
+
+        val customFormatMap = mutableMapOf<String, Map<String, FieldMapping>>()
+        val customFormattersImagesMap = mutableMapOf<String, Map<String, String>>() // <formatName, <imageName, resourceName>>
+
+        projectEditor.dataModelList.forEach { dataModel ->
+            val map = mutableMapOf<String, FieldMapping>()
+            dataModel.fields?.forEach{ field ->
+                field.format?.let { format ->
+                    Log.d("ProjectEditor.kt  /  Format = $format")
+                    if (format.startsWith("/")) {
+
+                        val isSearchable = isCustomFormatterSearchable(dataModel.name,field.name, projectEditor.searchableFields)
+                        val formatPath = fileHelper.pathHelper.getCustomFormatterPath(format)
+                        getManifestJSONContent(formatPath)?.let {
+                            val fieldMapping = getFieldMapping(it, format, isSearchable)
+                            Log.d("fieldMapping = $fieldMapping")
+                            if (fieldMapping.binding == "imageNamed" || fieldMapping.binding == "localizedText") {
+                                map[field.name] = fieldMapping
+
+                                if (isImageNamed(fieldMapping)) {
+
+                                    val imageMap = mutableMapOf<String, String>()
+
+                                    // choiceList can be Map<String, String> (JSONObject in appinfo.json)
+                                    // or a List<String> (JSONArray in appinfo.json)
+                                    when (fieldMapping.choiceList) {
+                                        is Map<*, *> -> {
+                                            fieldMapping.choiceList.values.forEach { imageName ->
+                                                if (imageName is String) {
+                                                    if (imageName.contains(".")) {
+                                                        imageMap[imageName] = getResourceName(format, imageName)
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        is List<*> -> {
+                                            fieldMapping.choiceList.forEach { imageName ->
+                                                if (imageName is String) {
+                                                    if (imageName.contains(".")) {
+                                                        imageMap[imageName] = getResourceName(format, imageName)
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                    customFormattersImagesMap.putIfAbsent(format, imageMap)
+                                }
+                            } else {
+                                Log.d("Not adding this custom formatter as its binding is neither localizedText nor imageNamed")
+                            }
+                        }
+
+                    } else {
+                        customFormatMap.put(dataModel.name, map)
+                    }
+                } ?: kotlin.run {
+                    customFormatMap.put(dataModel.name, map)
+                }
+            }
+        }
+        this.customFormattersImagesMap = customFormattersImagesMap
+        return customFormatMap
+    }
+
+    private fun getResourceName(format: String, imageName: String): String {
+        val correctedFormatName = format
+            .removePrefix("/")
+            .toLowerCase()
+            .replace("[^a-z0-9]+".toRegex(), "_")
+
+        Log.d("correctedFormatName = $correctedFormatName")
+
+        val correctedImageName = imageName
+            .substring(0, imageName.lastIndexOf('.')) // removes extension
+            .replace(".+/".toRegex(), "")
+            .removePrefix(File.separator)
+            .toLowerCase()
+            .replace("[^a-z0-9]+".toRegex(), "_")
+
+        Log.d("correctedImageName = $correctedImageName")
+
+        return "${correctedFormatName}_${correctedImageName}"
+    }
+
+    private fun getImageSize(form: Form, fieldName: String, type: String): Int {
+        customFormattersFields[form.dataModel.name]?.get(fieldName)?.let{ fieldMapping ->
+            return when (type) {
+                "width" -> fieldMapping.imageWidth ?: 0
+                "height" -> fieldMapping.imageHeight ?: 0
+                else -> 0
+            }
+        }
+        return 0
+    }
+
+    private fun isImageNamedBinding(form: Form, fieldName: String): Boolean {
+        customFormattersFields[form.dataModel.name]?.get(fieldName)?.let{ fieldMapping ->
+            return isImageNamed(fieldMapping)
+        }
+        return false
+    }
+
+    private fun isImageNamed(fieldMapping: FieldMapping) = fieldMapping.binding == "imageNamed"
 }

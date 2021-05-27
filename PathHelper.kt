@@ -6,7 +6,10 @@ import PathHelperConstants.APP_PATH_KEY
 import PathHelperConstants.ASSETS_PATH_KEY
 import PathHelperConstants.DETAIL_FORMS_KEY
 import PathHelperConstants.DETAIL_FORM_PREFIX
+import PathHelperConstants.DRAWABLE_PATH_KEY
+import PathHelperConstants.HOST_FORMATTERS_KEY
 import PathHelperConstants.HOST_FORMS
+import PathHelperConstants.IMAGES_FORMATTER_KEY
 import PathHelperConstants.JAVA_PATH_KEY
 import PathHelperConstants.LAYOUT_PATH_KEY
 import PathHelperConstants.LIST_FORMS_KEY
@@ -18,16 +21,18 @@ import PathHelperConstants.RECYCLER_VIEW_ITEM_PREFIX
 import PathHelperConstants.RES_PATH_KEY
 import PathHelperConstants.SRC_PATH_KEY
 import java.io.File
+import java.lang.IllegalArgumentException
+import java.util.zip.ZipFile
 
 class PathHelper(
-        val targetDirPath: String,
-        val templateFilesPath: String,
-        val templateFormsPath: String,
-        val hostDb: String,
-        val filesToCopy: String,
-        val companyWithCaps: String,
-        val appNameWithCaps: String,
-        val pkg: String
+    val targetDirPath: String,
+    val templateFilesPath: String,
+    val templateFormsPath: String,
+    val hostDb: String,
+    val filesToCopy: String,
+    val companyWithCaps: String,
+    val appNameWithCaps: String,
+    val pkg: String
 ) {
 
     val tmpUnzippedTemplateListToBeDeleted: MutableList<File> = mutableListOf()
@@ -65,6 +70,20 @@ class PathHelper(
         return replaceDirectoriesPath(subPath)
     }
 
+    //Getting images from customFormatter to drawable
+//    fun getCustomDrawableImages(formatName: String) {
+//        try {
+//            val source = "$hostDb/Resources/Mobile/formatters$formatName/Images"
+//            val target = resPath()+"/drawable/"
+//            val listOfFile = File(source).listFiles()
+//            listOfFile?.forEach {
+//                Files.copy(Paths.get(it.absolutePath), Paths.get(target+ it.name),StandardCopyOption.REPLACE_EXISTING)
+//            }
+//        }catch (e: Exception){
+//            e.printStackTrace()
+//        }
+//    }
+
     val listFormTemplatesPath = templateFormsPath + File.separator + LIST_FORMS_KEY
 
     val detailFormTemplatesPath = templateFormsPath + File.separator + DETAIL_FORMS_KEY
@@ -74,6 +93,8 @@ class PathHelper(
     val hostListFormTemplatesPath = hostFormTemplatesPath + File.separator + LIST_FORMS_KEY
 
     val hostDetailFormTemplatesPath = hostFormTemplatesPath + File.separator + DETAIL_FORMS_KEY
+
+    val hostFormattersPath = hostDb + File.separator + HOST_FORMATTERS_KEY
 
     private val srcPath = targetDirPath + File.separator +
             APP_PATH_KEY + File.separator +
@@ -95,14 +116,18 @@ class PathHelper(
 
     fun assetsPath(): String {
         val assetsPath = srcPath + File.separator +
-            MAIN_PATH_KEY + File.separator +
-            ASSETS_PATH_KEY
+                MAIN_PATH_KEY + File.separator +
+                ASSETS_PATH_KEY
         return assetsPath.replaceIfWindowsPath()
     }
 
-    fun getRecyclerViewItemPath(tableName: String) = layoutPath + File.separator + RECYCLER_VIEW_ITEM_PREFIX + tableName.toLowerCase().addXmlSuffix()
+    fun drawablePath(): String = resPath() + File.separator + DRAWABLE_PATH_KEY
 
-    fun getDetailFormPath(tableName: String) = layoutPath + File.separator + DETAIL_FORM_PREFIX + tableName.toLowerCase().addXmlSuffix()
+    fun getRecyclerViewItemPath(tableName: String) =
+        layoutPath + File.separator + RECYCLER_VIEW_ITEM_PREFIX + tableName.toLowerCase().addXmlSuffix()
+
+    fun getDetailFormPath(tableName: String) =
+        layoutPath + File.separator + DETAIL_FORM_PREFIX + tableName.toLowerCase().addXmlSuffix()
 
     fun getTargetPath(dir: String): String {
         val path = srcPath + File.separator +
@@ -163,6 +188,9 @@ class PathHelper(
         return formPath + File.separator + APP_PATH_KEY
     }
 
+
+    fun getImagesFolderInFormatter(formatterPath: String): String = formatterPath + File.separator + IMAGES_FORMATTER_KEY
+
     fun getDefaultTemplateListFormPath() = listFormTemplatesPath + File.separator + DEFAULT_LIST_FORM
     fun getDefaultTemplateDetailFormPath() = detailFormTemplatesPath + File.separator + DEFAULT_DETAIL_FORM
 
@@ -214,20 +242,11 @@ class PathHelper(
         return templatePath + File.separator + newFormName.removePrefix(File.separator)
     }
 
-    fun getLayoutManagerType(formPath: String): String {
-
-        Log.i("getLayoutManagerType: $formPath")
-
-        var type = "Collection"
-        getTemplateManifestJSONContent(formPath)?.let {
-            type = it.getSafeObject("tags")?.getSafeString("___LISTFORMTYPE___") ?: "Collection"
+    fun getCustomFormatterPath(name: String): String {
+        if (name.startsWith("/")) {
+            return hostFormattersPath + File.separator + name.removePrefix(File.separator)
         }
-
-        return when (type) {
-            "Collection" -> "GRID"
-            "Table" -> "LINEAR"
-            else -> "LINEAR"
-        }
+        throw IllegalArgumentException("Getting path of formatter $name that is not a host one ie. starting with '/'")
     }
 
     fun deleteTemporaryUnzippedDirectories() {
