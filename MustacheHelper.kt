@@ -946,7 +946,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                         getManifestJSONContent(formatPath)?.let {
                             val fieldMapping = getFieldMapping(it, format, isSearchable)
                             Log.d("fieldMapping = $fieldMapping")
-                            if (fieldMapping.binding == "imageNamed" || fieldMapping.binding == "localizedText") {
+                            if (isValidFormatter(fieldMapping)) {
                                 map[field.name.fieldAdjustment()] = fieldMapping
 
                                 if (isImageNamed(fieldMapping)) {
@@ -959,7 +959,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                         is Map<*, *> -> {
                                             fieldMapping.choiceList.values.forEach { imageName ->
                                                 if (imageName is String) {
-                                                    if (imageName.contains(".")) {
+                                                    if (imageName.contains(".") && imageExistsInFormatter(formatPath, imageName)) {
                                                         imageMap[imageName] = getResourceName(format, imageName)
                                                     }
                                                 }
@@ -968,7 +968,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                         is List<*> -> {
                                             fieldMapping.choiceList.forEach { imageName ->
                                                 if (imageName is String) {
-                                                    if (imageName.contains(".")) {
+                                                    if (imageName.contains(".") && imageExistsInFormatter(formatPath, imageName)) {
                                                         imageMap[imageName] = getResourceName(format, imageName)
                                                     }
                                                 }
@@ -978,7 +978,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                     customFormattersImagesMap.putIfAbsent(format, imageMap)
                                 }
                             } else {
-                                Log.d("Not adding this custom formatter as its binding is neither localizedText nor imageNamed")
+                                Log.d("Not adding this custom formatter as it's not valid")
                             }
                         }
 

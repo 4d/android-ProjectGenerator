@@ -12,10 +12,14 @@ fun getFieldMapping(manifestContent: JSONObject, format: String, isSearchable: B
                 .getStringList(),  // choiceList can be a JSONObject or a JSONArray
         isSearchable = isSearchable,
         name = format,
-        imageWidth = getSize(manifestContent,"width"),
-        imageHeight = getSize(manifestContent,"height")
+        imageWidth = getSize(manifestContent, "width"),
+        imageHeight = getSize(manifestContent, "height")
     )
 
 fun getSize(manifestContent: JSONObject, type: String): Int? =
     manifestContent.getSafeObject("assets")?.getSafeObject("size")?.getSafeInt(type)
         ?: manifestContent.getSafeObject("assets")?.getSafeInt("size")
+
+fun isValidFormatter(fieldMapping: FieldMapping): Boolean =
+    (fieldMapping.binding == "localizedText" || fieldMapping.binding == "imageNamed")
+            && fieldMapping.choiceList != null && fieldMapping.name != null
