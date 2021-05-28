@@ -1,18 +1,16 @@
 import DefaultValues.DEFAULT_LOG_LEVEL
 import DefaultValues.DEFAULT_REMOTE_URL
 import ProjectEditorConstants.AUTHENTICATION_KEY
-import ProjectEditorConstants.BACKGROUND_COLOR
 import ProjectEditorConstants.BOOLEAN_TYPE
 import ProjectEditorConstants.CACHE_4D_SDK_KEY
-import ProjectEditorConstants.COLORS
 import ProjectEditorConstants.DATAMODEL_KEY
 import ProjectEditorConstants.DATASOURCE_KEY
 import ProjectEditorConstants.DATE_TYPE
 import ProjectEditorConstants.DEVELOPER_KEY
+import ProjectEditorConstants.DOMINANT_COLOR_KEY
 import ProjectEditorConstants.EMAIL_KEY
 import ProjectEditorConstants.EMPTY_TYPE
 import ProjectEditorConstants.FLOAT_TYPE
-import ProjectEditorConstants.FOREGROUND_COLOR
 import ProjectEditorConstants.INT_TYPE
 import ProjectEditorConstants.NAME_KEY
 import ProjectEditorConstants.ORGANIZATION_KEY
@@ -29,6 +27,7 @@ import ProjectEditorConstants.SOURCE_KEY
 import ProjectEditorConstants.STRING_TYPE
 import ProjectEditorConstants.TEAMID_KEY
 import ProjectEditorConstants.TIME_TYPE
+import ProjectEditorConstants.UI_KEY
 import ProjectEditorConstants.URLS_KEY
 import org.json.JSONObject
 import java.io.File
@@ -90,8 +89,7 @@ class ProjectEditor(projectEditorFile: File) {
             "teamId" -> jsonObj.getSafeObject(PROJECT_KEY)?.getSafeObject(ORGANIZATION_KEY)?.getSafeString(TEAMID_KEY)
             "embeddedData" -> jsonObj.getSafeObject(PROJECT_KEY)?.getSafeObject(DATASOURCE_KEY)
                 ?.getSafeString(SOURCE_KEY)
-            "backgroundColor" -> jsonObj.getSafeObject(COLORS)?.getSafeString(BACKGROUND_COLOR)
-            "foregroundColor" -> jsonObj.getSafeObject(COLORS)?.getSafeString(FOREGROUND_COLOR)
+            "dominantColor" -> jsonObj.getSafeObject(PROJECT_KEY)?.getSafeObject(UI_KEY)?.getSafeString(DOMINANT_COLOR_KEY)
             else -> return null
         }
     }

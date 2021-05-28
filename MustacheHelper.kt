@@ -63,7 +63,6 @@ import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.samskivert.mustache.Mustache
 import com.samskivert.mustache.Template
-import org.json.JSONObject
 import java.io.File
 import java.io.FileReader
 import java.lang.Integer.toHexString
@@ -153,51 +152,55 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
             throw Exception("Cache 4D SDK path do not exists. Define it correctly.")
         }
 
-        projectEditor.findJsonString("backgroundColor")?.let {
+        data[COLORS_DEFINED] = false
+        data[THEME_COLOR_PRIMARY] = "@color/cyan_900"
+        data[THEME_COLOR_PRIMARY_DARKER] = "@color/cyan_dark"
+        data[THEME_COLOR_PRIMARY_LIGHTER] = "@color/cyan_light"
+        data[THEME_COLOR_ON_PRIMARY] = "@color/white"
 
-            Log.i("backgroundColor = $it")
+        projectEditor.findJsonString("dominantColor")?.let {  // "rgb(0,75,145)"
 
-            data[COLORS_DEFINED] = true
-            data[COLOR_PRIMARY_NEUTRAL] = it
+            Log.i("dominantColor = $it")
 
-            val backgroundColor: Int = Color.parseColor(it)
-            data[COLOR_PRIMARY_DARKER] =
-                "#" + toHexString(manipulateColor(backgroundColor, 0.8f)).toUpperCase() // darker +
-            data[COLOR_PRIMARY_DARKER_PLUS] =
-                "#" + toHexString(manipulateColor(backgroundColor, 0.6f)).toUpperCase() // darker ++
-            data[COLOR_PRIMARY_DARKER_PLUS_PLUS] =
-                "#" + toHexString(manipulateColor(backgroundColor, 0.4f)).toUpperCase() // darker +++
-            data[COLOR_PRIMARY_LIGHTER] =
-                "#" + toHexString(manipulateColor(backgroundColor, 1.2f)).toUpperCase() // lighter +
-            data[COLOR_PRIMARY_LIGHTER_PLUS] =
-                "#" + toHexString(manipulateColor(backgroundColor, 1.4f)).toUpperCase() // lighter ++
-            data[COLOR_PRIMARY_LIGHTER_PLUS_PLUS] =
-                "#" + toHexString(manipulateColor(backgroundColor, 1.6f)).toUpperCase() // lighter +++
+            val rgbString = it.removePrefix("rgb(").removeSuffix(")") // 0,75,145
+            val red = rgbString.split(",").getOrNull(0)?.toIntOrNull()
+            val green = rgbString.split(",").getOrNull(1)?.toIntOrNull()
+            val blue = rgbString.split(",").getOrNull(2)?.toIntOrNull()
 
-            data[THEME_COLOR_PRIMARY] = "@color/primary_neutral"
-            data[THEME_COLOR_PRIMARY_DARKER] = "@color/primary_darker_3"
-            data[THEME_COLOR_PRIMARY_LIGHTER] = "@color/primary_lighter_3"
-        } ?: run {
-            data[COLORS_DEFINED] = false
-            data[THEME_COLOR_PRIMARY] = "@color/cyan_900"
-            data[THEME_COLOR_PRIMARY_DARKER] = "@color/cyan_dark"
-            data[THEME_COLOR_PRIMARY_LIGHTER] = "@color/cyan_light"
-        }
+            if (red != null && green != null && blue != null) {
 
-        projectEditor.findJsonString("foregroundColor")?.let {
+                val hexStringBackgroundColor = getHexStringColor(red, green, blue)
 
-            Log.i("foregroundColor = $it")
+                data[COLORS_DEFINED] = true
+                data[COLOR_PRIMARY_NEUTRAL] = hexStringBackgroundColor
 
-            if (data[COLORS_DEFINED] == true) {
-                data[THEME_COLOR_ON_PRIMARY] = if (it == "#00") "@color/black" else "@color/white"
-            } else {
-                data[THEME_COLOR_ON_PRIMARY] = "@color/white"
+                Log.i("backgroundColor = $hexStringBackgroundColor")
+
+                val backgroundColor: Int = Color.parseColor(hexStringBackgroundColor)
+                data[COLOR_PRIMARY_DARKER] =
+                    "#" + toHexString(manipulateColor(backgroundColor, 0.8f)).toUpperCase() // darker +
+                data[COLOR_PRIMARY_DARKER_PLUS] =
+                    "#" + toHexString(manipulateColor(backgroundColor, 0.6f)).toUpperCase() // darker ++
+                data[COLOR_PRIMARY_DARKER_PLUS_PLUS] =
+                    "#" + toHexString(manipulateColor(backgroundColor, 0.4f)).toUpperCase() // darker +++
+                data[COLOR_PRIMARY_LIGHTER] =
+                    "#" + toHexString(manipulateColor(backgroundColor, 1.2f)).toUpperCase() // lighter +
+                data[COLOR_PRIMARY_LIGHTER_PLUS] =
+                    "#" + toHexString(manipulateColor(backgroundColor, 1.4f)).toUpperCase() // lighter ++
+                data[COLOR_PRIMARY_LIGHTER_PLUS_PLUS] =
+                    "#" + toHexString(manipulateColor(backgroundColor, 1.6f)).toUpperCase() // lighter +++
+
+                data[THEME_COLOR_PRIMARY] = "@color/primary_neutral"
+                data[THEME_COLOR_PRIMARY_DARKER] = "@color/primary_darker_3"
+                data[THEME_COLOR_PRIMARY_LIGHTER] = "@color/primary_lighter_3"
+
+                val contrast = 1 - (((0.299 * red) + (0.587 * green) + (0.114 * blue)) / 255)
+                data[THEME_COLOR_ON_PRIMARY] = if (contrast < 0.5) "@color/black" else "@color/white"
             }
-        } ?: run {
-            data[THEME_COLOR_ON_PRIMARY] = "@color/white"
         }
 
         Log.i("data[THEME_COLOR_ON_PRIMARY] = ${data[THEME_COLOR_ON_PRIMARY]}")
+
 
         var entityClassesString = ""
 
@@ -1046,4 +1049,16 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
     }
 
     private fun isImageNamed(fieldMapping: FieldMapping) = fieldMapping.binding == "imageNamed"
+
+    private fun getHexStringColor(red: Int, green: Int, blue: Int): String {
+        var redHexString = toHexString(red)
+        var greenHexString = toHexString(green)
+        var blueHexString = toHexString(blue)
+
+        if (redHexString.length == 1) redHexString = "0$redHexString"
+        if (greenHexString.length == 1) greenHexString = "0$greenHexString"
+        if (blueHexString.length == 1) blueHexString = "0$blueHexString"
+
+        return "#$redHexString$greenHexString$blueHexString"
+    }
 }
