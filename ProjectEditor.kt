@@ -104,7 +104,7 @@ class ProjectEditor(projectEditorFile: File) {
         }
     }
 
-    fun getAppInfo(customFormattersImagesMap: Map<String, Map<String, FieldMapping>>): AppInfo {
+    fun getAppInfo(): AppInfo {
         val mailAuth = findJsonBoolean("mailAuth") ?: false
         var remoteUrl = findJsonString("productionUrl")
         if (remoteUrl.isNullOrEmpty())
@@ -118,10 +118,8 @@ class ProjectEditor(projectEditorFile: File) {
             remoteUrl = remoteUrl,
             initialGlobalStamp = 0,
             dumpedTables = mutableListOf(),
-            searchableField = searchableFields,
             logLevel = DEFAULT_LOG_LEVEL,
-            relations = true,
-            customFormatters = customFormattersImagesMap
+            relations = true
         )
     }
 

@@ -2,8 +2,10 @@ import DefaultValues.DEFAULT_AUTHOR
 import DefaultValues.DEFAULT_REMOTE_URL
 import DefaultValues.LAYOUT_FILE
 import FileHelperConstants.APP_INFO_FILENAME
+import FileHelperConstants.CUSTOM_FORMATTERS_FILENAME
 import FileHelperConstants.DS_STORE
 import FileHelperConstants.QUERIES_FILENAME
+import FileHelperConstants.SEARCHABLE_FIELDS_FILENAME
 import MustacheConstants.ANDROID_SDK_PATH
 import MustacheConstants.APP_NAME_WITH_CAPS
 import MustacheConstants.AUTHOR
@@ -900,13 +902,24 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
     }
 
     fun makeAppInfo() {
+        makeJsonFile(APP_INFO_FILENAME, projectEditor.getAppInfo())
+    }
 
-        val appInfoFile = File(fileHelper.pathHelper.assetsPath(), APP_INFO_FILENAME)
-        appInfoFile.parentFile.mkdirs()
-        if (!appInfoFile.createNewFile()) {
-            throw Exception("An error occurred while creating new file : $appInfoFile")
+    fun makeCustomFormatters() {
+        makeJsonFile(CUSTOM_FORMATTERS_FILENAME, customFormattersFields)
+    }
+
+    fun makeSearchableFields() {
+        makeJsonFile(SEARCHABLE_FIELDS_FILENAME, projectEditor.searchableFields)
+    }
+
+    private fun makeJsonFile(fileName: String, content: Any) {
+        val file = File(fileHelper.pathHelper.assetsPath(), fileName)
+        file.parentFile.mkdirs()
+        if (!file.createNewFile()) {
+            throw Exception("An error occurred while creating new file : $file")
         }
-        appInfoFile.writeText(gson.toJson(projectEditor.getAppInfo(customFormattersFields)))
+        file.writeText(gson.toJson(content))
     }
 
     private fun generateCompilerFolder(templateFileFolder: String): Mustache.Compiler {
@@ -953,8 +966,8 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
                                     val imageMap = mutableMapOf<String, String>()
 
-                                    // choiceList can be Map<String, String> (JSONObject in appinfo.json)
-                                    // or a List<String> (JSONArray in appinfo.json)
+                                    // choiceList can be Map<String, String> (JSONObject in app_info.json)
+                                    // or a List<String> (JSONArray in app_info.json)
                                     when (fieldMapping.choiceList) {
                                         is Map<*, *> -> {
                                             fieldMapping.choiceList.values.forEach { imageName ->
