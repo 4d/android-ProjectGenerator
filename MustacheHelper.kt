@@ -632,7 +632,6 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         }
     }
 
-
     private fun getFormatNameForType(fieldType: Int?, format: String?): String {
         if (format.equals("integer")) {
             return when (fieldType) {
@@ -952,7 +951,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
         projectEditor.dataModelList.forEach { dataModel ->
             val map = mutableMapOf<String, FieldMapping>()
-            dataModel.fields?.forEach{ field ->
+            dataModel.fields?.forEach { field ->
                 field.format?.let { format ->
                     Log.d("ProjectEditor.kt  /  Format = $format")
                     if (format.startsWith("/")) {
