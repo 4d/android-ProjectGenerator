@@ -12,6 +12,5 @@ data class TemplateFormFieldFiller(
     val imageKeyAccessor: String,
     val fieldTableName: String,
     val imageWidth: Int,
-    val imageHeight: Int,
-    val isInt: Boolean
+    val imageHeight: Int
 )

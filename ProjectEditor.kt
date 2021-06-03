@@ -184,36 +184,6 @@ class ProjectEditor(projectEditorFile: File) {
             }
         }
     }
-
-
-    /** Read Custom Formatters **/
-    /*private fun getCustomFormatterFields(fileHelper: FileHelper): Map<String, Map<String, FieldMapping>> {
-
-        val customFormatMap = mutableMapOf<String, Map<String, FieldMapping>>()
-        dataModelList.forEach { dataModel ->
-            val map = mutableMapOf<String, FieldMapping>()
-            dataModel.fields?.forEach{ field ->
-                field.format?.let { format ->
-                    Log.d("ProjectEditor.kt  /  Format = $format")
-                    if (format.startsWith("/")) {
-
-                        val isSearchable = isCustomFormatterSearchable(dataModel.name,field.name, searchableFields)
-                        val formatPath = fileHelper.pathHelper.getCustomFormatterPath(format)
-                        getManifestJSONContent(formatPath)?.let {
-                            val fieldMapping = getFieldMapping(it, format, isSearchable)
-                            map.put(field.name, fieldMapping)
-                        }
-
-                    } else {
-                        customFormatMap.put(dataModel.name, map)
-                    }
-                } ?: kotlin.run {
-                    customFormatMap.put(dataModel.name, map)
-                }
-            }
-        }
-        return customFormatMap
-    }*/
 }
 
 

@@ -569,7 +569,6 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                         data["field_${i}_defined"] = field.name.isNotEmpty()
                                         data["field_${i}_is_image"] = field.isImage()
                                         data["field_${i}_label"] = field.getLabel()
-                                        data["field_${i}_is_int"] = field.isInt()
                                         data["field_${i}_custom_formatted"] = false
                                         data["field_${i}_custom_formatted_imageNamed"] = false
                                         data["field_${i}_format_type"] = ""
@@ -605,7 +604,6 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                 for (j in 1 until i + 1) {
                                     data.remove("field_${j}_defined")
                                     data.remove("field_${j}_is_image")
-                                    data.remove("field_${j}_is_int")
                                     data.remove("field_${j}_name")
                                     data.remove("field_${j}_label")
                                     data.remove("field_${j}_custom_formatted")
@@ -739,7 +737,6 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
                                                         data["field_${i + 1}_defined"] = field.name.isNotEmpty()
                                                         data["field_${i + 1}_is_image"] = field.isImage()
-                                                        data["field_${i + 1}_is_int"] = field.isInt()
                                                         data["field_${i + 1}_name"] = field.name.fieldAdjustment()
                                                         data["field_${i + 1}_label"] = field.getLabel()
                                                         data["field_${i + 1}_custom_formatted"] = false
@@ -776,7 +773,6 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                                     Log.d("Field list shorter than specific fields count")
                                                     data["field_${i + 1}_defined"] = false
                                                     data["field_${i + 1}_is_image"] = false
-                                                    data["field_${i + 1}_is_int"] = false
                                                     data["field_${i + 1}_name"] = ""
                                                     data["field_${i + 1}_label"] = ""
                                                     data["field_${i + 1}_custom_formatted"] = false
@@ -842,7 +838,6 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                 for (i in 1 until specificFieldsCount) {
                                     data.remove("field_${i}_defined")
                                     data.remove("field_${i}_is_image")
-                                    data.remove("field_${i}_is_int")
                                     data.remove("field_${i}_name")
                                     data.remove("field_${i}_label")
                                     data.remove("field_${i}_custom_formatted")

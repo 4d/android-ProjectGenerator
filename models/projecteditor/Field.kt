@@ -75,5 +75,3 @@ fun Field.getLabel(): String {
     }
     return label
 }
-
-fun Field.isInt(): Boolean = this.fieldType == 8 || this.fieldType == 9 || this.fieldType == 25

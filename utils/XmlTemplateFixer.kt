@@ -7,7 +7,6 @@ fun replaceTemplateText(oldFormText: String, formType: FormType): String {
 
     val variableType: String
     val variableName : String
-//    val formatUtilsImport = "<import type=\"com.qmobile.qmobileui.utils.FormatterUtils\" />\n"
 
     if (formType == FormType.LIST) {
         variableType = "{{package}}.data.model.entity.{{tableName}}"
@@ -101,54 +100,29 @@ fun replaceTemplateText(oldFormText: String, formType: FormType): String {
     newFormText = regex.replace(newFormText) { matchResult ->
         val indent = matchResult.destructured.component1()
         val id = matchResult.destructured.component2()
-        if (formType == FormType.LIST)
-            "${indent}{{#field_${id}_defined}}\n" +
-                    "${indent}{{^field_${id}_is_image}}\n" +
-                    "${indent}{{#field_${id}_custom_formatted}}\n" + //If is custom
-                    "${indent}app:tableName='@{\"{{{field_${id}_field_table_name}}}\"}'\n" +
-                    "${indent}app:fieldName='@{\"{{{field_${id}_field_name}}}\"}'\n" +
-                    "${indent}{{#field_${id}_custom_formatted_imageNamed}}\n" + //If is imageNamed
-                    "${indent}app:imageWidth=\"@{ {{field_${id}_field_image_width}} }\"\n" +
-                    "${indent}app:imageHeight=\"@{ {{field_${id}_field_image_height}} }\"\n" +
-                    "${indent}{{/field_${id}_custom_formatted_imageNamed}}\n" + // close is imageNamed
-                    "${indent}{{/field_${id}_custom_formatted}}\n" + // close custom
-                    "${indent}app:text=\"@{ {{field_${id}_accessor}}{{field_${id}_name}}.toString()}\"\n" +
-                    "${indent}app:format='@{\"{{field_${id}_format_type}}\"}'\n" +
-                    "${indent}{{/field_${id}_is_image}}\n" +
-                    "${indent}{{/field_${id}_defined}}"
-        else
-            "${indent}{{#field_${id}_defined}}\n" +
-                    "${indent}{{^field_${id}_is_image}}\n" +
-                    "${indent}{{#field_${id}_custom_formatted}}\n" +
-                    "${indent}app:tableName='@{\"{{{field_${id}_field_table_name}}}\"}'\n" +
-                    "${indent}app:fieldName='@{\"{{{field_${id}_field_name}}}\"}'\n" +
-                    "${indent}{{#field_${id}_custom_formatted_imageNamed}}\n" + //If is imageNamed
-                    "${indent}app:imageWidth=\"@{ {{field_${id}_field_image_width}} }\"\n" +
-                    "${indent}app:imageHeight=\"@{ {{field_${id}_field_image_height}} }\"\n" +
-                    "${indent}{{/field_${id}_custom_formatted_imageNamed}}\n" + // close is imageNamed
-                    "${indent}{{/field_${id}_custom_formatted}}\n" +
-                    "${indent}app:text=\"@{ {{field_${id}_accessor}}{{field_${id}_name}}.toString()}\"\n" +
-                    "${indent}app:format='@{\"{{field_${id}_format_type}}\"}'\n" +
-                    "${indent}{{/field_${id}_is_image}}\n" +
-                    "${indent}{{/field_${id}_defined}}"
+        "${indent}{{#field_${id}_defined}}\n" +
+                "${indent}{{^field_${id}_is_image}}\n" +
+                "${indent}{{#field_${id}_custom_formatted}}\n" +
+                "${indent}app:tableName='@{\"{{{field_${id}_field_table_name}}}\"}'\n" +
+                "${indent}app:fieldName='@{\"{{{field_${id}_field_name}}}\"}'\n" +
+                "${indent}{{#field_${id}_custom_formatted_imageNamed}}\n" +
+                "${indent}app:imageWidth=\"@{ {{field_${id}_field_image_width}} }\"\n" +
+                "${indent}app:imageHeight=\"@{ {{field_${id}_field_image_height}} }\"\n" +
+                "${indent}{{/field_${id}_custom_formatted_imageNamed}}\n" +
+                "${indent}{{/field_${id}_custom_formatted}}\n" +
+                "${indent}app:text=\"@{ {{field_${id}_accessor}}{{field_${id}_name}}.toString()}\"\n" +
+                "${indent}app:format='@{\"{{field_${id}_format_type}}\"}'\n" +
+                "${indent}{{/field_${id}_is_image}}\n" +
+                "${indent}{{/field_${id}_defined}}"
     }
 
     regex = ("(\\h*)android:progress=\"__PROGRESS_(\\d+)__\"").toRegex()
     newFormText = regex.replace(newFormText) { matchResult ->
         val indent = matchResult.destructured.component1()
         val id = matchResult.destructured.component2()
-        if (formType == FormType.LIST)
-            "${indent}{{#field_${id}_defined}}\n" +
-                    "${indent}{{#field_${id}_is_int}}\n" +
-                    "${indent}android:progress=\"@{ {{field_${id}_accessor}}{{field_${id}_name}} != null ? {{field_${id}_accessor}}{{field_${id}_name}} : 0}\"\n" +
-                    "${indent}{{/field_${id}_is_int}}\n" +
-                    "${indent}{{/field_${id}_defined}}"
-        else
-            "${indent}{{#field_${id}_defined}}\n" +
-                    "${indent}{{#field_${id}_is_int}}\n" +
-                    "${indent}android:progress=\"@{ {{field_${id}_accessor}}{{field_${id}_name}} != null ? {{field_${id}_accessor}}{{field_${id}_name}} : 0}\"\n" +
-                    "${indent}{{/field_${id}_is_int}}\n" +
-                    "${indent}{{/field_${id}_defined}}"
+        "${indent}{{#field_${id}_defined}}\n" +
+                "${indent}app:progress=\"@{ {{field_${id}_accessor}}{{field_${id}_name}} }\"\n" +
+                "${indent}{{/field_${id}_defined}}"
     }
 
     regex = ("(\\h*)android:text=\"__LABEL_(\\d+)__\"").toRegex()
@@ -158,37 +132,23 @@ fun replaceTemplateText(oldFormText: String, formType: FormType): String {
         "${indent}{{#field_${id}_defined}}\n" +
                 "${indent}android:text=\"{{field_${id}_label}}\"\n" +
                 "${indent}{{/field_${id}_defined}}"
-
     }
 
     regex = ("(\\h*)app:imageUrl=\"__IMAGE_(\\d+)__\"").toRegex()
     newFormText = regex.replace(newFormText) { matchResult ->
         val indent = matchResult.destructured.component1()
         val id = matchResult.destructured.component2()
-        if (formType == FormType.LIST)
-            "${indent}{{#field_${id}_defined}}\n" +
-                    "${indent}{{#field_${id}_is_image}}\n" +
-                    "${indent}app:imageFieldName='@{\"{{field_${id}_field_name}}\"}'\n" +
-                    "${indent}app:imageKey=\"@{ {{field_${id}_accessor}}{{field_${id}_image_key_accessor}} }\"\n" +
-                    "${indent}app:imageTableName='@{\"{{field_${id}_field_table_name}}\"}'\n" +
-                    "${indent}app:imageUrl=\"@{ {{field_${id}_accessor}}{{field_${id}_name}}.__deferred.uri}\"\n" +
-                    "${indent}{{/field_${id}_is_image}}\n" +
-                    "${indent}{{/field_${id}_defined}}\n" +
-                    "${indent}{{^field_${id}_defined}}\n" +
-                    "${indent}app:imageDrawable=\"@{@drawable/ic_placeholder}\"\n" +
-                    "${indent}{{/field_${id}_defined}}"
-        else
-            "${indent}{{#field_${id}_defined}}\n" +
-                    "${indent}{{#field_${id}_is_image}}\n" +
-                    "${indent}app:imageFieldName='@{\"{{field_${id}_field_name}}\"}'\n" +
-                    "${indent}app:imageKey=\"@{ {{field_${id}_accessor}}{{field_${id}_image_key_accessor}} }\"\n" +
-                    "${indent}app:imageTableName='@{\"{{field_${id}_field_table_name}}\"}'\n" +
-                    "${indent}app:imageUrl=\"@{ {{field_${id}_accessor}}{{field_${id}_name}}.__deferred.uri}\"\n" +
-                    "${indent}{{/field_${id}_is_image}}\n" +
-                    "${indent}{{/field_${id}_defined}}\n" +
-                    "${indent}{{^field_${id}_defined}}\n" +
-                    "${indent}app:imageDrawable=\"@{@drawable/ic_placeholder}\"\n" +
-                    "${indent}{{/field_${id}_defined}}"
+        "${indent}{{#field_${id}_defined}}\n" +
+                "${indent}{{#field_${id}_is_image}}\n" +
+                "${indent}app:imageFieldName='@{\"{{field_${id}_field_name}}\"}'\n" +
+                "${indent}app:imageKey=\"@{ {{field_${id}_accessor}}{{field_${id}_image_key_accessor}} }\"\n" +
+                "${indent}app:imageTableName='@{\"{{field_${id}_field_table_name}}\"}'\n" +
+                "${indent}app:imageUrl=\"@{ {{field_${id}_accessor}}{{field_${id}_name}}.__deferred.uri}\"\n" +
+                "${indent}{{/field_${id}_is_image}}\n" +
+                "${indent}{{/field_${id}_defined}}\n" +
+                "${indent}{{^field_${id}_defined}}\n" +
+                "${indent}app:imageDrawable=\"@{@drawable/ic_placeholder}\"\n" +
+                "${indent}{{/field_${id}_defined}}"
     }
 
     return newFormText
