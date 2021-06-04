@@ -84,8 +84,8 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
     private var relations = mutableListOf<TemplateRelationFiller>()
     private var customFormatterImages = mutableListOf<TemplateFormatterFiller>()
 
-    // <formatName, <imageName, resourceName>>
-    private lateinit var customFormattersImagesMap: Map<String, Map<String, String>>
+    // <formatName, <imageName, <resourceName, darkModeResourceName>>
+    private lateinit var customFormattersImagesMap: Map<String, Map<String, Pair<String, String>>>
     // <tableName, <fieldName, fieldMapping>>
     private val customFormattersFields: Map<String, Map<String, FieldMapping>> = getCustomFormatterFields()
 
@@ -319,11 +319,13 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         customFormatterImages = mutableListOf()
 
         for ((formatterName, imageMap) in customFormattersImagesMap) {
-            for ((imageName, resourceName) in imageMap) {
+            for ((imageName, pair) in imageMap) { // <imageName, <resourceName, darkModeResourceName>
                 customFormatterImages.add(TemplateFormatterFiller(
                     formatterName = formatterName,
                     imageName = imageName,
-                    resourceName = resourceName
+                    resourceName = pair.first,
+                    resourceNameDarkMode = pair.second,
+                    darkModeExists = pair.second.isNotEmpty()
                 ))
             }
         }
@@ -942,7 +944,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
     private fun getCustomFormatterFields(): Map<String, Map<String, FieldMapping>> {
 
         val customFormatMap = mutableMapOf<String, Map<String, FieldMapping>>()
-        val customFormattersImagesMap = mutableMapOf<String, Map<String, String>>() // <formatName, <imageName, resourceName>>
+        val customFormattersImagesMap = mutableMapOf<String, Map<String, Pair<String, String>>>() // <formatName, <imageName, <resourceName, darkModeResourceName>>
 
         projectEditor.dataModelList.forEach { dataModel ->
             val map = mutableMapOf<String, FieldMapping>()
@@ -961,7 +963,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
                                 if (isImageNamed(fieldMapping)) {
 
-                                    val imageMap = mutableMapOf<String, String>()
+                                    val imageMap = mutableMapOf<String, Pair<String, String>>()
 
                                     // choiceList can be Map<String, String> (JSONObject in app_info.json)
                                     // or a List<String> (JSONArray in app_info.json)
@@ -970,7 +972,8 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                             fieldMapping.choiceList.values.forEach { imageName ->
                                                 if (imageName is String) {
                                                     if (imageName.contains(".") && imageExistsInFormatter(formatPath, imageName)) {
-                                                        imageMap[imageName] = getResourceName(format, imageName)
+                                                        val darkModeExists = imageExistsInFormatterInDarkMode(formatPath, imageName)
+                                                        imageMap[imageName] = getResourceName(format, imageName, darkModeExists)
                                                     }
                                                 }
                                             }
@@ -979,7 +982,8 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                             fieldMapping.choiceList.forEach { imageName ->
                                                 if (imageName is String) {
                                                     if (imageName.contains(".") && imageExistsInFormatter(formatPath, imageName)) {
-                                                        imageMap[imageName] = getResourceName(format, imageName)
+                                                        val darkModeExists = imageExistsInFormatterInDarkMode(formatPath, imageName)
+                                                        imageMap[imageName] = getResourceName(format, imageName, darkModeExists)
                                                     }
                                                 }
                                             }
@@ -1004,7 +1008,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         return customFormatMap
     }
 
-    private fun getResourceName(format: String, imageName: String): String {
+    private fun getResourceName(format: String, imageName: String, darkModeExists: Boolean): Pair<String, String> {
         val correctedFormatName = format
             .removePrefix("/")
             .toLowerCase()
@@ -1021,7 +1025,10 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
         Log.d("correctedImageName = $correctedImageName")
 
-        return "${correctedFormatName}_${correctedImageName}"
+        return if (darkModeExists)
+            Pair("${correctedFormatName}_${correctedImageName}", "${correctedFormatName}_${correctedImageName}_dark")
+        else
+            Pair("${correctedFormatName}_${correctedImageName}", "")
     }
 
     private fun getImageSize(form: Form, fieldName: String, type: String): Int {

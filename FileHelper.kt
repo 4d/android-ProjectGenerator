@@ -82,3 +82,10 @@ fun getManifestJSONContent(path: String): JSONObject? {
 
 fun imageExistsInFormatter(path: String, imageName: String): Boolean =
     File(path + File.separator + "Images" + File.separator + imageName).exists()
+
+fun imageExistsInFormatterInDarkMode(path: String, imageName: String): Boolean {
+    val file = File(path + File.separator + "Images" + File.separator + imageName)
+    val name = file.nameWithoutExtension + "\$dark." + file.extension
+    val darkModeFile = File(path + File.separator + "Images" + File.separator + name)
+    return darkModeFile.exists()
+}

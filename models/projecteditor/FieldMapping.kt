@@ -4,5 +4,6 @@ data class FieldMapping(
     val isSearchable: Boolean?,
     val name: String?,
     val imageWidth: Int?,
-    val imageHeight: Int?
+    val imageHeight: Int?,
+    val template: Boolean?
 )

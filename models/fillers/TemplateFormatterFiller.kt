@@ -1,1 +1,7 @@
-data class TemplateFormatterFiller(val formatterName: String, val imageName: String, val resourceName: String)
+data class TemplateFormatterFiller(
+    val formatterName: String,
+    val imageName: String,
+    val resourceName: String,
+    val resourceNameDarkMode: String,
+    val darkModeExists: Boolean
+)
