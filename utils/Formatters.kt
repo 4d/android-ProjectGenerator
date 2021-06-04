@@ -14,7 +14,7 @@ fun getFieldMapping(manifestContent: JSONObject, format: String, isSearchable: B
         name = format,
         imageWidth = getSize(manifestContent, "width"),
         imageHeight = getSize(manifestContent, "height"),
-        template = manifestContent.getSafeBoolean("template")
+        template = manifestContent.getSafeObject("assets")?.getSafeBoolean("template")
     )
 
 fun getSize(manifestContent: JSONObject, type: String): Int? =
