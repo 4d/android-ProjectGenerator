@@ -5,5 +5,5 @@ data class FieldMapping(
     val name: String?,
     val imageWidth: Int?,
     val imageHeight: Int?,
-    val template: Boolean?
+    val tintable: Boolean?
 )
