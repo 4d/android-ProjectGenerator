@@ -43,7 +43,7 @@ import MustacheConstants.TABLENAMES_NAVIGATION
 import MustacheConstants.TABLENAMES_RELATIONS
 import MustacheConstants.TABLENAMES_RELATIONS_DISTINCT
 import MustacheConstants.TABLENAMES_WITHOUT_RELATIONS
-import MustacheConstants.TABLENAMES__LAYOUT_RELATIONS
+import MustacheConstants.TABLENAMES_LAYOUT_RELATIONS
 import MustacheConstants.TABLENAME_LOWERCASE
 import MustacheConstants.TABLENAME_ORIGINAL
 import MustacheConstants.THEME_COLOR_ON_PRIMARY
@@ -302,7 +302,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
             }
         }
         data[TABLENAMES_NAVIGATION] = tableNamesForNavigation
-        data[TABLENAMES__LAYOUT_RELATIONS] = layoutRelationList
+        data[TABLENAMES_LAYOUT_RELATIONS] = layoutRelationList
 
         // Specifying if list layout is table or collection (LinearLayout or GridLayout)
         tableNamesForNavigation.map { it.name }.forEach { tableName ->
@@ -541,9 +541,15 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                     }
                                 data[RELATIONS] = relations
 
-                                listForm.fields?.forEach {
-                                    Log.d("LIST : ${listForm.name} / field = $it")
+                                var hasIcons = false
+
+                                projectEditor.dataModelList.find { it.id == listForm.dataModel.id }?.fields?.forEach {
+                                    Log.d("LIST ${listForm.name} / field = $it")
+                                    if (!it.icon.isNullOrEmpty())
+                                        hasIcons = true
                                 }
+
+                                Log.d("hasIcons = $hasIcons")
 
                                 var i = 0
                                 listForm.fields?.forEach { field -> // Could also iter over specificFieldsCount as Detail form
@@ -557,6 +563,9 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                         data["field_${i}_custom_formatted"] = false
                                         data["field_${i}_custom_formatted_imageNamed"] = false
                                         data["field_${i}_label"] = ""
+                                        data["field_${i}_shortLabel"] = ""
+                                        data["field_${i}_iconPath"] = ""
+                                        data["field_${i}_hasIcon"] = false
                                         data["field_${i}_name"] = ""
                                         data["field_${i}_accessor"] = ""
                                         data["field_${i}_format_type"] = ""
@@ -571,6 +580,9 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                         data["field_${i}_defined"] = field.name.isNotEmpty()
                                         data["field_${i}_is_image"] = field.isImage()
                                         data["field_${i}_label"] = field.getLabel()
+                                        data["field_${i}_shortLabel"] = field.getShortLabel()
+                                        data["field_${i}_iconPath"] = ""
+                                        data["field_${i}_hasIcon"] = false
                                         data["field_${i}_custom_formatted"] = false
                                         data["field_${i}_custom_formatted_imageNamed"] = false
                                         data["field_${i}_format_type"] = ""
@@ -581,7 +593,12 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                             data["field_${i}_image_key_accessor"] = field.getFieldKeyAccessor(FormType.LIST)
                                         }
 
-                                        val format = getFormatNameForType(field.fieldType, field.format)
+                                        if (hasIcons) {
+                                            data["field_${i}_iconPath"] = getIconWithFixes(projectEditor.dataModelList, listForm, field)
+                                            data["field_${i}_hasIcon"] = true
+                                        }
+
+                                        val format = getFormatWithFixes(projectEditor.dataModelList, listForm, field)
                                         data["field_${i}_format_type"] = format
 
                                         if (format.startsWith("/")) {
@@ -608,6 +625,9 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                     data.remove("field_${j}_is_image")
                                     data.remove("field_${j}_name")
                                     data.remove("field_${j}_label")
+                                    data.remove("field_${j}_shortLabel")
+                                    data.remove("field_${j}_iconPath")
+                                    data.remove("field_${j}_hasIcon")
                                     data.remove("field_${j}_custom_formatted")
                                     data.remove("field_${j}_custom_formatted_imageNamed")
                                     data.remove("field_${j}_format_type")
@@ -629,28 +649,6 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                             }
                         }
                 }
-        }
-    }
-
-    private fun getFormatNameForType(fieldType: Int?, format: String?): String {
-        if (format.equals("integer")) {
-            return when (fieldType) {
-                6 -> "boolInteger" // Boolean
-                11 -> "timeInteger" // Time
-                else -> "integer"
-            }
-        }
-        if (format.isNullOrEmpty()) {
-            return when (typeFromTypeInt(fieldType)) {
-                BOOLEAN_TYPE -> "falseOrTrue"
-                DATE_TYPE -> "mediumDate"
-                TIME_TYPE -> "mediumTime"
-                INT_TYPE -> "integer"
-                FLOAT_TYPE -> "decimal"
-                else -> ""
-            }
-        } else {
-            return format
         }
     }
 
@@ -695,9 +693,15 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
                                 detailForm.fields?.let { fieldList ->
 
-                                    fieldList.forEach {
+                                    var hasIcons = false
+
+                                    projectEditor.dataModelList.find { it.id == detailForm.dataModel.id }?.fields?.forEach {
                                         Log.d("DETAIL ${detailForm.name} / field = $it")
+                                        if (!it.icon.isNullOrEmpty())
+                                            hasIcons = true
                                     }
+
+                                    Log.d("hasIcons = $hasIcons")
 
                                     if (fieldList.isNotEmpty()) {
 
@@ -706,7 +710,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                                 val field = fieldList[i]
                                                 if (field.name.isNotEmpty()) {
 
-                                                    val format = getFormatNameForType(field.fieldType, field.format)
+                                                    val format = getFormatWithFixes(projectEditor.dataModelList, detailForm, field)
                                                     val formField = createDetailFormField(
                                                         field = field,
                                                         i = i + 1,
@@ -715,7 +719,8 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                                         formatType = format,
                                                         isImageNamed = isImageNamedBinding(detailForm, field.name),
                                                         imageWidth = getImageSize(detailForm, field.name, "width"),
-                                                        imageHeight = getImageSize(detailForm, field.name, "height")
+                                                        imageHeight = getImageSize(detailForm, field.name, "height"),
+                                                        hasIcon = hasIcons
                                                     )
 
                                                     formFieldList.add(formField)
@@ -741,6 +746,9 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                                         data["field_${i + 1}_is_image"] = field.isImage()
                                                         data["field_${i + 1}_name"] = field.name.fieldAdjustment()
                                                         data["field_${i + 1}_label"] = field.getLabel()
+                                                        data["field_${i + 1}_shortLabel"] = field.getShortLabel()
+                                                        data["field_${i + 1}_iconPath"] = ""
+                                                        data["field_${i + 1}_hasIcon"] = false
                                                         data["field_${i + 1}_custom_formatted"] = false
                                                         data["field_${i + 1}_custom_formatted_imageNamed"] = false
                                                         data["field_${i + 1}_format_type"] = ""
@@ -752,7 +760,12 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                                             data["field_${i + 1}_image_key_accessor"] = field.getFieldKeyAccessor(FormType.DETAIL)
                                                         }
 
-                                                        val format = getFormatNameForType(field.fieldType, field.format)
+                                                        if (hasIcons) {
+                                                            data["field_${i + 1}_iconPath"] = getIconWithFixes(projectEditor.dataModelList, detailForm, field)
+                                                            data["field_${i + 1}_hasIcon"] = true
+                                                        }
+
+                                                        val format = getFormatWithFixes(projectEditor.dataModelList, detailForm, field)
                                                         data["field_${i + 1}_format_type"] = format
                                                         if (format.startsWith("/")) { // custom format
                                                             data["field_${i + 1}_custom_formatted"] = true
@@ -777,6 +790,9 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                                     data["field_${i + 1}_is_image"] = false
                                                     data["field_${i + 1}_name"] = ""
                                                     data["field_${i + 1}_label"] = ""
+                                                    data["field_${i + 1}_shortLabel"] = ""
+                                                    data["field_${i + 1}_iconPath"] = ""
+                                                    data["field_${i + 1}_hasIcon"] = false
                                                     data["field_${i + 1}_custom_formatted"] = false
                                                     data["field_${i + 1}_custom_formatted_imageNamed"] = false
                                                     data["field_${i + 1}_format_type"] = ""
@@ -791,7 +807,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
                                             Log.i("fieldList.size = ${fieldList.size}")
                                             Log.i("specificFieldsCount = $specificFieldsCount")
-
+                                            Log.d("fieldList = ${fieldList}")
                                             if (fieldList.size > specificFieldsCount) {
                                                 var k = specificFieldsCount // another counter to avoid null field
                                                 for (i in specificFieldsCount until fieldList.size) {
@@ -802,7 +818,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                                     if (field.name.isNotEmpty()) {
                                                         Log.d("Adding free Field in specific template $field")
 
-                                                        val format = getFormatNameForType(field.fieldType, field.format)
+                                                        val format = getFormatWithFixes(projectEditor.dataModelList, detailForm, field)
                                                         val formField = createDetailFormField(
                                                             field = field,
                                                             i = k + 1,
@@ -811,7 +827,8 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                                             formatType = format,
                                                             isImageNamed = isImageNamedBinding(detailForm, field.name),
                                                             imageWidth = getImageSize(detailForm, field.name, "width"),
-                                                            imageHeight = getImageSize(detailForm, field.name, "height")
+                                                            imageHeight = getImageSize(detailForm, field.name, "height"),
+                                                            hasIcon = hasIcons
                                                         )
 
                                                         Log.v("format :: $format")
@@ -842,6 +859,9 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                     data.remove("field_${i}_is_image")
                                     data.remove("field_${i}_name")
                                     data.remove("field_${i}_label")
+                                    data.remove("field_${i}_shortLabel")
+                                    data.remove("field_${i}_iconPath")
+                                    data.remove("field_${i}_hasIcon")
                                     data.remove("field_${i}_custom_formatted")
                                     data.remove("field_${i}_custom_formatted_imageNamed")
                                     data.remove("field_${i}_format_type")
@@ -1016,14 +1036,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
         Log.d("correctedFormatName = $correctedFormatName")
 
-        val correctedImageName = imageName
-            .substring(0, imageName.lastIndexOf('.')) // removes extension
-            .replace(".+/".toRegex(), "")
-            .removePrefix(File.separator)
-            .toLowerCase()
-            .replace("[^a-z0-9]+".toRegex(), "_")
-
-        Log.d("correctedImageName = $correctedImageName")
+        val correctedImageName = correctIconPath(imageName)
 
         return if (darkModeExists)
             Pair("${correctedFormatName}_${correctedImageName}", "${correctedFormatName}_${correctedImageName}_dark")

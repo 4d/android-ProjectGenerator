@@ -15,7 +15,7 @@ object MustacheConstants {
     const val TABLENAMES = "tableNames"
     const val TABLENAMES_LAYOUT = "tableNames_layout"
     const val TABLENAMES_RELATIONS = "tableNames_relations"
-    const val TABLENAMES__LAYOUT_RELATIONS = "tableNames_layout_relations"
+    const val TABLENAMES_LAYOUT_RELATIONS = "tableNames_layout_relations"
     const val TABLENAMES_WITHOUT_RELATIONS = "tableNames_without_relations"
     const val TABLENAMES_RELATIONS_DISTINCT = "tableNames_relations_distinct"
     const val TABLENAMES_LOWERCASE = "tableNames_lowercase"

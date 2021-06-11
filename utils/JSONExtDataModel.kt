@@ -16,7 +16,6 @@ import ProjectEditorConstants.SHORTLABEL_KEY
 import ProjectEditorConstants.STRING_KEY
 import ProjectEditorConstants.VALIDATED_KEY
 import org.json.JSONObject
-import java.io.File
 
 fun JSONObject.getDataModelList(): List<DataModel> {
     val dataModelList = mutableListOf<DataModel>()
@@ -42,22 +41,13 @@ fun JSONObject.getDataModelList(): List<DataModel> {
                     Log.d("DataModel removed from list : $dataModelName")
                 }
 
-                val newDataModel = DataModel(name = dataModelName, isSlave = false)
-                newDataModel.id = keyDataModel.toString()
+                val newDataModel = DataModel(id = keyDataModel.toString(), name = dataModelName, isSlave = false)
                 newDataModelJSONObject.getSafeObject(EMPTY_KEY)?.getSafeString(LABEL_KEY)?.let { newDataModel.label = it }
                 newDataModelJSONObject.getSafeObject(EMPTY_KEY)?.getSafeString(SHORTLABEL_KEY)?.let { newDataModel.shortLabel = it }
                 var missingIcon = true
                 newDataModelJSONObject.getSafeObject(EMPTY_KEY)?.getSafeString(ICON_KEY)?.let { iconPath ->
                     if (iconPath.contains(".")) {
-                        val correctedIconPath = iconPath
-                            .substring(0, iconPath.lastIndexOf('.')) // removes extension
-                            .replace(".+/".toRegex(), "")
-                            .removePrefix(File.separator)
-                            .toLowerCase()
-                            .replace("[^a-z0-9]+".toRegex(), "_")
-
-                        Log.d("correctedIconPath = $correctedIconPath")
-                        newDataModel.iconPath = correctedIconPath
+                        newDataModel.iconPath = correctIconPath(iconPath)
                         missingIcon = false
                     }
                 }
@@ -100,9 +90,8 @@ fun JSONObject.getDataModelList(): List<DataModel> {
 
                             // Check if there is a slave table to add
                             newFieldJSONObject.getSafeString(RELATEDDATACLASS_KEY)?.let { relatedDataClass ->
-                                val slaveDataModel = DataModel(name = relatedDataClass, isSlave = true)
                                 newFieldJSONObject.getSafeInt(RELATEDTABLENUMBER_KEY)?.let { relatedTableNumber ->
-                                    slaveDataModel.id = relatedTableNumber.toString()
+                                    val slaveDataModel = DataModel(id = relatedTableNumber.toString(), name = relatedDataClass, isSlave = true)
 
                                     val slaveFieldList = mutableListOf<Field>()
                                     val slaveRelationList = mutableListOf<Relation>()
@@ -198,15 +187,20 @@ fun JSONObject?.getDataModelField(keyField: String): Field {
     this?.getSafeString(LABEL_KEY)?.let { field.label = it }
     this?.getSafeString(SHORTLABEL_KEY)?.let { field.shortLabel = it }
     this?.getSafeInt(FIELDTYPE_KEY).let { field.fieldType = it }
-    this?.getSafeInt(RELATEDTABLENUMBER_KEY).let { field.relatedTableNumber = it }
+    this?.getSafeInt(RELATEDTABLENUMBER_KEY)?.let { field.relatedTableNumber = it }
     this?.getSafeString(INVERSENAME_KEY)?.let { field.inverseName = it }
     this?.getSafeString(NAME_KEY)?.let { fieldName -> // BASIC FIELD
         field.name = fieldName
         field.id = keyField
         field.fieldTypeString = typeStringFromTypeInt(field.fieldType)
    }
-    this?.getSafeString(FORMAT_KEY).let{
+    this?.getSafeString(FORMAT_KEY)?.let{
         field.format = it
+    }
+    this?.getSafeString(ICON_KEY)?.let { iconPath -> // useful when copied to an empty list / detail form
+        if (iconPath.contains(".")) {
+            field.icon = correctIconPath(iconPath)
+        }
     }
     this?.getSafeBoolean(ISTOMANY_KEY)?.let { isToMany -> // Slave table defined in another table will have isToMany key
         field.name = keyField

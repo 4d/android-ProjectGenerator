@@ -12,12 +12,14 @@ fun createDetailFormField(
     formatType: String,
     isImageNamed: Boolean,
     imageWidth: Int,
-    imageHeight: Int
+    imageHeight: Int,
+    hasIcon: Boolean
 ): TemplateFormFieldFiller {
 
     return TemplateFormFieldFiller(
         name = field.name.fieldAdjustment(),
         label = field.getLabel(),
+        shortLabel = field.getShortLabel(),
         viewId = i,
         isRelation = field.inverseName != null,
         isImage = field.isImage(),
@@ -29,6 +31,8 @@ fun createDetailFormField(
         imageKeyAccessor = field.getFieldKeyAccessor(FormType.DETAIL),
         fieldTableName = field.getFieldTableName(dataModelList, form),
         imageWidth = imageWidth,
-        imageHeight = imageHeight
+        imageHeight = imageHeight,
+        hasIcon = hasIcon,
+        iconPath = getIconWithFixes(dataModelList, form, field)
     )
 }

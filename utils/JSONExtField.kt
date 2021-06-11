@@ -1,5 +1,6 @@
 import ProjectEditorConstants.FIELDTYPE_KEY
 import ProjectEditorConstants.FORMAT_KEY
+import ProjectEditorConstants.ICON_KEY
 import ProjectEditorConstants.ID_KEY
 import ProjectEditorConstants.INVERSENAME_KEY
 import ProjectEditorConstants.LABEL_KEY
@@ -32,6 +33,11 @@ fun JSONObject?.getFormField(): Field {
     }
     this?.getSafeString(FORMAT_KEY)?.let {
         field.format = it
+    }
+    this?.getSafeString(ICON_KEY)?.let { iconPath ->
+        if (iconPath.contains(".")) {
+            field.icon = correctIconPath(iconPath)
+        }
     }
     this?.getSafeString(RELATEDDATACLASS_KEY).let {
         field.relatedDataClass = it

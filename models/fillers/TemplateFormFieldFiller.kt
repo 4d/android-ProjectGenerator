@@ -1,6 +1,7 @@
 data class TemplateFormFieldFiller(
     val name: String,
     val label: String,
+    val shortLabel: String,
     val viewId: Int,
     val isRelation: Boolean,
     val isImage: Boolean,
@@ -12,5 +13,7 @@ data class TemplateFormFieldFiller(
     val imageKeyAccessor: String,
     val fieldTableName: String,
     val imageWidth: Int,
-    val imageHeight: Int
+    val imageHeight: Int,
+    val hasIcon: Boolean,
+    val iconPath: String
 )

@@ -1,3 +1,10 @@
+import ProjectEditorConstants.BOOLEAN_TYPE
+import ProjectEditorConstants.DATE_TYPE
+import ProjectEditorConstants.FLOAT_TYPE
+import ProjectEditorConstants.INT_TYPE
+import ProjectEditorConstants.TIME_TYPE
+import java.io.File
+
 data class Field(
         var id: String? = null,
         var name: String,
@@ -12,7 +19,8 @@ data class Field(
         var variableType: String = VariableType.VAL.string,
         var isToMany: Boolean? = null,
         var isSlave: Boolean? = null,
-        var format: String? = null
+        var format: String? = null,
+        var icon: String? = null
 )
 
 fun isPrivateRelationField(fieldName: String): Boolean = fieldName.startsWith("__") && fieldName.endsWith("Key")
@@ -65,13 +73,66 @@ fun Field.getFieldTableName(dataModelList: List<DataModel>, form: Form): String 
 }
 
 fun Field.getLabel(): String {
-    var label = this.name
-    this.label?.let {
-        label = it
-    } ?: kotlin.run {
-        this.shortLabel?.let {
-            label = it
+    label?.let { if (it.isNotEmpty()) return it }
+    return ""
+}
+
+fun Field.getShortLabel(): String {
+    shortLabel?.let { if (it.isNotEmpty()) return it }
+    return ""
+}
+
+fun Field.getIcon(dataModelKey: String): String {
+    if (this.icon.isNullOrEmpty())
+        return "field_icon_${dataModelKey}_${this.id}"
+    return this.icon ?: ""
+}
+
+fun correctIconPath(iconPath: String): String {
+    val correctedIconPath = iconPath
+        .substring(0, iconPath.lastIndexOf('.')) // removes extension
+        .replace(".+/".toRegex(), "")
+        .removePrefix(File.separator)
+        .toLowerCase()
+        .replace("[^a-z0-9]+".toRegex(), "_")
+
+    Log.d("correctedIconPath = $correctedIconPath")
+    return correctedIconPath
+}
+
+fun Field.getFormatNameForType(): String {
+    val format = this.format
+    if (format.equals("integer")) {
+        return when (this.fieldType) {
+            6 -> "boolInteger" // Boolean
+            11 -> "timeInteger" // Time
+            else -> "integer"
         }
     }
-    return label
+    if (format.isNullOrEmpty()) {
+        return when (typeFromTypeInt(this.fieldType)) {
+            BOOLEAN_TYPE -> "falseOrTrue"
+            DATE_TYPE -> "mediumDate"
+            TIME_TYPE -> "mediumTime"
+            INT_TYPE -> "integer"
+            FLOAT_TYPE -> "decimal"
+            else -> ""
+        }
+    } else {
+        return format
+    }
+}
+
+/**
+ * fieldFromDataModel is here to get the Field from dataModel instead of list/detail form as some information may be missing.
+ * If it's a related field, fieldFromDataModel will be null, therefore check the field variable
+*/
+fun getIconWithFixes(dataModelList: List<DataModel>, form: Form, field: Field): String {
+    val fieldFromDataModel: Field? = dataModelList.find { it.id == form.dataModel.id }?.fields?.find { it.name == field.name }
+    return fieldFromDataModel?.getIcon(form.dataModel.id) ?: field?.getIcon(form.dataModel.id)
+}
+
+fun getFormatWithFixes(dataModelList: List<DataModel>, form: Form, field: Field): String {
+    val fieldFromDataModel: Field? = dataModelList.find { it.id == form.dataModel.id }?.fields?.find { it.name == field.name }
+    return fieldFromDataModel?.getFormatNameForType() ?: field.getFormatNameForType()
 }
