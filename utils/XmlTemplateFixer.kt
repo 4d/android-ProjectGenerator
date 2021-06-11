@@ -65,18 +65,6 @@ fun replaceTemplateText(oldFormText: String, formType: FormType): String {
                     "${indent}{{/isImage}}"
     }
 
-    regex = ("(\\h*)android:text=\"__LABEL__\"").toRegex()
-    newFormText = regex.replace(newFormText) { matchResult ->
-        val indent = matchResult.destructured.component1()
-        if (formType == FormType.LIST) // should never come here (free field in list form)
-            throw Exception("Not Yet Implemented (free field in list form)")
-        else
-            "${indent}android:text=\"{{label}}\"\n" +
-                    "${indent}{{#hasIcon}}\n" +
-                    "${indent}app:icon='@{\"{{iconPath}}\"}'\n" +
-                    "${indent}{{/hasIcon}}"
-    }
-
     regex = ("(\\h*)android:text=\"__FIELD_LABEL__\"").toRegex()
     newFormText = regex.replace(newFormText) { matchResult ->
         val indent = matchResult.destructured.component1()
@@ -157,19 +145,6 @@ fun replaceTemplateText(oldFormText: String, formType: FormType): String {
         val id = matchResult.destructured.component2()
         "${indent}{{#field_${id}_defined}}\n" +
                 "${indent}app:progress=\"@{ {{field_${id}_accessor}}{{field_${id}_name}} }\"\n" +
-                "${indent}{{/field_${id}_defined}}"
-    }
-
-    // TODO : TO BE REMOVED WHEN TEMPLATE LAYOUTS UPDATED
-    regex = ("(\\h*)android:text=\"__LABEL_(\\d+)__\"").toRegex()
-    newFormText = regex.replace(newFormText) { matchResult ->
-        val indent = matchResult.destructured.component1()
-        val id = matchResult.destructured.component2()
-        "${indent}{{#field_${id}_defined}}\n" +
-                "${indent}android:text=\"{{field_${id}_label}}\"\n" +
-                "${indent}{{#field_${id}_hasIcon}}\n" +
-                "${indent}app:icon='@{\"{{field_${id}_iconPath}}\"}'\n" +
-                "${indent}{{/field_${id}_hasIcon}}\n" +
                 "${indent}{{/field_${id}_defined}}"
     }
 
