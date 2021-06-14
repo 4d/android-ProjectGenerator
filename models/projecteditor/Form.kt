@@ -13,8 +13,12 @@ fun createDetailFormField(
     isImageNamed: Boolean,
     imageWidth: Int,
     imageHeight: Int,
-    hasIcon: Boolean
+    wholeFormHasIcons: Boolean
 ): TemplateFormFieldFiller {
+
+    Log.d("FIELD : ${field.name}, hasIcon = ${if (field.inverseName != null) !field.icon.isNullOrEmpty() else wholeFormHasIcons}, iconPath = ${getIconWithFixes(dataModelList, form, field)}")
+    Log.d("getIconWithfixes : ${getIconWithFixes(dataModelList, form, field)}")
+
 
     return TemplateFormFieldFiller(
         name = field.name.fieldAdjustment(),
@@ -32,7 +36,7 @@ fun createDetailFormField(
         fieldTableName = field.getFieldTableName(dataModelList, form),
         imageWidth = imageWidth,
         imageHeight = imageHeight,
-        hasIcon = hasIcon,
+        hasIcon = if (field.inverseName != null) getIconWithFixes(dataModelList, form, field) != "" else wholeFormHasIcons,
         iconPath = getIconWithFixes(dataModelList, form, field)
     )
 }

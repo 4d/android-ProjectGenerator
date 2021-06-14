@@ -29,7 +29,6 @@ fun replaceTemplateText(oldFormText: String, formType: FormType): String {
         .replace("__LABEL_ID__", "{{tableName_lowercase}}_field_label_{{viewId}}")
         .replace("__VALUE_ID__", "{{tableName_lowercase}}_field_value_{{viewId}}")
         .replace("__BUTTON_ID__", "{{tableName_lowercase}}_field_button_{{viewId}}")
-        .replace("android:text=\"__BUTTON__\"", "android:text=\"{{label}}\"")
 
     var regex = ("(\\h*)app:imageUrl=\"__IMAGE__\"").toRegex()
     newFormText = regex.replace(newFormText) { matchResult ->
@@ -63,6 +62,15 @@ fun replaceTemplateText(oldFormText: String, formType: FormType): String {
                     "${indent}app:text=\"@{ {{accessor}}{{name}}.toString()}\"\n" +
                     "${indent}app:format='@{\"{{formatType}}\"}'\n" +
                     "${indent}{{/isImage}}"
+    }
+
+    regex = ("(\\h*)android:text=\"__BUTTON__\"").toRegex()
+    newFormText = regex.replace(newFormText) { matchResult ->
+        val indent = matchResult.destructured.component1()
+        "${indent}android:text=\"{{label}}\"\n" +
+                "${indent}{{#hasIcon}}\n" +
+                "${indent}app:icon='@{\"{{iconPath}}\"}'\n" +
+                "${indent}{{/hasIcon}}"
     }
 
     regex = ("(\\h*)android:text=\"__FIELD_LABEL__\"").toRegex()
@@ -116,7 +124,11 @@ fun replaceTemplateText(oldFormText: String, formType: FormType): String {
     regex = ("(\\h*)android:text=\"__BUTTON_(\\d+)__\"").toRegex()
     newFormText = regex.replace(newFormText) { matchResult ->
         val indent = matchResult.destructured.component1()
-        "${indent}android:text=\"{{label}}\""
+        val id = matchResult.destructured.component2()
+        "${indent}android:text=\"{{field_${id}_label}}\"\n" +
+                "${indent}{{#field_${id}_hasIcon}}\n" +
+                "${indent}app:icon='@{\"{{field_${id}_iconPath}}\"}'\n" +
+                "${indent}{{/field_${id}_hasIcon}}"
     }
 
     regex = ("(\\h*)android:text=\"__TEXT_(\\d+)__\"").toRegex()

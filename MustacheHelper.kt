@@ -54,11 +54,6 @@ import MustacheConstants.TYPES_AND_TABLES
 import PathHelperConstants.TEMPLATE_PLACEHOLDER
 import PathHelperConstants.TEMPLATE_RELATION_DAO_PLACEHOLDER
 import PathHelperConstants.TEMPLATE_RELATION_ENTITY_PLACEHOLDER
-import ProjectEditorConstants.BOOLEAN_TYPE
-import ProjectEditorConstants.DATE_TYPE
-import ProjectEditorConstants.FLOAT_TYPE
-import ProjectEditorConstants.INT_TYPE
-import ProjectEditorConstants.TIME_TYPE
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.samskivert.mustache.Mustache
@@ -541,15 +536,15 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                     }
                                 data[RELATIONS] = relations
 
-                                var hasIcons = false
+                                var wholeFormHasIcons = false
 
                                 projectEditor.dataModelList.find { it.id == listForm.dataModel.id }?.fields?.forEach {
                                     Log.d("LIST ${listForm.name} / field = $it")
-                                    if (!it.icon.isNullOrEmpty())
-                                        hasIcons = true
+                                    if (it.inverseName.isNullOrEmpty() && !it.icon.isNullOrEmpty())
+                                        wholeFormHasIcons = true
                                 }
 
-                                Log.d("hasIcons = $hasIcons")
+                                Log.d("wholeFormHasIcons = $wholeFormHasIcons")
 
                                 var i = 0
                                 listForm.fields?.forEach { field -> // Could also iter over specificFieldsCount as Detail form
@@ -593,7 +588,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                             data["field_${i}_image_key_accessor"] = field.getFieldKeyAccessor(FormType.LIST)
                                         }
 
-                                        if (hasIcons) {
+                                        if (wholeFormHasIcons) {
                                             data["field_${i}_iconPath"] = getIconWithFixes(projectEditor.dataModelList, listForm, field)
                                             data["field_${i}_hasIcon"] = true
                                         }
@@ -693,15 +688,15 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
                                 detailForm.fields?.let { fieldList ->
 
-                                    var hasIcons = false
+                                    var wholeFormHasIcons = false
 
                                     projectEditor.dataModelList.find { it.id == detailForm.dataModel.id }?.fields?.forEach {
                                         Log.d("DETAIL ${detailForm.name} / field = $it")
-                                        if (!it.icon.isNullOrEmpty())
-                                            hasIcons = true
+                                        if (it.inverseName.isNullOrEmpty() && !it.icon.isNullOrEmpty())
+                                            wholeFormHasIcons = true
                                     }
 
-                                    Log.d("hasIcons = $hasIcons")
+                                    Log.d("wholeFormHasIcons = $wholeFormHasIcons")
 
                                     if (fieldList.isNotEmpty()) {
 
@@ -720,7 +715,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                                         isImageNamed = isImageNamedBinding(detailForm, field.name),
                                                         imageWidth = getImageSize(detailForm, field.name, "width"),
                                                         imageHeight = getImageSize(detailForm, field.name, "height"),
-                                                        hasIcon = hasIcons
+                                                        wholeFormHasIcons = wholeFormHasIcons
                                                     )
 
                                                     formFieldList.add(formField)
@@ -760,7 +755,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                                             data["field_${i + 1}_image_key_accessor"] = field.getFieldKeyAccessor(FormType.DETAIL)
                                                         }
 
-                                                        if (hasIcons) {
+                                                        if (wholeFormHasIcons) {
                                                             data["field_${i + 1}_iconPath"] = getIconWithFixes(projectEditor.dataModelList, detailForm, field)
                                                             data["field_${i + 1}_hasIcon"] = true
                                                         }
@@ -828,7 +823,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                                             isImageNamed = isImageNamedBinding(detailForm, field.name),
                                                             imageWidth = getImageSize(detailForm, field.name, "width"),
                                                             imageHeight = getImageSize(detailForm, field.name, "height"),
-                                                            hasIcon = hasIcons
+                                                            wholeFormHasIcons = wholeFormHasIcons
                                                         )
 
                                                         Log.v("format :: $format")

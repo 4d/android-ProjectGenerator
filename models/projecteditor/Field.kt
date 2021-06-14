@@ -83,8 +83,12 @@ fun Field.getShortLabel(): String {
 }
 
 fun Field.getIcon(dataModelKey: String): String {
-    if (this.icon.isNullOrEmpty())
-        return "field_icon_${dataModelKey}_${this.id}"
+    if (this.icon.isNullOrEmpty()) {
+        return if (this.inverseName.isNullOrEmpty())
+            "field_icon_${dataModelKey}_${this.id}"
+        else
+            "related_field_icon_${dataModelKey}_${this.relatedTableNumber}_${this.id}"
+    }
     return this.icon ?: ""
 }
 
@@ -129,7 +133,7 @@ fun Field.getFormatNameForType(): String {
 */
 fun getIconWithFixes(dataModelList: List<DataModel>, form: Form, field: Field): String {
     val fieldFromDataModel: Field? = dataModelList.find { it.id == form.dataModel.id }?.fields?.find { it.name == field.name }
-    return fieldFromDataModel?.getIcon(form.dataModel.id) ?: field?.getIcon(form.dataModel.id)
+    return fieldFromDataModel?.getIcon(form.dataModel.id) ?: field.getIcon(form.dataModel.id)
 }
 
 fun getFormatWithFixes(dataModelList: List<DataModel>, form: Form, field: Field): String {
