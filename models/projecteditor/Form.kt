@@ -16,10 +16,6 @@ fun createDetailFormField(
     wholeFormHasIcons: Boolean
 ): TemplateFormFieldFiller {
 
-    Log.d("FIELD : ${field.name}, hasIcon = ${if (field.inverseName != null) !field.icon.isNullOrEmpty() else wholeFormHasIcons}, iconPath = ${getIconWithFixes(dataModelList, form, field)}")
-    Log.d("getIconWithfixes : ${getIconWithFixes(dataModelList, form, field)}")
-
-
     return TemplateFormFieldFiller(
         name = field.name.fieldAdjustment(),
         label = field.getLabel(),
