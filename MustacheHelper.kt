@@ -574,8 +574,8 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                         data["field_${i}_name"] = field.name.fieldAdjustment()
                                         data["field_${i}_defined"] = field.name.isNotEmpty()
                                         data["field_${i}_is_image"] = field.isImage()
-                                        data["field_${i}_label"] = field.getLabel()
-                                        data["field_${i}_shortLabel"] = field.getShortLabel()
+                                        data["field_${i}_label"] = getLabelWithFixes(projectEditor.dataModelList, listForm, field)
+                                        data["field_${i}_shortLabel"] = getShortLabelWithFixes(projectEditor.dataModelList, listForm, field)
                                         data["field_${i}_iconPath"] = ""
                                         data["field_${i}_hasIcon"] = false
                                         data["field_${i}_custom_formatted"] = false
@@ -740,8 +740,8 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                                         data["field_${i + 1}_defined"] = field.name.isNotEmpty()
                                                         data["field_${i + 1}_is_image"] = field.isImage()
                                                         data["field_${i + 1}_name"] = field.name.fieldAdjustment()
-                                                        data["field_${i + 1}_label"] = field.getLabel()
-                                                        data["field_${i + 1}_shortLabel"] = field.getShortLabel()
+                                                        data["field_${i + 1}_label"] = getLabelWithFixes(projectEditor.dataModelList, detailForm, field)
+                                                        data["field_${i + 1}_shortLabel"] =  getShortLabelWithFixes(projectEditor.dataModelList, detailForm, field)
                                                         data["field_${i + 1}_iconPath"] = ""
                                                         data["field_${i + 1}_hasIcon"] = false
                                                         data["field_${i + 1}_custom_formatted"] = false

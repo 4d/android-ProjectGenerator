@@ -18,8 +18,8 @@ fun createDetailFormField(
 
     return TemplateFormFieldFiller(
         name = field.name.fieldAdjustment(),
-        label = field.getLabel(),
-        shortLabel = field.getShortLabel(),
+        label = getLabelWithFixes(dataModelList, form, field),
+        shortLabel = getShortLabelWithFixes(dataModelList, form, field),
         viewId = i,
         isRelation = field.inverseName != null,
         isImage = field.isImage(),

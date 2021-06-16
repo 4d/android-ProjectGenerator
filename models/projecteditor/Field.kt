@@ -127,16 +127,29 @@ fun Field.getFormatNameForType(): String {
     }
 }
 
+fun getDataModelField(dataModelList: List<DataModel>, form: Form, field: Field): Field? =
+    dataModelList.find { it.id == form.dataModel.id }?.fields?.find { it.name == field.name }
+
 /**
  * fieldFromDataModel is here to get the Field from dataModel instead of list/detail form as some information may be missing.
  * If it's a related field, fieldFromDataModel will be null, therefore check the field variable
 */
 fun getIconWithFixes(dataModelList: List<DataModel>, form: Form, field: Field): String {
-    val fieldFromDataModel: Field? = dataModelList.find { it.id == form.dataModel.id }?.fields?.find { it.name == field.name }
+    val fieldFromDataModel: Field? = getDataModelField(dataModelList, form, field)
     return fieldFromDataModel?.getIcon(form.dataModel.id) ?: field.getIcon(form.dataModel.id)
 }
 
 fun getFormatWithFixes(dataModelList: List<DataModel>, form: Form, field: Field): String {
-    val fieldFromDataModel: Field? = dataModelList.find { it.id == form.dataModel.id }?.fields?.find { it.name == field.name }
+    val fieldFromDataModel: Field? = getDataModelField(dataModelList, form, field)
     return fieldFromDataModel?.getFormatNameForType() ?: field.getFormatNameForType()
+}
+
+fun getShortLabelWithFixes(dataModelList: List<DataModel>, form: Form, field: Field): String {
+    val fieldFromDataModel: Field? = getDataModelField(dataModelList, form, field)
+    return fieldFromDataModel?.getShortLabel() ?: field.getShortLabel()
+}
+
+fun getLabelWithFixes(dataModelList: List<DataModel>, form: Form, field: Field): String {
+    val fieldFromDataModel: Field? = getDataModelField(dataModelList, form, field)
+    return fieldFromDataModel?.getLabel() ?: field.getLabel()
 }
