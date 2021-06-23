@@ -70,12 +70,13 @@ fun JSONObject.getDataModelList(): List<DataModel> {
                     for (j in 0 until newDataModelJSONObject.names().length()) {
                         val keyField = newDataModelJSONObject.names().getString(j)
                         if (keyField == EMPTY_KEY) continue
-                        val newFieldJSONObject = newDataModelJSONObject.getSafeObject(keyField.toString())
-                        val field = newFieldJSONObject?.getDataModelField(keyField)
+                        val newFieldJSONObject: JSONObject? = newDataModelJSONObject.getSafeObject(keyField.toString())
+                        val field: Field? = newFieldJSONObject?.getDataModelField(keyField)
                         field?.let {
                             it.isSlave = false
                             fieldList.add(it)
-                            getRelation(it, dataModelName)?.let { relation ->
+                            val subFields: List<Field> = newFieldJSONObject.getSubFields()
+                            getRelation(it, dataModelName, subFields)?.let { relation ->
                                 relationList.add(relation)
 
                                 if (relation.relationType == RelationType.MANY_TO_ONE) {
@@ -103,7 +104,8 @@ fun JSONObject.getDataModelList(): List<DataModel> {
                                         slaveField?.let { field ->
                                             field.isSlave = true
                                             slaveFieldList.add(field)
-                                            getRelation(field, relatedDataClass)?.let { relation ->
+                                            val slaveSubFields: List<Field> = newSlaveFieldJSONObject.getSubFields()
+                                            getRelation(field, relatedDataClass, slaveSubFields)?.let { relation ->
                                                 slaveRelationList.add(relation)
 
                                                 if (relation.relationType == RelationType.MANY_TO_ONE) {
@@ -233,12 +235,24 @@ fun JSONObject?.getDataModelField(keyField: String): Field {
     return field
 }
 
-fun getRelation(field: Field, tableName: String): Relation? {
+fun JSONObject?.getSubFields(): List<Field> {
+    val subList = mutableListOf<Field>()
+    this?.let {
+        for (j in 0 until this.names().length()) {
+            val key = this.names().getString(j)
+            val aSubField: JSONObject? = this.getSafeObject(key.toString())
+            aSubField?.getDataModelField(key.toString())?.let { subList.add(it) }
+        }
+    }
+    return subList
+}
+
+fun getRelation(field: Field, tableName: String, subFields: List<Field>): Relation? {
     field.relatedEntities?.let {
-        return Relation(source = tableName, target = it, name = field.name, relationType = RelationType.ONE_TO_MANY)
+        return Relation(source = tableName, target = it, name = field.name, relationType = RelationType.ONE_TO_MANY, subFields = subFields)
     }
     field.relatedDataClass?.let {
-        return Relation(source = tableName, target = it, name = field.name, relationType = RelationType.MANY_TO_ONE)
+        return Relation(source = tableName, target = it, name = field.name, relationType = RelationType.MANY_TO_ONE, subFields = subFields)
     }
     return null
 }

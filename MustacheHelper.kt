@@ -776,7 +776,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                                         Log.i("applyDetailFormTemplate fieldName :: ${field.name.fieldAdjustment()}")
 
                                                     } else {
-                                                        Log.d("Field [${field.name}] not added in specifc field because it is a relation")
+                                                        Log.d("Field [${field.name}] not added in specific field because it is a relation")
                                                     }
 
                                                 } else {
@@ -813,6 +813,9 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                                     if (field.name.isNotEmpty()) {
                                                         Log.d("Adding free Field in specific template $field")
 
+                                                        Log.d("field.name = ${field.name}")
+                                                        Log.d("field.name fieldAdjusted = ${field.name.fieldAdjustment()}")
+                                                        Log.d("form's dataModel = ${projectEditor.dataModelList.find { it.id == detailForm.dataModel.id }?.name}")
                                                         val format = getFormatWithFixes(projectEditor.dataModelList, detailForm, field)
                                                         val formField = createDetailFormField(
                                                             field = field,

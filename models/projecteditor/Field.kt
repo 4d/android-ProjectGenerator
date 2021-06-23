@@ -127,8 +127,21 @@ fun Field.getFormatNameForType(): String {
     }
 }
 
-fun getDataModelField(dataModelList: List<DataModel>, form: Form, field: Field): Field? =
-    dataModelList.find { it.id == form.dataModel.id }?.fields?.find { it.name == field.name }
+fun getDataModelField(dataModelList: List<DataModel>, form: Form, field: Field): Field? {
+    if (field.name.contains(".")) {
+        val dataModel = dataModelList.find { it.id == form.dataModel.id }
+        val relationList = dataModel?.relationList
+        val fieldInRelationList = relationList?.find { it.name == field.name.split(".")[0] }
+        val subFields = fieldInRelationList?.subFields
+        val subField = subFields?.find { it.name == field.name.split(".")[1] }
+        Log.d("getDataModelField - subField = $subField")
+        return subField
+    } else {
+        val dataModelField = dataModelList.find { it.id == form.dataModel.id }?.fields?.find { it.name == field.name }
+        Log.d("getDataModelField - dataModelField = $dataModelField")
+        return dataModelField
+    }
+}
 
 /**
  * fieldFromDataModel is here to get the Field from dataModel instead of list/detail form as some information may be missing.
