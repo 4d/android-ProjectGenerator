@@ -44,6 +44,7 @@ import MustacheConstants.TABLENAMES_RELATIONS
 import MustacheConstants.TABLENAMES_RELATIONS_DISTINCT
 import MustacheConstants.TABLENAMES_WITHOUT_RELATIONS
 import MustacheConstants.TABLENAMES_LAYOUT_RELATIONS
+import MustacheConstants.TABLENAME_CAMELCASE
 import MustacheConstants.TABLENAME_LOWERCASE
 import MustacheConstants.TABLENAME_ORIGINAL
 import MustacheConstants.THEME_COLOR_ON_PRIMARY
@@ -377,6 +378,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                     }
 
                                 data[TABLENAME_LOWERCASE] = tableName.name.toLowerCase().fieldAdjustment()
+                                data[TABLENAME_CAMELCASE] = tableName.name.dataBindingAdjustment()
                                 projectEditor.dataModelList.find { it.name.tableNameAdjustment() == tableName.name.tableNameAdjustment() }?.fields?.let { fields ->
                                     val fieldList = mutableListOf<TemplateFieldFiller>()
                                     for (field in fields) {
