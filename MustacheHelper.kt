@@ -989,22 +989,20 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                     // or a List<String> (JSONArray in app_info.json)
                                     when (fieldMapping.choiceList) {
                                         is Map<*, *> -> {
-                                            fieldMapping.choiceList.values.forEach { imageName ->
-                                                if (imageName is String) {
-                                                    if (imageName.contains(".") && imageExistsInFormatter(formatPath, imageName)) {
-                                                        val darkModeExists = imageExistsInFormatterInDarkMode(formatPath, imageName)
-                                                        imageMap[imageName] = getResourceName(format, imageName, darkModeExists)
-                                                    }
+                                            fieldMapping.choiceList.values.forEach eachImageName@ { imageName ->
+                                                if (imageName !is String) return@eachImageName
+                                                if (imageName.contains(".") && imageExistsInFormatter(formatPath, imageName)) {
+                                                    val darkModeExists = imageExistsInFormatterInDarkMode(formatPath, imageName)
+                                                    imageMap[imageName] = getResourceName(format, imageName, darkModeExists)
                                                 }
                                             }
                                         }
                                         is List<*> -> {
-                                            fieldMapping.choiceList.forEach { imageName ->
-                                                if (imageName is String) {
-                                                    if (imageName.contains(".") && imageExistsInFormatter(formatPath, imageName)) {
-                                                        val darkModeExists = imageExistsInFormatterInDarkMode(formatPath, imageName)
-                                                        imageMap[imageName] = getResourceName(format, imageName, darkModeExists)
-                                                    }
+                                            fieldMapping.choiceList.forEach eachImageName@ { imageName ->
+                                                if (imageName !is String) return@eachImageName
+                                                if (imageName.contains(".") && imageExistsInFormatter(formatPath, imageName)) {
+                                                    val darkModeExists = imageExistsInFormatterInDarkMode(formatPath, imageName)
+                                                    imageMap[imageName] = getResourceName(format, imageName, darkModeExists)
                                                 }
                                             }
                                         }

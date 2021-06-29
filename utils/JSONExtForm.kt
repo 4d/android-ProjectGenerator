@@ -11,25 +11,22 @@ fun JSONObject.getFormList(dataModelList: List<DataModel>, formType: FormType, n
     val formTypeKey = if (formType == FormType.LIST) LIST_KEY else DETAIL_KEY
     val forms = this.getSafeObject(PROJECT_KEY)?.getSafeObject(formTypeKey)
 
-    Log.d("dataModelList = ${dataModelList.map { it.id }.joinToString()}")
+    Log.d("dataModelList = ${dataModelList.joinToString { it.id }}")
     Log.d("navigationTableList = ${navigationTableList.joinToString()}")
 
-    forms?.names()?.let {
-        for (i in 0 until forms.names().length()) {
-            val keyDataModel = forms.names().getString(i)
-            dataModelList.filter { it.isSlave == false }.find { it.id == keyDataModel }?.let { dataModel ->
-                val form = Form(dataModel = dataModel)
-                val newFormJSONObject = forms.getSafeObject(keyDataModel.toString())
-                newFormJSONObject?.getSafeString(FORM_KEY)?.let {
-                    form.name = it
-                }
-                Log.d("***+ formType : $formType")
-                Log.d("newFormJSONObject = $newFormJSONObject")
-                Log.d("newFormJSONObject?.getSafeArray(FIELDS_KEY) = ${newFormJSONObject?.getSafeArray(FIELDS_KEY)}")
-                val fieldList = newFormJSONObject?.getSafeArray(FIELDS_KEY).getObjectListAsString()
-                form.fields = getFormFields(fieldList)
-                formList.add(form)
+    forms?.keys()?.forEach { keyDataModel ->
+        dataModelList.filter { it.isSlave == false }.find { it.id == keyDataModel }?.let { dataModel ->
+            val form = Form(dataModel = dataModel)
+            val newFormJSONObject = forms.getSafeObject(keyDataModel.toString())
+            newFormJSONObject?.getSafeString(FORM_KEY)?.let {
+                form.name = it
             }
+            Log.d("***+ formType : $formType")
+            Log.d("newFormJSONObject = $newFormJSONObject")
+            Log.d("newFormJSONObject?.getSafeArray(FIELDS_KEY) = ${newFormJSONObject?.getSafeArray(FIELDS_KEY)}")
+            val fieldList = newFormJSONObject?.getSafeArray(FIELDS_KEY).getObjectListAsString()
+            form.fields = getFormFields(fieldList)
+            formList.add(form)
         }
     }
 

@@ -83,13 +83,15 @@ class ProjectEditor(projectEditorFile: File) {
             "companyWithCaps" -> jsonObj.getSafeObject(PROJECT_KEY)?.getSafeObject(ORGANIZATION_KEY)
                 ?.getSafeString(NAME_KEY)
             "appNameWithCaps" -> jsonObj.getSafeObject(PROJECT_KEY)?.getSafeObject(PRODUCT_KEY)?.getSafeString(NAME_KEY)
-            "package" ->  jsonObj.getSafeString(PACKAGE_KEY)
-            "productionUrl" -> jsonObj.getSafeObject(PROJECT_KEY)?.getSafeObject(SERVER_KEY)?.getSafeObject(URLS_KEY)?.getSafeString(PRODUCTION_KEY)
+            "package" -> jsonObj.getSafeString(PACKAGE_KEY)
+            "productionUrl" -> jsonObj.getSafeObject(PROJECT_KEY)?.getSafeObject(SERVER_KEY)?.getSafeObject(URLS_KEY)
+                ?.getSafeString(PRODUCTION_KEY)
             "remoteUrl" -> jsonObj.getSafeString(REMOTE_URL_KEY)
             "teamId" -> jsonObj.getSafeObject(PROJECT_KEY)?.getSafeObject(ORGANIZATION_KEY)?.getSafeString(TEAMID_KEY)
             "embeddedData" -> jsonObj.getSafeObject(PROJECT_KEY)?.getSafeObject(DATASOURCE_KEY)
                 ?.getSafeString(SOURCE_KEY)
-            "dominantColor" -> jsonObj.getSafeObject(PROJECT_KEY)?.getSafeObject(UI_KEY)?.getSafeString(DOMINANT_COLOR_KEY)
+            "dominantColor" -> jsonObj.getSafeObject(PROJECT_KEY)?.getSafeObject(UI_KEY)
+                ?.getSafeString(DOMINANT_COLOR_KEY)
             else -> return null
         }
     }
@@ -128,60 +130,53 @@ class ProjectEditor(projectEditorFile: File) {
     }
 
     private fun getSearchableColumns(datarecv: JSONObject?) {
-        datarecv?.let {
-            if (datarecv.has("project")) {
-                val project = datarecv.getJSONObject("project")
-                if (project.has("list")) {
-                    val listForms = project.getJSONObject("list")
-                    val listFormsKeys = listForms.names()
-
-                    Log.i("listForms :: $listForms")
-                    for (index in 0 until listFormsKeys.length()) {
-                        val tableSearchableFields = mutableListOf<String>()
-                        val tableIndex = listFormsKeys.getString(index)
-                        val tableName = getTableName(tableIndex) // get table name by id
-                        val listForm = listForms.getJSONObject(tableIndex)
-                        if (listForm.has("searchableField")) {
-                            // could be an array or an object
-                            val searchableFieldAsArray = listForm.getSafeArray("searchableField")
-                            if (searchableFieldAsArray != null) {
-                                for (ind in 0 until searchableFieldAsArray.length()) {
-                                    val fieldName = searchableFieldAsArray.getJSONObject(ind).get("name") as String
+        datarecv?.getSafeObject("project")?.let { project ->
+            project.getSafeObject("list")?.let { listForms ->
+                Log.i("listForms :: $listForms")
+                listForms.keys().forEach eachTableIndex@{ tableIndex ->
+                    if (tableIndex !is String) return@eachTableIndex
+                    val tableSearchableFields = mutableListOf<String>()
+                    val tableName = getTableName(tableIndex) // get table name by id
+                    listForms.getSafeObject(tableIndex)?.let { listForm ->
+                        // could be an array or an object
+                        val searchableFieldAsArray = listForm.getSafeArray("searchableField")
+                        if (searchableFieldAsArray != null) {
+                            for (ind in 0 until searchableFieldAsArray.length()) {
+                                searchableFieldAsArray.getSafeObject(ind)?.getSafeString("name")?.let { fieldName ->
                                     if (!fieldName.contains(".")) {
-                                        Log.v("${tableName} SearchField fieldName.fieldAdjustment() :: ${fieldName.fieldAdjustment()}")
+                                        Log.v("$tableName SearchField fieldName.fieldAdjustment() :: ${fieldName.fieldAdjustment()}")
                                         tableSearchableFields.add(fieldName.fieldAdjustment())
                                     } else {
-                                        Log.w("${tableName} Search field ${fieldName} ignored. Relation N>1 not yet supported")
+                                        Log.w("$tableName Search field $fieldName ignored. Relation N>1 not yet supported")
                                     }
-                                }
-                            } else {
-                                val searchableFieldAsObject = listForm.getSafeObject("searchableField")
-                                if (searchableFieldAsObject != null) {
-                                    val fieldName = searchableFieldAsObject.get("name") as String
-                                    if (!fieldName.contains(".")) {
-                                        Log.v("${tableName}  SearchField fieldName.fieldAdjustment() :: ${fieldName.fieldAdjustment()}")
-                                        tableSearchableFields.add(fieldName.fieldAdjustment())
-                                    } else {
-                                        Log.w("${tableName}  Search field ${fieldName} ignored. Relation N>1 not yet supported")
-                                    }
-                                } else {
-                                    Log.w("${tableName} searchableField is not available as object or array in ${listForm}")
                                 }
                             }
                         } else {
-                            Log.d("${tableName} No searchable Field Found")
-                        }
-                        if (tableSearchableFields.size != 0) { // if has search field add it
-                            if (tableName != null) {
-                                searchableFields.put(tableName.tableNameAdjustment(), tableSearchableFields)
+                            val searchableFieldAsObject = listForm.getSafeObject("searchableField")
+                            if (searchableFieldAsObject != null) {
+                                searchableFieldAsObject.getSafeString("name")?.let { fieldName ->
+                                    if (!fieldName.contains(".")) {
+                                        Log.v("$tableName  SearchField fieldName.fieldAdjustment() :: ${fieldName.fieldAdjustment()}")
+                                        tableSearchableFields.add(fieldName.fieldAdjustment())
+                                    } else {
+                                        Log.w("$tableName  Search field $fieldName ignored. Relation N>1 not yet supported")
+                                    }
+                                }
                             } else {
-                                Log.e("Cannot get tablename for index ${tableIndex} when filling search fields")
+                                Log.w("$tableName searchableField is not available as object or array in $listForm")
                             }
                         }
                     }
-                    Log.i("Computed search fields ${searchableFields}")
-                } // else no list form, so no search fields
-            }
+                    if (tableSearchableFields.size != 0) { // if has search field add it
+                        if (tableName != null) {
+                            searchableFields[tableName.tableNameAdjustment()] = tableSearchableFields
+                        } else {
+                            Log.e("Cannot get tableName for index $tableIndex when filling search fields")
+                        }
+                    }
+                }
+                Log.i("Computed search fields $searchableFields")
+            } // else no list form, so no search fields
         }
     }
 }

@@ -187,7 +187,7 @@ object Color {
             } else require(colorString.length == 9) { "Unknown color" }
             return color.toInt()
         } else {
-            val color = sColorNameMap!![colorString.toLowerCase(Locale.ROOT)]
+            val color = sColorNameMap[colorString.toLowerCase(Locale.ROOT)]
             if (color != null) {
                 return color
             }
