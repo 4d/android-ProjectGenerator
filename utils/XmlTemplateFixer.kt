@@ -26,11 +26,11 @@ fun replaceTemplateText(oldFormText: String, formType: FormType): String {
         .replace("<!--END_IF_IS_IMAGE-->", "{{/isImage}}")
         .replace("<!--IF_IS_NOT_IMAGE-->", "{{^isImage}}")
         .replace("<!--END_IF_IS_NOT_IMAGE-->", "{{/isImage}}")
-        .replace("__LABEL_ID__", "{{tableName_lowercase}}_field_label_{{viewId}}")
-        .replace("__VALUE_ID__", "{{tableName_lowercase}}_field_value_{{viewId}}")
-        .replace("__BUTTON_ID__", "{{tableName_lowercase}}_field_button_{{viewId}}")
+        .replace("___LABEL_ID___", "{{tableName_lowercase}}_field_label_{{viewId}}")
+        .replace("___VALUE_ID___", "{{tableName_lowercase}}_field_value_{{viewId}}")
+        .replace("___BUTTON_ID___", "{{tableName_lowercase}}_field_button_{{viewId}}")
 
-    var regex = ("(\\h*)app:imageUrl=\"__IMAGE__\"").toRegex()
+    var regex = ("(\\h*)app:imageUrl=\"___IMAGE___\"").toRegex()
     newFormText = regex.replace(newFormText) { matchResult ->
         val indent = matchResult.destructured.component1()
         if (formType == FormType.LIST) // should never come here (free field in list form)
@@ -44,7 +44,7 @@ fun replaceTemplateText(oldFormText: String, formType: FormType): String {
                     "${indent}{{/isImage}}"
     }
 
-    regex = ("(\\h*)android:text=\"__TEXT__\"").toRegex()
+    regex = ("(\\h*)android:text=\"___TEXT___\"").toRegex()
     newFormText = regex.replace(newFormText) { matchResult ->
         val indent = matchResult.destructured.component1()
         if (formType == FormType.LIST) // should never come here (free field in list form)
@@ -64,7 +64,7 @@ fun replaceTemplateText(oldFormText: String, formType: FormType): String {
                     "${indent}{{/isImage}}"
     }
 
-    regex = ("(\\h*)android:text=\"__BUTTON__\"").toRegex()
+    regex = ("(\\h*)android:text=\"___BUTTON___\"").toRegex()
     newFormText = regex.replace(newFormText) { matchResult ->
         val indent = matchResult.destructured.component1()
         "${indent}android:text=\"{{label}}\"\n" +
@@ -73,7 +73,7 @@ fun replaceTemplateText(oldFormText: String, formType: FormType): String {
                 "${indent}{{/hasIcon}}"
     }
 
-    regex = ("(\\h*)android:text=\"__FIELD_LABEL__\"").toRegex()
+    regex = ("(\\h*)android:text=\"___FIELD_LABEL___\"").toRegex()
     newFormText = regex.replace(newFormText) { matchResult ->
         val indent = matchResult.destructured.component1()
         if (formType == FormType.LIST) // should never come here (free field in list form)
@@ -85,7 +85,7 @@ fun replaceTemplateText(oldFormText: String, formType: FormType): String {
                     "${indent}{{/hasIcon}}"
     }
 
-    regex = ("(\\h*)android:text=\"__FIELD_SHORT_LABEL__\"").toRegex()
+    regex = ("(\\h*)android:text=\"___FIELD_SHORT_LABEL__\"_").toRegex()
     newFormText = regex.replace(newFormText) { matchResult ->
         val indent = matchResult.destructured.component1()
         if (formType == FormType.LIST) // should never come here (free field in list form)
@@ -115,13 +115,13 @@ fun replaceTemplateText(oldFormText: String, formType: FormType): String {
                     "${indent}\ttype=\"${variableType}\"/>"
     }
 
-    regex = ("__SPECIFIC_ID_(\\d+)__").toRegex()
+    regex = ("___SPECIFIC_ID_(\\d+)___").toRegex()
     newFormText = regex.replace(newFormText) { matchResult ->
         val id = matchResult.destructured.component1()
         "{{tableName_lowercase}}_field_value_${id}"
     }
 
-    regex = ("(\\h*)android:text=\"__BUTTON_(\\d+)__\"").toRegex()
+    regex = ("(\\h*)android:text=\"___BUTTON_(\\d+)___\"").toRegex()
     newFormText = regex.replace(newFormText) { matchResult ->
         val indent = matchResult.destructured.component1()
         val id = matchResult.destructured.component2()
@@ -131,7 +131,7 @@ fun replaceTemplateText(oldFormText: String, formType: FormType): String {
                 "${indent}{{/field_${id}_hasIcon}}"
     }
 
-    regex = ("(\\h*)android:text=\"__TEXT_(\\d+)__\"").toRegex()
+    regex = ("(\\h*)android:text=\"___TEXT_(\\d+)___\"").toRegex()
     newFormText = regex.replace(newFormText) { matchResult ->
         val indent = matchResult.destructured.component1()
         val id = matchResult.destructured.component2()
@@ -151,7 +151,7 @@ fun replaceTemplateText(oldFormText: String, formType: FormType): String {
                 "${indent}{{/field_${id}_defined}}"
     }
 
-    regex = ("(\\h*)android:progress=\"__PROGRESS_(\\d+)__\"").toRegex()
+    regex = ("(\\h*)android:progress=\"___PROGRESS_(\\d+)___\"").toRegex()
     newFormText = regex.replace(newFormText) { matchResult ->
         val indent = matchResult.destructured.component1()
         val id = matchResult.destructured.component2()
@@ -160,7 +160,7 @@ fun replaceTemplateText(oldFormText: String, formType: FormType): String {
                 "${indent}{{/field_${id}_defined}}"
     }
 
-    regex = ("(\\h*)android:text=\"__FIELD_LABEL_(\\d+)__\"").toRegex()
+    regex = ("(\\h*)android:text=\"___FIELD_LABEL_(\\d+)___\"").toRegex()
     newFormText = regex.replace(newFormText) { matchResult ->
         val indent = matchResult.destructured.component1()
         val id = matchResult.destructured.component2()
@@ -172,7 +172,7 @@ fun replaceTemplateText(oldFormText: String, formType: FormType): String {
                 "${indent}{{/field_${id}_defined}}"
     }
 
-    regex = ("(\\h*)android:text=\"__FIELD_SHORT_LABEL_(\\d+)__\"").toRegex()
+    regex = ("(\\h*)android:text=\"___FIELD_SHORT_LABEL_(\\d+)___\"").toRegex()
     newFormText = regex.replace(newFormText) { matchResult ->
         val indent = matchResult.destructured.component1()
         val id = matchResult.destructured.component2()
@@ -184,7 +184,7 @@ fun replaceTemplateText(oldFormText: String, formType: FormType): String {
                 "${indent}{{/field_${id}_defined}}"
     }
 
-    regex = ("(\\h*)app:imageUrl=\"__IMAGE_(\\d+)__\"").toRegex()
+    regex = ("(\\h*)app:imageUrl=\"___IMAGE_(\\d+)___\"").toRegex()
     newFormText = regex.replace(newFormText) { matchResult ->
         val indent = matchResult.destructured.component1()
         val id = matchResult.destructured.component2()
