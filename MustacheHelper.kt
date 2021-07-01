@@ -843,8 +843,10 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                                 // no additional field given
                                             }
                                         }
-
                                     }
+                                    // Remove relation buttons as 1->N relations are not implemented yet
+                                    formFieldList.removeIf { it.isRelation }
+
                                     data[FORM_FIELDS] = formFieldList
                                 }
 
