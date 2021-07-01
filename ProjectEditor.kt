@@ -138,29 +138,21 @@ class ProjectEditor(projectEditorFile: File) {
                     val tableSearchableFields = mutableListOf<String>()
                     val tableName = getTableName(tableIndex) // get table name by id
                     listForms.getSafeObject(tableIndex)?.let { listForm ->
-                        // could be an array or an object
+                        // could be an array or an object (object if only one item dropped)
                         val searchableFieldAsArray = listForm.getSafeArray("searchableField")
                         if (searchableFieldAsArray != null) {
                             for (ind in 0 until searchableFieldAsArray.length()) {
                                 searchableFieldAsArray.getSafeObject(ind)?.getSafeString("name")?.let { fieldName ->
-                                    if (!fieldName.contains(".")) {
-                                        Log.v("$tableName SearchField fieldName.fieldAdjustment() :: ${fieldName.fieldAdjustment()}")
-                                        tableSearchableFields.add(fieldName.fieldAdjustment())
-                                    } else {
-                                        Log.w("$tableName Search field $fieldName ignored. Relation N>1 not yet supported")
-                                    }
+                                    Log.v("$tableName SearchField fieldName.fieldAdjustment() :: ${fieldName.fieldAdjustment()}")
+                                    tableSearchableFields.add(fieldName.fieldAdjustment())
                                 }
                             }
                         } else {
                             val searchableFieldAsObject = listForm.getSafeObject("searchableField")
                             if (searchableFieldAsObject != null) {
                                 searchableFieldAsObject.getSafeString("name")?.let { fieldName ->
-                                    if (!fieldName.contains(".")) {
-                                        Log.v("$tableName  SearchField fieldName.fieldAdjustment() :: ${fieldName.fieldAdjustment()}")
-                                        tableSearchableFields.add(fieldName.fieldAdjustment())
-                                    } else {
-                                        Log.w("$tableName  Search field $fieldName ignored. Relation N>1 not yet supported")
-                                    }
+                                    Log.v("$tableName  SearchField fieldName.fieldAdjustment() :: ${fieldName.fieldAdjustment()}")
+                                    tableSearchableFields.add(fieldName.fieldAdjustment())
                                 }
                             } else {
                                 Log.w("$tableName searchableField is not available as object or array in $listForm")
