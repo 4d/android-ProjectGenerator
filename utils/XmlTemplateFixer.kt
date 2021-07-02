@@ -85,7 +85,7 @@ fun replaceTemplateText(oldFormText: String, formType: FormType): String {
                     "${indent}{{/hasIcon}}"
     }
 
-    regex = ("(\\h*)android:text=\"___FIELD_SHORT_LABEL___\"_").toRegex()
+    regex = ("(\\h*)android:text=\"___FIELD_SHORT_LABEL___\"").toRegex()
     newFormText = regex.replace(newFormText) { matchResult ->
         val indent = matchResult.destructured.component1()
         if (formType == FormType.LIST) // should never come here (free field in list form)
