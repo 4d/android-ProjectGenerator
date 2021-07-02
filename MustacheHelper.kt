@@ -545,6 +545,13 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                     if (it.inverseName.isNullOrEmpty() && !it.icon.isNullOrEmpty())
                                         wholeFormHasIcons = true
                                 }
+                                projectEditor.dataModelList.find { it.id  == listForm.dataModel.id }?.relationList?.forEach { relation ->
+                                    relation.subFields.forEach {
+                                        Log.d("LIST ${listForm.name} / related field = $it")
+                                        if (it.inverseName.isNullOrEmpty() && !it.icon.isNullOrEmpty())
+                                            wholeFormHasIcons = true
+                                    }
+                                }
 
                                 Log.d("wholeFormHasIcons = $wholeFormHasIcons")
 
@@ -696,6 +703,13 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                         Log.d("DETAIL ${detailForm.name} / field = $it")
                                         if (it.inverseName.isNullOrEmpty() && !it.icon.isNullOrEmpty())
                                             wholeFormHasIcons = true
+                                    }
+                                    projectEditor.dataModelList.find { it.id  == detailForm.dataModel.id }?.relationList?.forEach { relation ->
+                                        relation.subFields.forEach {
+                                            Log.d("DETAIL ${detailForm.name} / related field = $it")
+                                            if (it.inverseName.isNullOrEmpty() && !it.icon.isNullOrEmpty())
+                                                wholeFormHasIcons = true
+                                        }
                                     }
 
                                     Log.d("wholeFormHasIcons = $wholeFormHasIcons")

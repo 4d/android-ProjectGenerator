@@ -16,7 +16,7 @@ fun createDetailFormField(
     wholeFormHasIcons: Boolean
 ): TemplateFormFieldFiller {
 
-    return TemplateFormFieldFiller(
+    val templateFormFieldFiller = TemplateFormFieldFiller(
         name = field.name.fieldAdjustment(),
         label = getLabelWithFixes(dataModelList, form, field),
         shortLabel = getShortLabelWithFixes(dataModelList, form, field),
@@ -35,4 +35,6 @@ fun createDetailFormField(
         hasIcon = if (field.inverseName != null) getIconWithFixes(dataModelList, form, field) != "" else wholeFormHasIcons,
         iconPath = getIconWithFixes(dataModelList, form, field)
     )
+    Log.d("createDetailFormField : templateFormFieldFiller = $templateFormFieldFiller")
+    return templateFormFieldFiller
 }
