@@ -59,6 +59,7 @@ import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.samskivert.mustache.Mustache
 import com.samskivert.mustache.Template
+import org.json.JSONObject
 import java.io.File
 import java.io.FileReader
 import java.lang.Integer.toHexString
@@ -563,17 +564,21 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                             formPath) && field.isImage())
                                     ) { // is relation or image in default template
 
+                                        data["field_${i}_name"] = ""
                                         data["field_${i}_defined"] = false
-                                        data["field_${i}_custom_formatted"] = false
-                                        data["field_${i}_custom_formatted_imageNamed"] = false
+                                        data["field_${i}_is_image"] = false
                                         data["field_${i}_label"] = ""
                                         data["field_${i}_shortLabel"] = ""
                                         data["field_${i}_iconPath"] = ""
                                         data["field_${i}_hasIcon"] = false
-                                        data["field_${i}_name"] = ""
-                                        data["field_${i}_accessor"] = ""
+                                        data["field_${i}_custom_formatted"] = false
+                                        data["field_${i}_custom_formatted_imageNamed"] = false
                                         data["field_${i}_format_type"] = ""
+                                        data["field_${i}_accessor"] = ""
                                         data["field_${i}_field_name"] = ""
+                                        data["field_${i}_source_table_name"] = ""
+                                        data["field_${i}_image_key_accessor"] = ""
+                                        data["field_${i}_format_field_name"] = ""
                                         data["field_${i}_field_table_name"] = ""
                                         data["field_${i}_field_image_width"] = 0
                                         data["field_${i}_field_image_height"] = 0
@@ -592,7 +597,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                         data["field_${i}_format_type"] = ""
                                         data["field_${i}_accessor"] = field.getLayoutVariableAccessor(FormType.LIST)
                                         data["field_${i}_field_name"] = field.getFieldName()
-                                        data["field_${i}_field_table_name"] = field.getFieldTableName(projectEditor.dataModelList, listForm)
+                                        data["field_${i}_source_table_name"] = field.getSourceTableName(projectEditor.dataModelList, listForm)
                                         if (field.isImage()) {
                                             data["field_${i}_image_key_accessor"] = field.getFieldKeyAccessor(FormType.LIST)
                                         }
@@ -607,6 +612,8 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
                                         if (format.startsWith("/")) {
                                             data["field_${i}_custom_formatted"] = true
+                                            data["field_${i}_format_field_name"] = field.name
+                                            data["field_${i}_field_table_name"] = listForm.dataModel.name
                                             if (isImageNamedBinding(listForm, field.name)) {
                                                 Log.d("Field : ${field.name}, table : ${listForm.dataModel.name}, is imageNamed binding")
                                                 data["field_${i}_custom_formatted_imageNamed"] = true
@@ -625,9 +632,9 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
                                 // cleaning data for other templates
                                 for (j in 1 until i + 1) {
+                                    data.remove("field_${j}_name")
                                     data.remove("field_${j}_defined")
                                     data.remove("field_${j}_is_image")
-                                    data.remove("field_${j}_name")
                                     data.remove("field_${j}_label")
                                     data.remove("field_${j}_shortLabel")
                                     data.remove("field_${j}_iconPath")
@@ -637,7 +644,9 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                     data.remove("field_${j}_format_type")
                                     data.remove("field_${j}_accessor")
                                     data.remove("field_${j}_field_name")
+                                    data.remove("field_${j}_source_table_name")
                                     data.remove("field_${j}_image_key_accessor")
+                                    data.remove("field_${j}_format_field_name")
                                     data.remove("field_${j}_field_table_name")
                                     data.remove("field_${j}_field_image_width")
                                     data.remove("field_${j}_field_image_height")
@@ -753,9 +762,9 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                                             field.getLayoutVariableAccessor(FormType.DETAIL)
                                                         }")
 
+                                                        data["field_${i + 1}_name"] = field.name.fieldAdjustment()
                                                         data["field_${i + 1}_defined"] = field.name.isNotEmpty()
                                                         data["field_${i + 1}_is_image"] = field.isImage()
-                                                        data["field_${i + 1}_name"] = field.name.fieldAdjustment()
                                                         data["field_${i + 1}_label"] = getLabelWithFixes(projectEditor.dataModelList, detailForm, field)
                                                         data["field_${i + 1}_shortLabel"] =  getShortLabelWithFixes(projectEditor.dataModelList, detailForm, field)
                                                         data["field_${i + 1}_iconPath"] = ""
@@ -766,7 +775,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                                         data["field_${i + 1}_accessor"] =
                                                             field.getLayoutVariableAccessor(FormType.DETAIL)
                                                         data["field_${i + 1}_field_name"] = field.getFieldName()
-                                                        data["field_${i + 1}_field_table_name"] = field.getFieldTableName(projectEditor.dataModelList, detailForm)
+                                                        data["field_${i + 1}_source_table_name"] = field.getSourceTableName(projectEditor.dataModelList, detailForm)
                                                         if (field.isImage()) {
                                                             data["field_${i + 1}_image_key_accessor"] = field.getFieldKeyAccessor(FormType.DETAIL)
                                                         }
@@ -780,6 +789,8 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                                         data["field_${i + 1}_format_type"] = format
                                                         if (format.startsWith("/")) { // custom format
                                                             data["field_${i + 1}_custom_formatted"] = true
+                                                            data["field_${i + 1}_format_field_name"] = field.name
+                                                            data["field_${i + 1}_field_table_name"] = detailForm.dataModel.name
 
                                                             if (isImageNamedBinding(detailForm, field.name)) {
                                                                 data["field_${i + 1}_custom_formatted_imageNamed"] = true
@@ -797,9 +808,9 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
                                                 } else {
                                                     Log.d("Field list shorter than specific fields count")
+                                                    data["field_${i + 1}_name"] = ""
                                                     data["field_${i + 1}_defined"] = false
                                                     data["field_${i + 1}_is_image"] = false
-                                                    data["field_${i + 1}_name"] = ""
                                                     data["field_${i + 1}_label"] = ""
                                                     data["field_${i + 1}_shortLabel"] = ""
                                                     data["field_${i + 1}_iconPath"] = ""
@@ -809,7 +820,9 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                                     data["field_${i + 1}_format_type"] = ""
                                                     data["field_${i + 1}_accessor"] = ""
                                                     data["field_${i + 1}_field_name"] = ""
+                                                    data["field_${i + 1}_source_table_name"] = ""
                                                     data["field_${i + 1}_image_key_accessor"] = ""
+                                                    data["field_${i + 1}_format_field_name"] = ""
                                                     data["field_${i + 1}_field_table_name"] = ""
                                                     data["field_${i + 1}_field_image_width"] = 0
                                                     data["field_${i + 1}_field_image_height"] = 0
@@ -871,9 +884,9 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                 // cleaning data for other templates
                                 data.remove(FORM_FIELDS)
                                 for (i in 1 until specificFieldsCount) {
+                                    data.remove("field_${i}_name")
                                     data.remove("field_${i}_defined")
                                     data.remove("field_${i}_is_image")
-                                    data.remove("field_${i}_name")
                                     data.remove("field_${i}_label")
                                     data.remove("field_${i}_shortLabel")
                                     data.remove("field_${i}_iconPath")
@@ -883,8 +896,12 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                     data.remove("field_${i}_format_type")
                                     data.remove("field_${i}_accessor")
                                     data.remove("field_${i}_field_name")
+                                    data.remove("field_${i}_source_table_name")
                                     data.remove("field_${i}_image_key_accessor")
+                                    data.remove("field_${i}_format_field_name")
                                     data.remove("field_${i}_field_table_name")
+                                    data.remove("field_${i}_field_image_width")
+                                    data.remove("field_${i}_field_image_height")
                                 }
 
                             } else { // any file to copy in project
@@ -985,61 +1002,94 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         projectEditor.dataModelList.forEach { dataModel ->
             val map = mutableMapOf<String, FieldMapping>()
             dataModel.fields?.forEach { field ->
-                field.format?.let { format ->
-                    Log.d("ProjectEditor.kt  /  Format = $format")
-                    if (format.startsWith("/")) {
-
-                        val isSearchable = isCustomFormatterSearchable(dataModel.name, field.name, projectEditor.searchableFields)
-                        val formatPath = fileHelper.pathHelper.getCustomFormatterPath(format)
-                        getManifestJSONContent(formatPath)?.let {
-                            val fieldMapping = getFieldMapping(it, format, isSearchable)
-                            Log.d("fieldMapping = $fieldMapping")
-                            if (isValidFormatter(fieldMapping)) {
-                                map[field.name.fieldAdjustment()] = fieldMapping
-
-                                if (isImageNamed(fieldMapping)) {
-
-                                    val imageMap = mutableMapOf<String, Pair<String, String>>()
-
-                                    // choiceList can be Map<String, String> (JSONObject in app_info.json)
-                                    // or a List<String> (JSONArray in app_info.json)
-                                    when (fieldMapping.choiceList) {
-                                        is Map<*, *> -> {
-                                            fieldMapping.choiceList.values.forEach eachImageName@ { imageName ->
-                                                if (imageName !is String) return@eachImageName
-                                                if (imageName.contains(".") && imageExistsInFormatter(formatPath, imageName)) {
-                                                    val darkModeExists = imageExistsInFormatterInDarkMode(formatPath, imageName)
-                                                    imageMap[imageName] = getResourceName(format, imageName, darkModeExists)
-                                                }
-                                            }
-                                        }
-                                        is List<*> -> {
-                                            fieldMapping.choiceList.forEach eachImageName@ { imageName ->
-                                                if (imageName !is String) return@eachImageName
-                                                if (imageName.contains(".") && imageExistsInFormatter(formatPath, imageName)) {
-                                                    val darkModeExists = imageExistsInFormatterInDarkMode(formatPath, imageName)
-                                                    imageMap[imageName] = getResourceName(format, imageName, darkModeExists)
-                                                }
-                                            }
-                                        }
-                                    }
-                                    customFormattersImagesMap.putIfAbsent(format, imageMap)
-                                }
-                            } else {
-                                Log.d("Not adding this custom formatter as it's not valid")
-                            }
-                        }
-
-                    } else {
-                        customFormatMap.put(dataModel.name.tableNameAdjustment(), map)
-                    }
-                } ?: kotlin.run {
-                    customFormatMap.put(dataModel.name.tableNameAdjustment(), map)
+                getCustomFormatterField(dataModel, field, null, customFormatMap, map, customFormattersImagesMap)
+            }
+            dataModel.relationList?.forEach { relation ->
+                relation.subFields.forEach { field ->
+                    getCustomFormatterField(dataModel, field, relation.name, customFormatMap, map, customFormattersImagesMap)
                 }
             }
         }
         this.customFormattersImagesMap = customFormattersImagesMap
         return customFormatMap
+    }
+
+    private fun getCustomFormatterField(
+        dataModel: DataModel,
+        field: Field,
+        relationName: String?,
+        customFormatMap: MutableMap<String, Map<String, FieldMapping>>,
+        map: MutableMap<String, FieldMapping>,
+        customFormattersImagesMap: MutableMap<String, Map<String, Pair<String, String>>>
+    ) {
+        field.format?.let { format ->
+            Log.d("getCustomFormatterFields()  /  Format = $format")
+            if (format.startsWith("/")) {
+
+                val isSearchable = isCustomFormatterSearchable(dataModel.name, field.name, projectEditor.searchableFields)
+                val formatPath = fileHelper.pathHelper.getCustomFormatterPath(format)
+                getManifestJSONContent(formatPath)?.let {
+                    extractFormatter(it, field, relationName, formatPath, format, isSearchable, map, customFormattersImagesMap)
+                }
+
+            } else {
+                customFormatMap.put(dataModel.name.tableNameAdjustment(), map)
+            }
+        } ?: kotlin.run {
+            customFormatMap.put(dataModel.name.tableNameAdjustment(), map)
+        }
+    }
+
+    private fun extractFormatter(
+        manifestContent: JSONObject,
+        field: Field,
+        relationName: String?,
+        formatPath: String,
+        format: String,
+        isSearchable: Boolean,
+        map: MutableMap<String, FieldMapping>,
+        customFormattersImagesMap: MutableMap<String, Map<String, Pair<String, String>>>
+    ) {
+        val fieldMapping = getFieldMapping(manifestContent, format, isSearchable)
+        Log.d("extractFormatter : relationName = $relationName")
+        Log.d("fieldMapping = $fieldMapping")
+        if (isValidFormatter(fieldMapping)) {
+            if (relationName.isNullOrEmpty())
+                map[field.name.fieldAdjustment()] = fieldMapping
+            else
+                map[relationName.fieldAdjustment() + "." + field.name.fieldAdjustment()] = fieldMapping
+
+            if (isImageNamed(fieldMapping)) {
+
+                val imageMap = mutableMapOf<String, Pair<String, String>>()
+
+                // choiceList can be Map<String, String> (JSONObject in app_info.json)
+                // or a List<String> (JSONArray in app_info.json)
+                when (fieldMapping.choiceList) {
+                    is Map<*, *> -> {
+                        fieldMapping.choiceList.values.forEach eachImageName@ { imageName ->
+                            if (imageName !is String) return@eachImageName
+                            if (imageName.contains(".") && imageExistsInFormatter(formatPath, imageName)) {
+                                val darkModeExists = imageExistsInFormatterInDarkMode(formatPath, imageName)
+                                imageMap[imageName] = getResourceName(format, imageName, darkModeExists)
+                            }
+                        }
+                    }
+                    is List<*> -> {
+                        fieldMapping.choiceList.forEach eachImageName@ { imageName ->
+                            if (imageName !is String) return@eachImageName
+                            if (imageName.contains(".") && imageExistsInFormatter(formatPath, imageName)) {
+                                val darkModeExists = imageExistsInFormatterInDarkMode(formatPath, imageName)
+                                imageMap[imageName] = getResourceName(format, imageName, darkModeExists)
+                            }
+                        }
+                    }
+                }
+                customFormattersImagesMap.putIfAbsent(format, imageMap)
+            }
+        } else {
+            Log.d("Not adding this custom formatter as it's not valid")
+        }
     }
 
     private fun getResourceName(format: String, imageName: String, darkModeExists: Boolean): Pair<String, String> {

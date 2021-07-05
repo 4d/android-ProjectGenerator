@@ -15,6 +15,8 @@ fun createDetailFormField(
     imageHeight: Int,
     wholeFormHasIcons: Boolean
 ): TemplateFormFieldFiller {
+    Log.d("createDetailFormField : field = $field")
+    Log.d("createDetailFormField : field.fieldName() = ${field.getFieldName()}")
 
     val templateFormFieldFiller = TemplateFormFieldFiller(
         name = field.name.fieldAdjustment(),
@@ -23,13 +25,15 @@ fun createDetailFormField(
         viewId = i,
         isRelation = field.inverseName != null,
         isImage = field.isImage(),
+        sourceTableName = field.getSourceTableName(dataModelList, form),
         accessor = field.getLayoutVariableAccessor(FormType.DETAIL),
         isCustomFormat = formatType.startsWith("/"),
+        formatFieldName = field.name,
         isImageNamed = isImageNamed,
         formatType = formatType,
         fieldName = field.getFieldName(),
         imageKeyAccessor = field.getFieldKeyAccessor(FormType.DETAIL),
-        fieldTableName = field.getFieldTableName(dataModelList, form),
+        fieldTableName = form.dataModel.name,
         imageWidth = imageWidth,
         imageHeight = imageHeight,
         hasIcon = if (field.inverseName != null) getIconWithFixes(dataModelList, form, field) != "" else wholeFormHasIcons,
