@@ -3,7 +3,6 @@ import DefaultValues.DEFAULT_REMOTE_URL
 import ProjectEditorConstants.AUTHENTICATION_KEY
 import ProjectEditorConstants.BOOLEAN_TYPE
 import ProjectEditorConstants.CACHE_4D_SDK_KEY
-import ProjectEditorConstants.DATAMODEL_KEY
 import ProjectEditorConstants.DATASOURCE_KEY
 import ProjectEditorConstants.DATE_TYPE
 import ProjectEditorConstants.DEVELOPER_KEY
@@ -38,10 +37,9 @@ class ProjectEditor(projectEditorFile: File) {
     lateinit var listFormList: List<Form>
     lateinit var detailFormList: List<Form>
     lateinit var navigationTableList: List<String>
-    val searchableFields = HashMap<String, List<String>>()
+    lateinit var searchableFields: HashMap<String, List<String>>
 
     lateinit var jsonObj: JSONObject
-    // Hold sort Filed
 
     init {
         val jsonString = projectEditorFile.readFile()
@@ -60,7 +58,7 @@ class ProjectEditor(projectEditorFile: File) {
             dataModelList = jsonObj.getDataModelList()
             Log.d("> DataModels list successfully read.")
 
-            getSearchableColumns(jsonObj)
+            searchableFields = jsonObj.getSearchFields(dataModelList)
             Log.d("> Searchable fields successfully read.")
 
             listFormList = jsonObj.getFormList(dataModelList, FormType.LIST, navigationTableList)
@@ -121,55 +119,6 @@ class ProjectEditor(projectEditorFile: File) {
             logLevel = DEFAULT_LOG_LEVEL,
             relations = true
         )
-    }
-
-    private fun getTableName(index: String): String? { // CLEAN there is already a DataModel object decoded
-        val dataModel = jsonObj.getSafeObject(PROJECT_KEY)?.getSafeObject(DATAMODEL_KEY)?.getSafeObject(index)
-        val newDataModelJSONObject = dataModel?.getSafeObject(ProjectEditorConstants.EMPTY_KEY)
-        return newDataModelJSONObject?.get(NAME_KEY) as? String
-    }
-
-    private fun getSearchableColumns(datarecv: JSONObject?) {
-        datarecv?.getSafeObject("project")?.let { project ->
-            project.getSafeObject("list")?.let { listForms ->
-                Log.i("listForms :: $listForms")
-                listForms.keys().forEach eachTableIndex@{ tableIndex ->
-                    if (tableIndex !is String) return@eachTableIndex
-                    val tableSearchableFields = mutableListOf<String>()
-                    val tableName = getTableName(tableIndex) // get table name by id
-                    listForms.getSafeObject(tableIndex)?.let { listForm ->
-                        // could be an array or an object (object if only one item dropped)
-                        val searchableFieldAsArray = listForm.getSafeArray("searchableField")
-                        if (searchableFieldAsArray != null) {
-                            for (ind in 0 until searchableFieldAsArray.length()) {
-                                searchableFieldAsArray.getSafeObject(ind)?.getSafeString("name")?.let { fieldName ->
-                                    Log.v("$tableName SearchField fieldName.fieldAdjustment() :: ${fieldName.fieldAdjustment()}")
-                                    tableSearchableFields.add(fieldName.fieldAdjustment())
-                                }
-                            }
-                        } else {
-                            val searchableFieldAsObject = listForm.getSafeObject("searchableField")
-                            if (searchableFieldAsObject != null) {
-                                searchableFieldAsObject.getSafeString("name")?.let { fieldName ->
-                                    Log.v("$tableName  SearchField fieldName.fieldAdjustment() :: ${fieldName.fieldAdjustment()}")
-                                    tableSearchableFields.add(fieldName.fieldAdjustment())
-                                }
-                            } else {
-                                Log.w("$tableName searchableField is not available as object or array in $listForm")
-                            }
-                        }
-                    }
-                    if (tableSearchableFields.size != 0) { // if has search field add it
-                        if (tableName != null) {
-                            searchableFields[tableName.tableNameAdjustment()] = tableSearchableFields
-                        } else {
-                            Log.e("Cannot get tableName for index $tableIndex when filling search fields")
-                        }
-                    }
-                }
-                Log.i("Computed search fields $searchableFields")
-            } // else no list form, so no search fields
-        }
     }
 }
 

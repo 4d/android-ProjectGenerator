@@ -1026,10 +1026,9 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
             Log.d("getCustomFormatterFields()  /  Format = $format")
             if (format.startsWith("/")) {
 
-                val isSearchable = isCustomFormatterSearchable(dataModel.name, field.name, projectEditor.searchableFields)
                 val formatPath = fileHelper.pathHelper.getCustomFormatterPath(format)
                 getManifestJSONContent(formatPath)?.let {
-                    extractFormatter(it, field, relationName, formatPath, format, isSearchable, map, customFormattersImagesMap)
+                    extractFormatter(it, field, relationName, formatPath, format, map, customFormattersImagesMap)
                 }
 
             } else {
@@ -1046,11 +1045,10 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         relationName: String?,
         formatPath: String,
         format: String,
-        isSearchable: Boolean,
         map: MutableMap<String, FieldMapping>,
         customFormattersImagesMap: MutableMap<String, Map<String, Pair<String, String>>>
     ) {
-        val fieldMapping = getFieldMapping(manifestContent, format, isSearchable)
+        val fieldMapping = getFieldMapping(manifestContent, format)
         Log.d("extractFormatter : relationName = $relationName")
         Log.d("fieldMapping = $fieldMapping")
         if (isValidFormatter(fieldMapping)) {

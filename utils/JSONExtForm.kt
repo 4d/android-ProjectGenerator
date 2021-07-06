@@ -78,3 +78,48 @@ fun JSONObject.getFormList(dataModelList: List<DataModel>, formType: FormType, n
     }
     return formList
 }
+
+fun JSONObject.getSearchFields(dataModelList: List<DataModel>): HashMap<String, List<String>> {
+    val searchFields = HashMap<String, List<String>>()
+    this.getSafeObject("project")?.let { project ->
+        project.getSafeObject("list")?.let { listForms ->
+            Log.i("listForms :: $listForms")
+            listForms.keys().forEach eachTableIndex@{ tableIndex ->
+                if (tableIndex !is String) return@eachTableIndex
+                val tableSearchableFields = mutableListOf<String>()
+                val tableName = dataModelList.find { it.id == tableIndex }?.name
+                listForms.getSafeObject(tableIndex)?.let { listForm ->
+                    // could be an array or an object (object if only one item dropped)
+                    val searchableFieldAsArray = listForm.getSafeArray("searchableField")
+                    if (searchableFieldAsArray != null) {
+                        for (ind in 0 until searchableFieldAsArray.length()) {
+                            searchableFieldAsArray.getSafeObject(ind)?.getSafeString("name")?.let { fieldName ->
+                                Log.v("$tableName SearchField fieldName.fieldAdjustment() :: ${fieldName.fieldAdjustment()}")
+                                tableSearchableFields.add(fieldName.fieldAdjustment())
+                            }
+                        }
+                    } else {
+                        val searchableFieldAsObject = listForm.getSafeObject("searchableField")
+                        if (searchableFieldAsObject != null) {
+                            searchableFieldAsObject.getSafeString("name")?.let { fieldName ->
+                                Log.v("$tableName  SearchField fieldName.fieldAdjustment() :: ${fieldName.fieldAdjustment()}")
+                                tableSearchableFields.add(fieldName.fieldAdjustment())
+                            }
+                        } else {
+                            Log.w("$tableName searchableField is not available as object or array in $listForm")
+                        }
+                    }
+                }
+                if (tableSearchableFields.size != 0) { // if has search field add it
+                    if (tableName != null) {
+                        searchFields[tableName.tableNameAdjustment()] = tableSearchableFields
+                    } else {
+                        Log.e("Cannot get tableName for index $tableIndex when filling search fields")
+                    }
+                }
+            }
+            Log.i("Computed search fields $searchFields")
+        } // else no list form, so no search fields
+    }
+    return searchFields
+}
