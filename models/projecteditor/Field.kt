@@ -57,11 +57,11 @@ fun Field.getLayoutVariableAccessor(formType: FormType) =
         else
             "viewModel.entity."
 
-fun Field.getFieldTableName(dataModelList: List<DataModel>, form: Form): String {
-    if (this.name.fieldAdjustment().contains(".")) {
+fun Field.getSourceTableName(dataModelList: List<DataModel>, form: Form): String {
+    if (this.name.contains(".")) {
 
         val fieldFromDataModel: Field? =
-            form.dataModel.fields?.find { it.name == this.name.fieldAdjustment().split(".")[0] }
+            form.dataModel.fields?.find { it.name == this.name.split(".")[0] }
 
         fieldFromDataModel?.let { field ->
             return dataModelList.find { it.id == "${field.relatedTableNumber}" }?.name ?: ""

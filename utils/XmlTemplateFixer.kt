@@ -39,7 +39,7 @@ fun replaceTemplateText(oldFormText: String, formType: FormType): String {
             "${indent}{{#isImage}}\n" +
                     "${indent}app:imageFieldName='@{\"{{fieldName}}\"}'\n" +
                     "${indent}app:imageKey=\"@{ {{accessor}}{{imageKeyAccessor}} }\"\n" +
-                    "${indent}app:imageTableName='@{\"{{fieldTableName}}\"}'\n" +
+                    "${indent}app:imageTableName='@{\"{{sourceTableName}}\"}'\n" +
                     "${indent}app:imageUrl=\"@{ {{accessor}}{{name}}.__deferred.uri}\"\n" +
                     "${indent}{{/isImage}}"
     }
@@ -53,7 +53,7 @@ fun replaceTemplateText(oldFormText: String, formType: FormType): String {
             "${indent}{{^isImage}}\n" +
                     "${indent}{{#isCustomFormat}}\n" + //If is custom
                     "${indent}app:tableName='@{\"{{fieldTableName}}\"}'\n" +
-                    "${indent}app:fieldName='@{\"{{fieldName}}\"}'\n" +
+                    "${indent}app:fieldName='@{\"{{formatFieldName}}\"}'\n" +
                     "${indent}{{#isImageNamed}}\n" + //If is imageNamed
                     "${indent}app:imageWidth=\"@{ {{imageWidth}} }\"\n" +
                     "${indent}app:imageHeight=\"@{ {{imageHeight}} }\"\n" +
@@ -139,7 +139,7 @@ fun replaceTemplateText(oldFormText: String, formType: FormType): String {
                 "${indent}{{^field_${id}_is_image}}\n" +
                 "${indent}{{#field_${id}_custom_formatted}}\n" +
                 "${indent}app:tableName='@{\"{{{field_${id}_field_table_name}}}\"}'\n" +
-                "${indent}app:fieldName='@{\"{{{field_${id}_field_name}}}\"}'\n" +
+                "${indent}app:fieldName='@{\"{{{field_${id}_format_field_name}}}\"}'\n" +
                 "${indent}{{#field_${id}_custom_formatted_imageNamed}}\n" +
                 "${indent}app:imageWidth=\"@{ {{field_${id}_field_image_width}} }\"\n" +
                 "${indent}app:imageHeight=\"@{ {{field_${id}_field_image_height}} }\"\n" +
@@ -192,7 +192,7 @@ fun replaceTemplateText(oldFormText: String, formType: FormType): String {
                 "${indent}{{#field_${id}_is_image}}\n" +
                 "${indent}app:imageFieldName='@{\"{{field_${id}_field_name}}\"}'\n" +
                 "${indent}app:imageKey=\"@{ {{field_${id}_accessor}}{{field_${id}_image_key_accessor}} }\"\n" +
-                "${indent}app:imageTableName='@{\"{{field_${id}_field_table_name}}\"}'\n" +
+                "${indent}app:imageTableName='@{\"{{field_${id}_source_table_name}}\"}'\n" +
                 "${indent}app:imageUrl=\"@{ {{field_${id}_accessor}}{{field_${id}_name}}.__deferred.uri}\"\n" +
                 "${indent}{{/field_${id}_is_image}}\n" +
                 "${indent}{{/field_${id}_defined}}\n" +
