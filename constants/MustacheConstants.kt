@@ -27,6 +27,7 @@ object MustacheConstants {
     const val FORM_FIELDS = "form_fields"
     const val APP_NAME_WITH_CAPS = "app_name_with_caps"
     const val PACKAGE = "package"
+    const val HAS_REMOTE_ADDRESS = "has_remote_address"
     const val REMOTE_ADDRESS = "remote_address"
     const val ANDROID_SDK_PATH = "android_sdk_path"
     const val CACHE_4D_SDK_PATH = "cache_4d_sdk_path"

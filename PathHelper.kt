@@ -97,6 +97,11 @@ class PathHelper(
         return navPath.replaceIfWindowsPath()
     }
 
+    fun formPath(formType: String): String {
+        val listPath = getTargetPath("main") + File.separator + formType
+        return listPath.replaceIfWindowsPath()
+    }
+
     private val layoutPath = resPath() + File.separator + LAYOUT_PATH_KEY
 
     fun assetsPath(): String {

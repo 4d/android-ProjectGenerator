@@ -1,3 +1,4 @@
+import DefaultValues.DEFAULT_ADDRESS
 import DefaultValues.DEFAULT_AUTHOR
 import DefaultValues.DEFAULT_REMOTE_URL
 import DefaultValues.LAYOUT_FILE
@@ -27,6 +28,7 @@ import MustacheConstants.ENTITY_CLASSES
 import MustacheConstants.FIELDS
 import MustacheConstants.FIRST_FIELD
 import MustacheConstants.FORM_FIELDS
+import MustacheConstants.HAS_REMOTE_ADDRESS
 import MustacheConstants.PACKAGE
 import MustacheConstants.RELATIONS
 import MustacheConstants.RELATIONS_IMPORT
@@ -104,8 +106,16 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
             remoteAddress = projectEditor.findJsonString("remoteUrl")
         if (remoteAddress.isNullOrEmpty())
             remoteAddress = DEFAULT_REMOTE_URL
-        data[REMOTE_ADDRESS] = remoteAddress.removePrefix("https://").removePrefix("http://").split(":")[0]
-        Log.d("data[REMOTE_ADDRESS] = ${data[REMOTE_ADDRESS]}")
+        val cleanRemoteAddress = remoteAddress.removePrefix("https://").removePrefix("http://").split(":")[0]
+        if (cleanRemoteAddress != DEFAULT_ADDRESS) {
+            data[HAS_REMOTE_ADDRESS] = true
+            data[REMOTE_ADDRESS] = cleanRemoteAddress
+            Log.d("data[REMOTE_ADDRESS] = ${data[REMOTE_ADDRESS]}")
+        } else {
+            data[HAS_REMOTE_ADDRESS] = false
+            data[REMOTE_ADDRESS] = ""
+            Log.d("\"$DEFAULT_ADDRESS\" is already added in network_security_config.xml")
+        }
 
         projectEditor.findJsonString("androidSdk")?.let {
             data[ANDROID_SDK_PATH] = it
@@ -363,19 +373,19 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
                             for (tableName in tableNames) { // file will be duplicated
 
-                                if (newFilePath.contains(fileHelper.pathHelper.navigationPath())) {
-                                    val isTableInNavigation = tableNamesForNavigation.find { it.name == tableName.name }
-                                    if (isTableInNavigation == null) {
+                                if (newFilePath.contains(fileHelper.pathHelper.navigationPath()) ||
+                                    newFilePath.contains(fileHelper.pathHelper.formPath("list")) ||
+                                    newFilePath.contains(fileHelper.pathHelper.formPath("detail"))) {
+                                    if (tableNamesForNavigation.firstOrNull { it.name == tableName.name } == null)
                                         continue
-                                    }
                                 }
 
                                 data[TABLENAME] = tableName.name.tableNameAdjustment()
 
                                 data[TABLENAME_ORIGINAL] = tableName.name_original
                                 projectEditor.dataModelList.find { it.name.tableNameAdjustment() == tableName.name.tableNameAdjustment() }
-                                    ?.let { datamodel ->
-                                        data[TABLENAME_ORIGINAL] = datamodel.getLabel()
+                                    ?.let { dataModel ->
+                                        data[TABLENAME_ORIGINAL] = dataModel.getLabel()
                                     }
 
                                 data[TABLENAME_LOWERCASE] = tableName.name.toLowerCase().fieldAdjustment()
