@@ -22,7 +22,6 @@ import PathHelperConstants.RES_PATH_KEY
 import PathHelperConstants.SRC_PATH_KEY
 import java.io.File
 import java.lang.IllegalArgumentException
-import java.util.zip.ZipFile
 
 class PathHelper(
     val targetDirPath: String,
@@ -53,7 +52,7 @@ class PathHelper(
     }
 
     private fun replacePath(currentPath: String): String {
-        val paths = currentPath.replaceIfWindowsPath().split(Regex(templateFilesPath))
+        val paths = currentPath.replaceIfWindowsPath().split(templateFilesPath)
         if (paths.size < 2) {
             throw Exception("Couldn't find target directory with path : $currentPath")
         }
@@ -61,7 +60,7 @@ class PathHelper(
     }
 
     private fun replaceLayoutTemplatePath(currentPath: String, formPath: String): String {
-        val paths = currentPath.replaceIfWindowsPath().split(Regex(formPath.replaceIfWindowsPath()))
+        val paths = currentPath.replaceIfWindowsPath().split(formPath.replaceIfWindowsPath())
         if (paths.size < 2) {
             throw Exception("Couldn't find target directory with path : $currentPath")
         }
@@ -69,20 +68,6 @@ class PathHelper(
         Log.d("replaceLayoutTemplatePath, subPath = $subPath")
         return replaceDirectoriesPath(subPath)
     }
-
-    //Getting images from customFormatter to drawable
-//    fun getCustomDrawableImages(formatName: String) {
-//        try {
-//            val source = "$hostDb/Resources/Mobile/formatters$formatName/Images"
-//            val target = resPath()+"/drawable/"
-//            val listOfFile = File(source).listFiles()
-//            listOfFile?.forEach {
-//                Files.copy(Paths.get(it.absolutePath), Paths.get(target+ it.name),StandardCopyOption.REPLACE_EXISTING)
-//            }
-//        }catch (e: Exception){
-//            e.printStackTrace()
-//        }
-//    }
 
     val listFormTemplatesPath = templateFormsPath + File.separator + LIST_FORMS_KEY
 
@@ -189,7 +174,8 @@ class PathHelper(
     }
 
 
-    fun getImagesFolderInFormatter(formatterPath: String): String = formatterPath + File.separator + IMAGES_FORMATTER_KEY
+    fun getImagesFolderInFormatter(formatterPath: String): String =
+        formatterPath + File.separator + IMAGES_FORMATTER_KEY
 
     fun getDefaultTemplateListFormPath() = listFormTemplatesPath + File.separator + DEFAULT_LIST_FORM
     fun getDefaultTemplateDetailFormPath() = detailFormTemplatesPath + File.separator + DEFAULT_DETAIL_FORM
