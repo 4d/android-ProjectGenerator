@@ -6,6 +6,8 @@ fun getFieldMapping(manifestContent: JSONObject, format: String): FieldMapping =
         choiceList = manifestContent.getSafeObject("choiceList")?.toStringMap()
             ?: manifestContent.getSafeArray("choiceList")
                 .getStringList(),  // choiceList can be a JSONObject or a JSONArray
+        type = manifestContent.getSafeString("type") ?: manifestContent.getSafeArray("type")
+            .getStringList(), // type can be a String or a JSONArray
         name = format,
         imageWidth = getSize(manifestContent, "width"),
         imageHeight = getSize(manifestContent, "height"),
