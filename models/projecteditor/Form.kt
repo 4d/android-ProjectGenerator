@@ -36,7 +36,7 @@ fun createDetailFormField(
         fieldTableName = form.dataModel.name,
         imageWidth = imageWidth,
         imageHeight = imageHeight,
-        hasIcon = if (field.inverseName != null) getIconWithFixes(dataModelList, form, field) != "" else wholeFormHasIcons,
+        hasIcon = wholeFormHasIcons,
         iconPath = getIconWithFixes(dataModelList, form, field)
     )
     Log.d("createDetailFormField : templateFormFieldFiller = $templateFormFieldFiller")
