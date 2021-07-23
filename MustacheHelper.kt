@@ -663,11 +663,20 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                 }
                                 data.remove(RELATIONS)
                             } else { // any file to copy in project
+
                                 val newFile = File(fileHelper.pathHelper.getLayoutTemplatePath(currentFile.absolutePath,
                                     formPath))
-                                Log.i("File to copy : ${currentFile.absolutePath}; target : ${newFile.absolutePath}")
-                                if (!currentFile.copyRecursively(target = newFile, overwrite = true)) {
-                                    throw Exception("An error occurred while copying template files with target : ${newFile.absolutePath}")
+
+                                if (currentFile.isWithTemplateName()) {
+                                    for (tableName in tableNames) { // file will be duplicated
+                                        val replacedPath = newFile.absolutePath.replace(TEMPLATE_PLACEHOLDER, tableName.name)
+                                        applyTemplate(newPath = replacedPath, overwrite = true)
+                                    }
+                                } else {
+                                    Log.i("File to copy : ${currentFile.absolutePath}; target : ${newFile.absolutePath}")
+                                    if (!currentFile.copyRecursively(target = newFile, overwrite = true)) {
+                                        throw Exception("An error occurred while copying template files with target : ${newFile.absolutePath}")
+                                    }
                                 }
                             }
                         }
@@ -915,11 +924,20 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                 }
 
                             } else { // any file to copy in project
+
                                 val newFile = File(fileHelper.pathHelper.getLayoutTemplatePath(currentFile.absolutePath,
                                     formPath))
-                                Log.i("File to copy : ${currentFile.absolutePath}; target : ${newFile.absolutePath}")
-                                if (!currentFile.copyRecursively(target = newFile, overwrite = true)) {
-                                    throw Exception("An error occurred while copying template files with target : ${newFile.absolutePath}")
+
+                                if (currentFile.isWithTemplateName()) {
+                                    for (tableName in tableNames) { // file will be duplicated
+                                        val replacedPath = newFile.absolutePath.replace(TEMPLATE_PLACEHOLDER, tableName.name)
+                                        applyTemplate(newPath = replacedPath, overwrite = true)
+                                    }
+                                } else {
+                                    Log.i("File to copy : ${currentFile.absolutePath}; target : ${newFile.absolutePath}")
+                                    if (!currentFile.copyRecursively(target = newFile, overwrite = true)) {
+                                        throw Exception("An error occurred while copying template files with target : ${newFile.absolutePath}")
+                                    }
                                 }
                             }
                         }
@@ -927,7 +945,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         }
     }
 
-    private fun applyTemplate(newPath: String) {
+    private fun applyTemplate(newPath: String, overwrite: Boolean = false) {
         var newFile = File(newPath.replaceXmlTxtSuffix())
         val fileName = newFile.nameWithoutExtension
         println("fileName= $fileName")
@@ -935,6 +953,9 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
             newFile = File(newFile.parent.removeSuffix("/")
                 .removeSuffix("\\") + File.separator + fileName.validateWord() + "." + newFile.extension)
             println("===== newFile = ${newFile.absolutePath}")
+        }
+        if (newFile.exists() && overwrite) {
+            newFile.delete()
         }
         if (newFile.exists()) {
             return
