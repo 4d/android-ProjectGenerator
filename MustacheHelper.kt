@@ -163,7 +163,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         data[THEME_COLOR_PRIMARY] = "@color/cyan_900"
         data[THEME_COLOR_PRIMARY_DARKER] = "@color/cyan_dark"
         data[THEME_COLOR_PRIMARY_LIGHTER] = "@color/cyan_light"
-        data[THEME_COLOR_ON_PRIMARY] = "@color/white"
+        data[THEME_COLOR_ON_PRIMARY] = "@android:color/white"
 
         projectEditor.findJsonString("dominantColor")?.let {  // "rgb(0,75,145)"
 
@@ -202,7 +202,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                 data[THEME_COLOR_PRIMARY_LIGHTER] = "@color/primary_lighter_3"
 
                 val contrast = 1 - (((0.299 * red) + (0.587 * green) + (0.114 * blue)) / 255)
-                data[THEME_COLOR_ON_PRIMARY] = if (contrast < 0.5) "@color/black" else "@color/white"
+                data[THEME_COLOR_ON_PRIMARY] = if (contrast < 0.5) "@android:color/black" else "@android:color/white"
             }
         }
 
