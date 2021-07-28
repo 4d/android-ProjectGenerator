@@ -349,7 +349,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
             }
     }
 
-    fun processFolder(currentFolder: File) {
+    private fun processFolder(currentFolder: File) {
 
         compiler = generateCompilerFolder(currentFolder.absolutePath)
 
@@ -360,7 +360,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
             }
     }
 
-    fun processFile(currentFile: File) {
+    private fun processFile(currentFile: File) {
         Log.d("Processed file", "$currentFile")
 
         template = compiler.compile("{{>${currentFile.name}}}")
@@ -453,7 +453,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         }
     }
 
-    fun fillFileWithTemplateName(tableName: TemplateTableFiller) {
+    private fun fillFileWithTemplateName(tableName: TemplateTableFiller) {
 
         data[TABLENAME] = tableName.name.tableNameAdjustment()
 
@@ -584,66 +584,9 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                     if ((field.inverseName != null) || (fileHelper.pathHelper.isDefaultTemplateListFormPath(
                                             formPath) && field.isImage())
                                     ) { // is relation or image in default template
-
-                                        data["field_${i}_name"] = ""
-                                        data["field_${i}_defined"] = false
-                                        data["field_${i}_is_image"] = false
-                                        data["field_${i}_label"] = ""
-                                        data["field_${i}_shortLabel"] = ""
-                                        data["field_${i}_iconPath"] = ""
-                                        data["field_${i}_hasIcon"] = false
-                                        data["field_${i}_custom_formatted"] = false
-                                        data["field_${i}_custom_formatted_imageNamed"] = false
-                                        data["field_${i}_format_type"] = ""
-                                        data["field_${i}_accessor"] = ""
-                                        data["field_${i}_field_name"] = ""
-                                        data["field_${i}_source_table_name"] = ""
-                                        data["field_${i}_image_key_accessor"] = ""
-                                        data["field_${i}_format_field_name"] = ""
-                                        data["field_${i}_field_table_name"] = ""
-                                        data["field_${i}_field_image_width"] = 0
-                                        data["field_${i}_field_image_height"] = 0
-
+                                        resetIndexedEntries(i)
                                     } else { // not a relation
-
-                                        data["field_${i}_name"] = field.name.fieldAdjustment()
-                                        data["field_${i}_defined"] = field.name.isNotEmpty()
-                                        data["field_${i}_is_image"] = field.isImage()
-                                        data["field_${i}_label"] = getLabelWithFixes(projectEditor.dataModelList, listForm, field)
-                                        data["field_${i}_shortLabel"] = getShortLabelWithFixes(projectEditor.dataModelList, listForm, field)
-                                        data["field_${i}_iconPath"] = ""
-                                        data["field_${i}_hasIcon"] = false
-                                        data["field_${i}_custom_formatted"] = false
-                                        data["field_${i}_custom_formatted_imageNamed"] = false
-                                        data["field_${i}_format_type"] = ""
-                                        data["field_${i}_accessor"] = field.getLayoutVariableAccessor(FormType.LIST)
-                                        data["field_${i}_field_name"] = field.getFieldName()
-                                        data["field_${i}_source_table_name"] = field.getSourceTableName(projectEditor.dataModelList, listForm)
-                                        if (field.isImage()) {
-                                            data["field_${i}_image_key_accessor"] = field.getFieldKeyAccessor(FormType.LIST)
-                                        }
-
-                                        if (wholeFormHasIcons) {
-                                            data["field_${i}_iconPath"] = getIconWithFixes(projectEditor.dataModelList, listForm, field)
-                                            data["field_${i}_hasIcon"] = true
-                                        }
-
-                                        val format = getFormatWithFixes(projectEditor.dataModelList, listForm, field)
-                                        data["field_${i}_format_type"] = format
-
-                                        if (format.startsWith("/")) {
-                                            data["field_${i}_custom_formatted"] = true
-                                            data["field_${i}_format_field_name"] = field.name
-                                            data["field_${i}_field_table_name"] = listForm.dataModel.name
-                                            if (isImageNamedBinding(listForm, field.name)) {
-                                                Log.d("Field : ${field.name}, table : ${listForm.dataModel.name}, is imageNamed binding")
-                                                data["field_${i}_custom_formatted_imageNamed"] = true
-                                                data["field_${i}_field_image_width"] = getImageSize(listForm, field.name, "width")
-                                                data["field_${i}_field_image_height"] = getImageSize(listForm, field.name, "height")
-                                            } else {
-                                                Log.d("Field : ${field.name}, table : ${listForm.dataModel.name}, is not imageNamed binding")
-                                            }
-                                        }
+                                        fillIndexedFormData(i, field, FormType.LIST, listForm, wholeFormHasIcons)
                                     }
                                 }
 
@@ -653,24 +596,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
                                 // cleaning data for other templates
                                 for (j in 1 until i + 1) {
-                                    data.remove("field_${j}_name")
-                                    data.remove("field_${j}_defined")
-                                    data.remove("field_${j}_is_image")
-                                    data.remove("field_${j}_label")
-                                    data.remove("field_${j}_shortLabel")
-                                    data.remove("field_${j}_iconPath")
-                                    data.remove("field_${j}_hasIcon")
-                                    data.remove("field_${j}_custom_formatted")
-                                    data.remove("field_${j}_custom_formatted_imageNamed")
-                                    data.remove("field_${j}_format_type")
-                                    data.remove("field_${j}_accessor")
-                                    data.remove("field_${j}_field_name")
-                                    data.remove("field_${j}_source_table_name")
-                                    data.remove("field_${j}_image_key_accessor")
-                                    data.remove("field_${j}_format_field_name")
-                                    data.remove("field_${j}_field_table_name")
-                                    data.remove("field_${j}_field_image_width")
-                                    data.remove("field_${j}_field_image_height")
+                                    removeIndexedEntries(j)
                                 }
                                 data.remove(RELATIONS)
                             } else { // any file to copy in project
@@ -779,44 +705,8 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                                             field.getLayoutVariableAccessor(FormType.DETAIL)
                                                         }")
 
-                                                        data["field_${i + 1}_name"] = field.name.fieldAdjustment()
-                                                        data["field_${i + 1}_defined"] = field.name.isNotEmpty()
-                                                        data["field_${i + 1}_is_image"] = field.isImage()
-                                                        data["field_${i + 1}_label"] = getLabelWithFixes(projectEditor.dataModelList, detailForm, field)
-                                                        data["field_${i + 1}_shortLabel"] =  getShortLabelWithFixes(projectEditor.dataModelList, detailForm, field)
-                                                        data["field_${i + 1}_iconPath"] = ""
-                                                        data["field_${i + 1}_hasIcon"] = false
-                                                        data["field_${i + 1}_custom_formatted"] = false
-                                                        data["field_${i + 1}_custom_formatted_imageNamed"] = false
-                                                        data["field_${i + 1}_format_type"] = ""
-                                                        data["field_${i + 1}_accessor"] =
-                                                            field.getLayoutVariableAccessor(FormType.DETAIL)
-                                                        data["field_${i + 1}_field_name"] = field.getFieldName()
-                                                        data["field_${i + 1}_source_table_name"] = field.getSourceTableName(projectEditor.dataModelList, detailForm)
-                                                        if (field.isImage()) {
-                                                            data["field_${i + 1}_image_key_accessor"] = field.getFieldKeyAccessor(FormType.DETAIL)
-                                                        }
+                                                        fillIndexedFormData(i + 1, field, FormType.DETAIL, detailForm, wholeFormHasIcons)
 
-                                                        if (wholeFormHasIcons) {
-                                                            data["field_${i + 1}_iconPath"] = getIconWithFixes(projectEditor.dataModelList, detailForm, field)
-                                                            data["field_${i + 1}_hasIcon"] = true
-                                                        }
-
-                                                        val format = getFormatWithFixes(projectEditor.dataModelList, detailForm, field)
-                                                        data["field_${i + 1}_format_type"] = format
-                                                        if (format.startsWith("/")) { // custom format
-                                                            data["field_${i + 1}_custom_formatted"] = true
-                                                            data["field_${i + 1}_format_field_name"] = field.name
-                                                            data["field_${i + 1}_field_table_name"] = detailForm.dataModel.name
-
-                                                            if (isImageNamedBinding(detailForm, field.name)) {
-                                                                data["field_${i + 1}_custom_formatted_imageNamed"] = true
-                                                                data["field_${i + 1}_field_image_width"] = getImageSize(detailForm, field.name, "width")
-                                                                data["field_${i + 1}_field_image_height"] = getImageSize(detailForm, field.name, "height")
-                                                            }
-                                                        }
-
-                                                        Log.v("format :: $format")
                                                         Log.i("applyDetailFormTemplate fieldName :: ${field.name.fieldAdjustment()}")
 
                                                     } else {
@@ -825,24 +715,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
                                                 } else {
                                                     Log.d("Field list shorter than specific fields count")
-                                                    data["field_${i + 1}_name"] = ""
-                                                    data["field_${i + 1}_defined"] = false
-                                                    data["field_${i + 1}_is_image"] = false
-                                                    data["field_${i + 1}_label"] = ""
-                                                    data["field_${i + 1}_shortLabel"] = ""
-                                                    data["field_${i + 1}_iconPath"] = ""
-                                                    data["field_${i + 1}_hasIcon"] = false
-                                                    data["field_${i + 1}_custom_formatted"] = false
-                                                    data["field_${i + 1}_custom_formatted_imageNamed"] = false
-                                                    data["field_${i + 1}_format_type"] = ""
-                                                    data["field_${i + 1}_accessor"] = ""
-                                                    data["field_${i + 1}_field_name"] = ""
-                                                    data["field_${i + 1}_source_table_name"] = ""
-                                                    data["field_${i + 1}_image_key_accessor"] = ""
-                                                    data["field_${i + 1}_format_field_name"] = ""
-                                                    data["field_${i + 1}_field_table_name"] = ""
-                                                    data["field_${i + 1}_field_image_width"] = 0
-                                                    data["field_${i + 1}_field_image_height"] = 0
+                                                    resetIndexedEntries(i + 1)
                                                 }
                                             }
 
@@ -901,24 +774,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                 // cleaning data for other templates
                                 data.remove(FORM_FIELDS)
                                 for (i in 1 until specificFieldsCount) {
-                                    data.remove("field_${i}_name")
-                                    data.remove("field_${i}_defined")
-                                    data.remove("field_${i}_is_image")
-                                    data.remove("field_${i}_label")
-                                    data.remove("field_${i}_shortLabel")
-                                    data.remove("field_${i}_iconPath")
-                                    data.remove("field_${i}_hasIcon")
-                                    data.remove("field_${i}_custom_formatted")
-                                    data.remove("field_${i}_custom_formatted_imageNamed")
-                                    data.remove("field_${i}_format_type")
-                                    data.remove("field_${i}_accessor")
-                                    data.remove("field_${i}_field_name")
-                                    data.remove("field_${i}_source_table_name")
-                                    data.remove("field_${i}_image_key_accessor")
-                                    data.remove("field_${i}_format_field_name")
-                                    data.remove("field_${i}_field_table_name")
-                                    data.remove("field_${i}_field_image_width")
-                                    data.remove("field_${i}_field_image_height")
+                                    removeIndexedEntries(i)
                                 }
 
                             } else { // any file to copy in project
@@ -929,7 +785,93 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         }
     }
 
-    fun copyOtherTemplateFiles(currentFile: File, formPath: String) {
+    private fun removeIndexedEntries(i: Int) {
+        data.remove("field_${i}_name")
+        data.remove("field_${i}_defined")
+        data.remove("field_${i}_is_image")
+        data.remove("field_${i}_label")
+        data.remove("field_${i}_shortLabel")
+        data.remove("field_${i}_iconPath")
+        data.remove("field_${i}_hasIcon")
+        data.remove("field_${i}_custom_formatted")
+        data.remove("field_${i}_custom_formatted_imageNamed")
+        data.remove("field_${i}_format_type")
+        data.remove("field_${i}_accessor")
+        data.remove("field_${i}_field_name")
+        data.remove("field_${i}_source_table_name")
+        data.remove("field_${i}_image_key_accessor")
+        data.remove("field_${i}_format_field_name")
+        data.remove("field_${i}_field_table_name")
+        data.remove("field_${i}_field_image_width")
+        data.remove("field_${i}_field_image_height")
+    }
+
+    private fun resetIndexedEntries(i: Int) {
+        data["field_${i}_name"] = ""
+        data["field_${i}_defined"] = false
+        data["field_${i}_is_image"] = false
+        data["field_${i}_label"] = ""
+        data["field_${i}_shortLabel"] = ""
+        data["field_${i}_iconPath"] = ""
+        data["field_${i}_hasIcon"] = false
+        data["field_${i}_custom_formatted"] = false
+        data["field_${i}_custom_formatted_imageNamed"] = false
+        data["field_${i}_format_type"] = ""
+        data["field_${i}_accessor"] = ""
+        data["field_${i}_field_name"] = ""
+        data["field_${i}_source_table_name"] = ""
+        data["field_${i}_image_key_accessor"] = ""
+        data["field_${i}_format_field_name"] = ""
+        data["field_${i}_field_table_name"] = ""
+        data["field_${i}_field_image_width"] = 0
+        data["field_${i}_field_image_height"] = 0
+    }
+
+    private fun fillIndexedFormData(i: Int, field: Field, formType: FormType, form: Form, wholeFormHasIcons: Boolean) {
+        data["field_${i}_name"] = field.name.fieldAdjustment()
+        data["field_${i}_defined"] = field.name.isNotEmpty()
+        data["field_${i}_is_image"] = field.isImage()
+        data["field_${i}_label"] = getLabelWithFixes(projectEditor.dataModelList, form, field)
+        data["field_${i}_shortLabel"] = getShortLabelWithFixes(projectEditor.dataModelList, form, field)
+        data["field_${i}_iconPath"] = ""
+        data["field_${i}_hasIcon"] = false
+        data["field_${i}_custom_formatted"] = false
+        data["field_${i}_custom_formatted_imageNamed"] = false
+        data["field_${i}_format_type"] = ""
+        data["field_${i}_accessor"] = field.getLayoutVariableAccessor(formType)
+        data["field_${i}_field_name"] = field.getFieldName()
+        data["field_${i}_source_table_name"] = field.getSourceTableName(projectEditor.dataModelList, form)
+        if (field.isImage()) {
+            data["field_${i}_image_key_accessor"] = field.getFieldKeyAccessor(formType)
+        }
+
+        if (wholeFormHasIcons) {
+            data["field_${i}_iconPath"] = getIconWithFixes(projectEditor.dataModelList, form, field)
+            data["field_${i}_hasIcon"] = true
+        }
+
+        val format = getFormatWithFixes(projectEditor.dataModelList, form, field)
+        data["field_${i}_format_type"] = format
+
+        if (format.startsWith("/")) {
+            data["field_${i}_custom_formatted"] = true
+            data["field_${i}_format_field_name"] = field.name
+            data["field_${i}_field_table_name"] = form.dataModel.name
+
+            if (isImageNamedBinding(form, field.name)) {
+
+                Log.d("Field : ${field.name}, table : ${form.dataModel.name}, is imageNamed binding")
+
+                data["field_${i}_custom_formatted_imageNamed"] = true
+                data["field_${i}_field_image_width"] = getImageSize(form, field.name, "width")
+                data["field_${i}_field_image_height"] = getImageSize(form, field.name, "height")
+            } else {
+                Log.d("Field : ${field.name}, table : ${form.dataModel.name}, is not imageNamed binding")
+            }
+        }
+    }
+
+    private fun copyOtherTemplateFiles(currentFile: File, formPath: String) {
         val newFile = File(fileHelper.pathHelper.getLayoutTemplatePath(currentFile.absolutePath,
             formPath))
 
