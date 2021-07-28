@@ -342,169 +342,180 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
     /**
      * TEMPLATING
      */
-    fun applyTemplates() {
+    fun processTemplates() {
         File(fileHelper.pathHelper.templateFilesPath).walkTopDown()
             .filter { folder -> !folder.isHidden && folder.isDirectory }.forEach { currentFolder ->
-
-                compiler = generateCompilerFolder(currentFolder.absolutePath)
-
-                currentFolder.walkTopDown()
-                    .filter { file -> !file.isHidden && file.isFile && currentFolder.absolutePath.contains(file.parent) && file.name != DS_STORE }
-                    .forEach { currentFile ->
-
-                        Log.d("Processed file", "$currentFile")
-
-                        template = compiler.compile("{{>${currentFile.name}}}")
-
-                        val newFilePath = fileHelper.pathHelper.getPath(currentFile.absolutePath.replaceXmlTxtSuffix())
-
-                        relations.clear()
-                        projectEditor.dataModelList.forEach { dataModel ->
-                            dataModel.relationList?.filter { it.relationType == RelationType.MANY_TO_ONE }
-                                ?.forEach { relation ->
-                                    relations.add(TemplateRelationFiller(relation_source = relation.source.tableNameAdjustment(),
-                                        relation_target = relation.target.tableNameAdjustment(),
-                                        relation_name = relation.name.fieldAdjustment()))
-                                }
-                        }
-                        data[RELATIONS] = relations
-
-                        if (currentFile.isWithTemplateName()) {
-
-                            for (tableName in tableNames) { // file will be duplicated
-
-                                if (newFilePath.contains(fileHelper.pathHelper.navigationPath()) ||
-                                    newFilePath.contains(fileHelper.pathHelper.formPath("list")) ||
-                                    newFilePath.contains(fileHelper.pathHelper.formPath("detail"))) {
-                                    if (tableNamesForNavigation.firstOrNull { it.name == tableName.name } == null)
-                                        continue
-                                }
-
-                                data[TABLENAME] = tableName.name.tableNameAdjustment()
-
-                                data[TABLENAME_ORIGINAL] = tableName.name_original
-                                projectEditor.dataModelList.find { it.name.tableNameAdjustment() == tableName.name.tableNameAdjustment() }
-                                    ?.let { dataModel ->
-                                        data[TABLENAME_ORIGINAL] = dataModel.getLabel()
-                                    }
-
-                                data[TABLENAME_LOWERCASE] = tableName.name.toLowerCase().fieldAdjustment()
-                                data[TABLENAME_CAMELCASE] = tableName.name.dataBindingAdjustment()
-                                projectEditor.dataModelList.find { it.name.tableNameAdjustment() == tableName.name.tableNameAdjustment() }?.fields?.let { fields ->
-                                    val fieldList = mutableListOf<TemplateFieldFiller>()
-                                    for (field in fields) {
-                                        field.fieldTypeString?.let { fieldTypeString ->
-                                            fieldList.add(
-                                                TemplateFieldFiller(
-                                                    name = field.name.fieldAdjustment(),
-                                                    fieldTypeString = fieldTypeString.tableNameAdjustment(),
-                                                    variableType = field.variableType,
-                                                    name_original = field.name
-                                                )
-                                            )
-
-                                        } ?: kotlin.run {
-                                            throw Exception("An error occurred while parsing the fieldType of field : $field")
-                                        }
-                                    }
-
-                                    data[FIELDS] = fieldList
-                                    Log.d("FIELDS", "${data[FIELDS]}")
-                                    val firstField: String = fieldList.firstOrNull()?.name ?: ""
-                                    data[FIRST_FIELD] = firstField
-                                }
-
-                                relations.clear()
-                                val relationsImport =
-                                    mutableListOf<TemplateRelationFiller>() // need another list, to remove double in import section
-
-                                projectEditor.dataModelList.find { it.name.tableNameAdjustment() == tableName.name.tableNameAdjustment() }?.relationList?.filter { it.relationType == RelationType.MANY_TO_ONE }
-                                    ?.forEach { relation ->
-
-                                        relations.add(TemplateRelationFiller(
-                                            relation_source = relation.source.tableNameAdjustment(),
-                                            relation_target = relation.target.tableNameAdjustment(),
-                                            relation_name = relation.name.fieldAdjustment()))
-
-                                        var isAlreadyImported = false
-                                        for (relationImport in relationsImport) {
-                                            if (relationImport.relation_source == relation.source.tableNameAdjustment() && relationImport.relation_target == relation.target.tableNameAdjustment())
-                                                isAlreadyImported = true
-                                        }
-                                        if (!isAlreadyImported)
-                                            relationsImport.add(TemplateRelationFiller(
-                                                relation_source = relation.source.tableNameAdjustment(),
-                                                relation_target = relation.target.tableNameAdjustment(),
-                                                relation_name = relation.name.fieldAdjustment())) // name is unused
-                                    }
-
-                                data[RELATIONS] = relations
-                                data[RELATIONS_IMPORT] = relationsImport
-
-                                val replacedPath = if (newFilePath.contains(fileHelper.pathHelper.resPath()))
-                                    newFilePath.replace(TEMPLATE_PLACEHOLDER, tableName.name.toLowerCase())
-                                else
-                                    newFilePath.replace(TEMPLATE_PLACEHOLDER, tableName.name)
-
-                                applyTemplate(replacedPath)
-
-                                //cleaning
-                                data.remove(FIELDS)
-                                data.remove(RELATIONS)
-                                data.remove(FIRST_FIELD)
-                            }
-
-                        } else if (currentFile.isWithRelationDaoTemplateName()) {
-
-                            projectEditor.dataModelList.forEach { dataModel ->
-                                dataModel.relationList?.filter { it.relationType == RelationType.MANY_TO_ONE }
-                                    ?.forEach { relation ->
-
-                                        data[RELATION_SOURCE] = relation.source.tableNameAdjustment()
-                                        data[RELATION_TARGET] = relation.target.tableNameAdjustment()
-
-                                        val replacedPath = newFilePath.replace(TEMPLATE_RELATION_DAO_PLACEHOLDER,
-                                            "${relation.source.tableNameAdjustment()}Has${relation.target.tableNameAdjustment()}")
-
-                                        applyTemplate(replacedPath)
-
-                                        //cleaning
-                                        data.remove(RELATION_SOURCE)
-                                        data.remove(RELATION_TARGET)
-                                    }
-                            }
-
-                        } else if (currentFile.isWithRelationEntityTemplateName()) {
-
-                            projectEditor.dataModelList.forEach { dataModel ->
-                                dataModel.relationList?.filter { it.relationType == RelationType.MANY_TO_ONE }
-                                    ?.forEach { relation ->
-
-                                        data[RELATION_SOURCE] = relation.source.tableNameAdjustment()
-                                        data[RELATION_TARGET] = relation.target.tableNameAdjustment()
-                                        data[RELATION_NAME] = relation.name.fieldAdjustment()
-                                        data[RELATION_SAME_TYPE] = relation.source == relation.target
-
-                                        val replacedPath = newFilePath.replace(TEMPLATE_RELATION_ENTITY_PLACEHOLDER,
-                                            "${relation.source.tableNameAdjustment()}And${relation.target.tableNameAdjustment()}")
-
-                                        applyTemplate(replacedPath)
-
-                                        //cleaning
-                                        data.remove(RELATION_NAME)
-                                        data.remove(RELATION_SOURCE)
-                                        data.remove(RELATION_TARGET)
-                                        data.remove(RELATION_SAME_TYPE)
-                                    }
-                            }
-
-                        } else {
-                            applyTemplate(newFilePath)
-                        }
-                    }
+                processFolder(currentFolder)
             }
     }
 
+    fun processFolder(currentFolder: File) {
+
+        compiler = generateCompilerFolder(currentFolder.absolutePath)
+
+        currentFolder.walkTopDown()
+            .filter { file -> !file.isHidden && file.isFile && currentFolder.absolutePath.contains(file.parent) && file.name != DS_STORE }
+            .forEach { currentFile ->
+                processFile(currentFile)
+            }
+    }
+
+    fun processFile(currentFile: File) {
+        Log.d("Processed file", "$currentFile")
+
+        template = compiler.compile("{{>${currentFile.name}}}")
+
+        val newFilePath = fileHelper.pathHelper.getPath(currentFile.absolutePath.replaceXmlTxtSuffix())
+
+        relations.clear()
+        projectEditor.dataModelList.forEach { dataModel ->
+            dataModel.relationList?.filter { it.relationType == RelationType.MANY_TO_ONE }
+                ?.forEach { relation ->
+                    relations.add(TemplateRelationFiller(relation_source = relation.source.tableNameAdjustment(),
+                        relation_target = relation.target.tableNameAdjustment(),
+                        relation_name = relation.name.fieldAdjustment()))
+                }
+        }
+        data[RELATIONS] = relations
+
+        if (currentFile.isWithTemplateName()) {
+
+            for (tableName in tableNames) { // file will be duplicated
+
+                if (newFilePath.contains(fileHelper.pathHelper.navigationPath()) ||
+                    newFilePath.contains(fileHelper.pathHelper.formPath("list")) ||
+                    newFilePath.contains(fileHelper.pathHelper.formPath("detail"))) {
+                    if (tableNamesForNavigation.firstOrNull { it.name == tableName.name } == null)
+                        continue
+                }
+
+                fillFileWithTemplateName(tableName)
+
+                val replacedPath = if (newFilePath.contains(fileHelper.pathHelper.resPath()))
+                    newFilePath.replace(TEMPLATE_PLACEHOLDER, tableName.name.toLowerCase())
+                else
+                    newFilePath.replace(TEMPLATE_PLACEHOLDER, tableName.name)
+
+                applyTemplate(replacedPath)
+
+                //cleaning
+                data.remove(FIELDS)
+                data.remove(RELATIONS)
+                data.remove(FIRST_FIELD)
+            }
+
+        } else if (currentFile.isWithRelationDaoTemplateName()) {
+
+            projectEditor.dataModelList.forEach { dataModel ->
+                dataModel.relationList?.filter { it.relationType == RelationType.MANY_TO_ONE }
+                    ?.forEach { relation ->
+
+                        data[RELATION_SOURCE] = relation.source.tableNameAdjustment()
+                        data[RELATION_TARGET] = relation.target.tableNameAdjustment()
+
+                        val replacedPath = newFilePath.replace(TEMPLATE_RELATION_DAO_PLACEHOLDER,
+                            "${relation.source.tableNameAdjustment()}Has${relation.target.tableNameAdjustment()}")
+
+                        applyTemplate(replacedPath)
+
+                        //cleaning
+                        data.remove(RELATION_SOURCE)
+                        data.remove(RELATION_TARGET)
+                    }
+            }
+
+        } else if (currentFile.isWithRelationEntityTemplateName()) {
+
+            projectEditor.dataModelList.forEach { dataModel ->
+                dataModel.relationList?.filter { it.relationType == RelationType.MANY_TO_ONE }
+                    ?.forEach { relation ->
+
+                        data[RELATION_SOURCE] = relation.source.tableNameAdjustment()
+                        data[RELATION_TARGET] = relation.target.tableNameAdjustment()
+                        data[RELATION_NAME] = relation.name.fieldAdjustment()
+                        data[RELATION_SAME_TYPE] = relation.source == relation.target
+
+                        val replacedPath = newFilePath.replace(TEMPLATE_RELATION_ENTITY_PLACEHOLDER,
+                            "${relation.source.tableNameAdjustment()}And${relation.target.tableNameAdjustment()}")
+
+                        applyTemplate(replacedPath)
+
+                        //cleaning
+                        data.remove(RELATION_NAME)
+                        data.remove(RELATION_SOURCE)
+                        data.remove(RELATION_TARGET)
+                        data.remove(RELATION_SAME_TYPE)
+                    }
+            }
+
+        } else {
+            applyTemplate(newFilePath)
+        }
+    }
+
+    fun fillFileWithTemplateName(tableName: TemplateTableFiller) {
+
+        data[TABLENAME] = tableName.name.tableNameAdjustment()
+
+        data[TABLENAME_ORIGINAL] = tableName.name_original
+        projectEditor.dataModelList.find { it.name.tableNameAdjustment() == tableName.name.tableNameAdjustment() }
+            ?.let { dataModel ->
+                data[TABLENAME_ORIGINAL] = dataModel.getLabel()
+            }
+
+        data[TABLENAME_LOWERCASE] = tableName.name.toLowerCase().fieldAdjustment()
+        data[TABLENAME_CAMELCASE] = tableName.name.dataBindingAdjustment()
+        projectEditor.dataModelList.find { it.name.tableNameAdjustment() == tableName.name.tableNameAdjustment() }?.fields?.let { fields ->
+            val fieldList = mutableListOf<TemplateFieldFiller>()
+            for (field in fields) {
+                field.fieldTypeString?.let { fieldTypeString ->
+                    fieldList.add(
+                        TemplateFieldFiller(
+                            name = field.name.fieldAdjustment(),
+                            fieldTypeString = fieldTypeString.tableNameAdjustment(),
+                            variableType = field.variableType,
+                            name_original = field.name
+                        )
+                    )
+
+                } ?: kotlin.run {
+                    throw Exception("An error occurred while parsing the fieldType of field : $field")
+                }
+            }
+
+            data[FIELDS] = fieldList
+            Log.d("FIELDS", "${data[FIELDS]}")
+            val firstField: String = fieldList.firstOrNull()?.name ?: ""
+            data[FIRST_FIELD] = firstField
+        }
+
+        relations.clear()
+        val relationsImport =
+            mutableListOf<TemplateRelationFiller>() // need another list, to remove double in import section
+
+        projectEditor.dataModelList.find { it.name.tableNameAdjustment() == tableName.name.tableNameAdjustment() }?.relationList?.filter { it.relationType == RelationType.MANY_TO_ONE }
+            ?.forEach { relation ->
+
+                relations.add(TemplateRelationFiller(
+                    relation_source = relation.source.tableNameAdjustment(),
+                    relation_target = relation.target.tableNameAdjustment(),
+                    relation_name = relation.name.fieldAdjustment()))
+
+                var isAlreadyImported = false
+                for (relationImport in relationsImport) {
+                    if (relationImport.relation_source == relation.source.tableNameAdjustment() && relationImport.relation_target == relation.target.tableNameAdjustment())
+                        isAlreadyImported = true
+                }
+                if (!isAlreadyImported)
+                    relationsImport.add(TemplateRelationFiller(
+                        relation_source = relation.source.tableNameAdjustment(),
+                        relation_target = relation.target.tableNameAdjustment(),
+                        relation_name = relation.name.fieldAdjustment())) // name is unused
+            }
+
+        data[RELATIONS] = relations
+        data[RELATIONS_IMPORT] = relationsImport
+    }
 
     fun applyListFormTemplate() {
         projectEditor.listFormList.forEach { listForm ->
@@ -664,20 +675,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                 data.remove(RELATIONS)
                             } else { // any file to copy in project
 
-                                val newFile = File(fileHelper.pathHelper.getLayoutTemplatePath(currentFile.absolutePath,
-                                    formPath))
-
-                                if (currentFile.isWithTemplateName()) {
-                                    for (tableName in tableNames) { // file will be duplicated
-                                        val replacedPath = newFile.absolutePath.replace(TEMPLATE_PLACEHOLDER, tableName.name)
-                                        applyTemplate(newPath = replacedPath, overwrite = true)
-                                    }
-                                } else {
-                                    Log.i("File to copy : ${currentFile.absolutePath}; target : ${newFile.absolutePath}")
-                                    if (!currentFile.copyRecursively(target = newFile, overwrite = true)) {
-                                        throw Exception("An error occurred while copying template files with target : ${newFile.absolutePath}")
-                                    }
-                                }
+                                copyOtherTemplateFiles(currentFile, formPath)
                             }
                         }
                 }
@@ -924,24 +922,32 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                 }
 
                             } else { // any file to copy in project
-
-                                val newFile = File(fileHelper.pathHelper.getLayoutTemplatePath(currentFile.absolutePath,
-                                    formPath))
-
-                                if (currentFile.isWithTemplateName()) {
-                                    for (tableName in tableNames) { // file will be duplicated
-                                        val replacedPath = newFile.absolutePath.replace(TEMPLATE_PLACEHOLDER, tableName.name)
-                                        applyTemplate(newPath = replacedPath, overwrite = true)
-                                    }
-                                } else {
-                                    Log.i("File to copy : ${currentFile.absolutePath}; target : ${newFile.absolutePath}")
-                                    if (!currentFile.copyRecursively(target = newFile, overwrite = true)) {
-                                        throw Exception("An error occurred while copying template files with target : ${newFile.absolutePath}")
-                                    }
-                                }
+                                copyOtherTemplateFiles(currentFile, formPath)
                             }
                         }
                 }
+        }
+    }
+
+    fun copyOtherTemplateFiles(currentFile: File, formPath: String) {
+        val newFile = File(fileHelper.pathHelper.getLayoutTemplatePath(currentFile.absolutePath,
+            formPath))
+
+        if (currentFile.isWithTemplateName()) {
+            for (tableName in tableNames) { // file will be duplicated
+                fillFileWithTemplateName(tableName)
+                val replacedPath = newFile.absolutePath.replace(TEMPLATE_PLACEHOLDER, tableName.name)
+                applyTemplate(newPath = replacedPath, overwrite = true)
+                //cleaning
+                data.remove(FIELDS)
+                data.remove(RELATIONS)
+                data.remove(FIRST_FIELD)
+            }
+        } else {
+            Log.i("File to copy : ${currentFile.absolutePath}; target : ${newFile.absolutePath}")
+            if (!currentFile.copyRecursively(target = newFile, overwrite = true)) {
+                throw Exception("An error occurred while copying template files with target : ${newFile.absolutePath}")
+            }
         }
     }
 
