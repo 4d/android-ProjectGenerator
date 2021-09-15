@@ -265,6 +265,7 @@ fun getRelation(field: Field, tableName: String, subFields: List<Field>): Relati
         )
     }
     field.relatedDataClass?.let {
+        subFields.forEach { subField -> subField.relatedTableNumber = field.relatedTableNumber }
         return Relation(
             source = tableName,
             target = it,
