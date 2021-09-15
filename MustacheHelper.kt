@@ -2,6 +2,7 @@ import DefaultValues.DEFAULT_ADDRESS
 import DefaultValues.DEFAULT_AUTHOR
 import DefaultValues.DEFAULT_REMOTE_URL
 import DefaultValues.LAYOUT_FILE
+import FileHelperConstants.ACTIONS_LIST_FILENAME
 import FileHelperConstants.APP_INFO_FILENAME
 import FileHelperConstants.CUSTOM_FORMATTERS_FILENAME
 import FileHelperConstants.DS_STORE
@@ -942,6 +943,10 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
     fun makeSearchableFields() {
         makeJsonFile(SEARCHABLE_FIELDS_FILENAME, projectEditor.searchableFields)
+    }
+
+    fun makeActionsList() {
+        makeJsonFile(ACTIONS_LIST_FILENAME, projectEditor.actionsList)
     }
 
     private fun makeJsonFile(fileName: String, content: Any) {

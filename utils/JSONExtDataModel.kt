@@ -15,6 +15,7 @@ import ProjectEditorConstants.RELATEDTABLENUMBER_KEY
 import ProjectEditorConstants.SHORTLABEL_KEY
 import ProjectEditorConstants.STRING_KEY
 import ProjectEditorConstants.VALIDATED_KEY
+import models.action.ActionsListContent
 import org.json.JSONObject
 
 fun JSONObject.getDataModelList(): List<DataModel> {
@@ -253,6 +254,18 @@ fun JSONObject?.getSubFields(): List<Field> {
     }
     return subList
 }
+
+fun JSONObject?.getActionsList(): ActionsListContent {
+
+    val actions = Gson().parseJsonToType<ActionsListContent>(this.toString())
+    println(action?.actions?.size)
+    val jsonString = Gson().toJson(actions)
+    println("@@@@@")
+    println(jsonString
+    )
+    return  actions
+}
+
 
 fun getRelation(field: Field, tableName: String, subFields: List<Field>): Relation? {
     field.relatedEntities?.let {

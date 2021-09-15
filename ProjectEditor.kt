@@ -28,6 +28,7 @@ import ProjectEditorConstants.TEAMID_KEY
 import ProjectEditorConstants.TIME_TYPE
 import ProjectEditorConstants.UI_KEY
 import ProjectEditorConstants.URLS_KEY
+import models.action.ActionsListContent
 import org.json.JSONObject
 import java.io.File
 
@@ -38,6 +39,7 @@ class ProjectEditor(projectEditorFile: File) {
     lateinit var detailFormList: List<Form>
     lateinit var navigationTableList: List<String>
     lateinit var searchableFields: HashMap<String, List<String>>
+    lateinit var actionsList: ActionsListContent
 
     lateinit var jsonObj: JSONObject
 
@@ -66,6 +68,9 @@ class ProjectEditor(projectEditorFile: File) {
 
             detailFormList = jsonObj.getFormList(dataModelList, FormType.DETAIL, navigationTableList)
             Log.d("> Detail forms list successfully read.")
+
+            actionsList = jsonObj.getActionsList()
+            Log.d("> Actions  list successfully read.")
 
         } ?: kotlin.run {
             Log.e("Could not read global json object from file ${projectEditorFile.name}")
