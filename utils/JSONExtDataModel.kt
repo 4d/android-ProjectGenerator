@@ -15,7 +15,7 @@ import ProjectEditorConstants.RELATEDTABLENUMBER_KEY
 import ProjectEditorConstants.SHORTLABEL_KEY
 import ProjectEditorConstants.STRING_KEY
 import ProjectEditorConstants.VALIDATED_KEY
-import models.action.ActionsListContent
+import com.google.gson.Gson
 import org.json.JSONObject
 
 fun JSONObject.getDataModelList(): List<DataModel> {
@@ -257,13 +257,15 @@ fun JSONObject?.getSubFields(): List<Field> {
 
 fun JSONObject?.getActionsList(): ActionsListContent {
 
-    val actions = Gson().parseJsonToType<ActionsListContent>(this.toString())
-    println(action?.actions?.size)
+    val actions = Gson().fromJson(this.toString(), ActionsListContent::class.java)
+    println("THIS = ${this.toString()}")
+    println(actions?.actions?.size)
+    println("actions = $actions")
+    println("actions.actions = ${actions.actions}")
     val jsonString = Gson().toJson(actions)
     println("@@@@@")
-    println(jsonString
-    )
-    return  actions
+    println(jsonString)
+    return actions
 }
 
 

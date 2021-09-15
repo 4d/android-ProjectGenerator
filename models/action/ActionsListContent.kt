@@ -4,6 +4,4 @@
  * Copyright (c) 2021 htemanni. All rights reserved.
  */
 
-package models.action
-
 class ActionsListContent(val actions: List<Action>)

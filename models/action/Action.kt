@@ -4,9 +4,6 @@
  * Copyright (c) 2021 htemanni. All rights reserved.
  */
 
-package models.action
-
-
 class Action(
         val name: String,
         val icon: String?,

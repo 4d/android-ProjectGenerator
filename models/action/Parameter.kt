@@ -4,9 +4,6 @@
  * Copyright (c) 2021 htemanni. All rights reserved.
  */
 
-package models.action
-
-
 data class Parameter(
         var name: String?,
         var label: String?,
