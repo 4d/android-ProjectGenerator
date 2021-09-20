@@ -60,7 +60,7 @@ fun JSONObject.getDataModelList(): List<DataModel> {
 
             newDataModelJSONObject.getSafeObject(EMPTY_KEY)?.getSafeObject(FILTER_KEY)?.let {
                 if (it.getSafeBoolean(VALIDATED_KEY) == true)
-                    newDataModel.query = it.getSafeString(STRING_KEY)
+                    newDataModel.query = it.getSafeString(STRING_KEY)?.replace("\"", "'")
             }
 
             val fieldList = mutableListOf<Field>()
