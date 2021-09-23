@@ -12,6 +12,7 @@ import ProjectEditorConstants.DOMINANT_COLOR_KEY
 import ProjectEditorConstants.EMAIL_KEY
 import ProjectEditorConstants.EMPTY_TYPE
 import ProjectEditorConstants.FLOAT_TYPE
+import ProjectEditorConstants.HAS_RELATIONS_KEY
 import ProjectEditorConstants.INT_TYPE
 import ProjectEditorConstants.NAME_KEY
 import ProjectEditorConstants.ORGANIZATION_KEY
@@ -106,6 +107,7 @@ class ProjectEditor(projectEditorFile: File) {
         return when (key) {
             "mailAuth" -> jsonObj.getSafeObject(PROJECT_KEY)?.getSafeObject(SERVER_KEY)
                 ?.getSafeObject(AUTHENTICATION_KEY)?.getSafeBoolean(EMAIL_KEY)
+            "hasRelations" -> jsonObj.getSafeBoolean(HAS_RELATIONS_KEY)
             else -> return null
         }
     }
@@ -118,6 +120,7 @@ class ProjectEditor(projectEditorFile: File) {
         if (remoteUrl.isNullOrEmpty())
             remoteUrl = DEFAULT_REMOTE_URL
         val teamId = findJsonString("teamId") ?: ""
+        val hasRelations = findJsonBoolean("hasRelations") ?: true
         return AppInfo(
             team = Team(TeamID = teamId, TeamName = ""),
             guestLogin = mailAuth.not(),
@@ -125,7 +128,7 @@ class ProjectEditor(projectEditorFile: File) {
             initialGlobalStamp = 0,
             dumpedTables = mutableListOf(),
             logLevel = DEFAULT_LOG_LEVEL,
-            relations = true
+            relations = hasRelations
         )
     }
 }

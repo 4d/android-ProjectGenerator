@@ -61,7 +61,7 @@ fun JSONObject.getDataModelList(): List<DataModel> {
 
             newDataModelJSONObject.getSafeObject(EMPTY_KEY)?.getSafeObject(FILTER_KEY)?.let {
                 if (it.getSafeBoolean(VALIDATED_KEY) == true)
-                    newDataModel.query = it.getSafeString(STRING_KEY)
+                    newDataModel.query = it.getSafeString(STRING_KEY)?.replace("\"", "'")
             }
 
             val fieldList = mutableListOf<Field>()
@@ -298,6 +298,7 @@ fun getRelation(field: Field, tableName: String, subFields: List<Field>): Relati
         )
     }
     field.relatedDataClass?.let {
+        subFields.forEach { subField -> subField.relatedTableNumber = field.relatedTableNumber }
         return Relation(
             source = tableName,
             target = it,
