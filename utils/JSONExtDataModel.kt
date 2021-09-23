@@ -12,10 +12,10 @@ import ProjectEditorConstants.PROJECT_KEY
 import ProjectEditorConstants.RELATEDDATACLASS_KEY
 import ProjectEditorConstants.RELATEDENTITIES_KEY
 import ProjectEditorConstants.RELATEDTABLENUMBER_KEY
+import ProjectEditorConstants.SCOP_KEY
 import ProjectEditorConstants.SHORTLABEL_KEY
 import ProjectEditorConstants.STRING_KEY
 import ProjectEditorConstants.VALIDATED_KEY
-import com.google.gson.Gson
 import org.json.JSONObject
 
 fun JSONObject.getDataModelList(): List<DataModel> {
@@ -255,17 +255,35 @@ fun JSONObject?.getSubFields(): List<Field> {
     return subList
 }
 
-fun JSONObject?.getActionsList(): ActionsListContent {
+fun JSONObject?.getActionsList(dataModelList: List<DataModel>, nameInJson: String): JSONObject {
+    val jsonArray = this?.getSafeObject(PROJECT_KEY)?.getSafeArray("actions")
+    val allActions = mutableListOf<JSONObject>()
+    val jsonObject = JSONObject()
 
-    val actions = Gson().fromJson(this.toString(), ActionsListContent::class.java)
-    println("THIS = ${this.toString()}")
-    println(actions?.actions?.size)
-    println("actions = $actions")
-    println("actions.actions = ${actions.actions}")
-    val jsonString = Gson().toJson(actions)
-    println("@@@@@")
-    println(jsonString)
-    return actions
+
+
+    if (jsonArray == null)
+    // Return empty jsonObject
+        return jsonObject
+
+    // get All actions
+    for (i in 0 until jsonArray?.length()) {
+        val action = jsonArray.getJSONObject(i)
+        if (action.getSafeString(SCOP_KEY) == nameInJson) {
+            allActions.add(action)
+        }
+    }
+
+    val actionsGroupedByTableNumber = HashMap(allActions.groupBy { it.getSafeInt("tableNumber") })
+    dataModelList.forEach { keyDataModel ->
+        actionsGroupedByTableNumber.values.forEach {
+            val tableNumber = it.firstOrNull()?.getSafeInt("tableNumber")
+            if (tableNumber.toString() == keyDataModel.id)
+                jsonObject.put(keyDataModel.name, it)
+        }
+    }
+    
+    return jsonObject
 }
 
 

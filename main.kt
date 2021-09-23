@@ -67,7 +67,7 @@ class GenerateCommand : CliktCommand(name = "generate") {
 
     private fun start() {
 
-        Log.d("e ${projectEditorJson.name}...")
+        Log.d("file: ${projectEditorJson.path}...")
 
         val projectEditor = ProjectEditor(projectEditorJson)
 

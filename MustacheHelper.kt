@@ -946,7 +946,9 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
     }
 
     fun makeActionsList() {
-        makeJsonFile(ACTIONS_LIST_FILENAME, projectEditor.actionsList)
+        projectEditor.actions.forEach {
+            makeJsonFile(it.key.fileName, it.value)
+        }
     }
 
     private fun makeJsonFile(fileName: String, content: Any) {
@@ -955,7 +957,11 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         if (!file.createNewFile()) {
             throw Exception("An error occurred while creating new file : $file")
         }
-        file.writeText(gson.toJson(content))
+        if (content is JSONObject) {
+            file.writeText(content.toString())
+        } else {
+            file.writeText(gson.toJson(content))
+        }
     }
 
     private fun generateCompilerFolder(templateFileFolder: String): Mustache.Compiler {
