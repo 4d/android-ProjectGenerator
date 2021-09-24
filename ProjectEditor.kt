@@ -1,7 +1,5 @@
 import DefaultValues.DEFAULT_LOG_LEVEL
 import DefaultValues.DEFAULT_REMOTE_URL
-import FileHelperConstants.ACTIONS_DETAILS_FILENAME
-import FileHelperConstants.ACTIONS_LIST_FILENAME
 import ProjectEditorConstants.AUTHENTICATION_KEY
 import ProjectEditorConstants.BOOLEAN_TYPE
 import ProjectEditorConstants.CACHE_4D_SDK_KEY
@@ -166,9 +164,4 @@ fun typeFromTypeInt(type: Int?): String = when (type) {
     12 -> EMPTY_TYPE
     25 -> INT_TYPE
     else -> EMPTY_TYPE
-}
-
-enum class ActionScope(val fileName: String, val nameInJson: String) {
-    CURRENT_RECORD(ACTIONS_DETAILS_FILENAME, "currentRecord"),
-    LIST(ACTIONS_LIST_FILENAME, "table"),
 }
