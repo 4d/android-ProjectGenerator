@@ -74,7 +74,7 @@ class ProjectEditor(projectEditorFile: File) {
             ActionScope.values().forEach { scope ->
                 actions[scope] = jsonObj.getActionsList(dataModelList, scope.nameInJson)
             }
-            Log.d("> Actions  list successfully read.")
+            Log.d("> Actions list successfully read.")
 
         } ?: kotlin.run {
             Log.e("Could not read global json object from file ${projectEditorFile.name}")

@@ -12,7 +12,7 @@ import ProjectEditorConstants.PROJECT_KEY
 import ProjectEditorConstants.RELATEDDATACLASS_KEY
 import ProjectEditorConstants.RELATEDENTITIES_KEY
 import ProjectEditorConstants.RELATEDTABLENUMBER_KEY
-import ProjectEditorConstants.SCOP_KEY
+import ProjectEditorConstants.SCOPE_KEY
 import ProjectEditorConstants.SHORTLABEL_KEY
 import ProjectEditorConstants.STRING_KEY
 import ProjectEditorConstants.VALIDATED_KEY
@@ -260,16 +260,14 @@ fun JSONObject?.getActionsList(dataModelList: List<DataModel>, nameInJson: Strin
     val allActions = mutableListOf<JSONObject>()
     val jsonObject = JSONObject()
 
-
-
     if (jsonArray == null)
     // Return empty jsonObject
         return jsonObject
 
     // get All actions
-    for (i in 0 until jsonArray?.length()) {
+    for (i in 0 until jsonArray.length()) {
         val action = jsonArray.getJSONObject(i)
-        if (action.getSafeString(SCOP_KEY) == nameInJson) {
+        if (action.getSafeString(SCOPE_KEY) == nameInJson) {
             allActions.add(action)
         }
     }
