@@ -1,8 +1,8 @@
 //DEPS com.samskivert:jmustache:1.15
 //DEPS com.squareup.retrofit2:converter-gson:2.9.0
 
-@file:DependsOnMaven("com.github.ajalt.clikt:clikt-jvm:3.1.0")
-@file:DependsOnMaven("org.json:json:20180813")
+@file:DependsOnMaven("com.github.ajalt.clikt:clikt-jvm:3.2.0")
+@file:DependsOnMaven("org.json:json:20210307")
 @file:DependsOnMaven("com.google.android:android:4.1.1.4")
 
 @file:KotlinOpts("-J-Xmx5g")

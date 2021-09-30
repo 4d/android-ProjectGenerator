@@ -14,7 +14,7 @@ fi
 
 if [ -z "$JAVA_HOME" ]; then
     # use android studio by default
-    export JAVA_HOME="/Applications/Android Studio.app/Contents/jre/jdk/Contents/Home"
+    export JAVA_HOME="/Applications/Android Studio.app/Contents/jre/Contents/Home"
 fi
 
 # if no project file, use the cached one
