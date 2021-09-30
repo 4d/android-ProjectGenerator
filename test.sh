@@ -12,6 +12,7 @@ if [ -z "$projectFile" ]; then
    fi
 fi
 
+export JAVA_HOME=$(/usr/libexec/java_home)
 if [ -z "$JAVA_HOME" ]; then
     # use android studio by default
     export JAVA_HOME="/Applications/Android Studio.app/Contents/jre/Contents/Home"
