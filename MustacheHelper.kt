@@ -28,6 +28,7 @@ import MustacheConstants.ENTITY_CLASSES
 import MustacheConstants.FIELDS
 import MustacheConstants.FIRST_FIELD
 import MustacheConstants.FORM_FIELDS
+import MustacheConstants.HAS_ANY_RELATION
 import MustacheConstants.HAS_REMOTE_ADDRESS
 import MustacheConstants.PACKAGE
 import MustacheConstants.RELATIONS
@@ -46,6 +47,7 @@ import MustacheConstants.TABLENAMES_RELATIONS
 import MustacheConstants.TABLENAMES_RELATIONS_DISTINCT
 import MustacheConstants.TABLENAMES_WITHOUT_RELATIONS
 import MustacheConstants.TABLENAMES_LAYOUT_RELATIONS
+import MustacheConstants.TABLENAMES_WITH_RELATIONS
 import MustacheConstants.TABLENAME_CAMELCASE
 import MustacheConstants.TABLENAME_LOWERCASE
 import MustacheConstants.TABLENAME_ORIGINAL
@@ -82,6 +84,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
     private var tableNames_lowercase = mutableListOf<TemplateLayoutFiller>()
     private var relations = mutableListOf<TemplateRelationFiller>()
     private var customFormatterImages = mutableListOf<TemplateFormatterFiller>()
+    private var tableNamesWithRelation = mutableListOf<TemplateTableWithRelationFiller>()
 
     // <formatName, <imageName, <resourceName, darkModeResourceName>>
     private lateinit var customFormattersImagesMap: Map<String, Map<String, Pair<String, String>>>
@@ -337,6 +340,17 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
             }
         }
         data[CUSTOM_FORMATTERS_IMAGES] = customFormatterImages
+
+
+        projectEditor.dataModelList.forEach { dataModel ->
+            if (dataModel.relationList?.firstOrNull { it.relationType == RelationType.MANY_TO_ONE } != null) {
+                tableNamesWithRelation.add(
+                    TemplateTableWithRelationFiller(name = dataModel.name.tableNameAdjustment())
+                )
+            }
+        }
+
+        data[TABLENAMES_WITH_RELATIONS] = tableNamesWithRelation
     }
 
     /**
@@ -490,6 +504,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         }
 
         relations.clear()
+        data[HAS_ANY_RELATION] = false
         val relationsImport =
             mutableListOf<TemplateRelationFiller>() // need another list, to remove double in import section
 
@@ -514,6 +529,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
             }
 
         data[RELATIONS] = relations
+        if (relations.size > 0) data[HAS_ANY_RELATION] = true
         data[RELATIONS_IMPORT] = relationsImport
     }
 
