@@ -18,6 +18,7 @@ object MustacheConstants {
     const val TABLENAMES_RELATIONS = "tableNames_relations"
     const val TABLENAMES_LAYOUT_RELATIONS = "tableNames_layout_relations"
     const val TABLENAMES_WITHOUT_RELATIONS = "tableNames_without_relations"
+    const val TABLENAMES_WITH_RELATIONS = "tableNames_with_relations"
     const val TABLENAMES_RELATIONS_DISTINCT = "tableNames_relations_distinct"
     const val TABLENAMES_LOWERCASE = "tableNames_lowercase"
     const val TABLENAMES_NAVIGATION = "tableNames_navigation"
@@ -38,6 +39,7 @@ object MustacheConstants {
     const val RELATION_SAME_TYPE = "relation_same_type"
     const val RELATION_NAME = "relation_name"
     const val RELATIONS = "relations"
+    const val HAS_ANY_RELATION = "has_any_relation"
     const val RELATIONS_IMPORT = "relations_import"
 
     const val COLORS_DEFINED = "logo_colors_defined"

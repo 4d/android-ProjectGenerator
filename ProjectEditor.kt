@@ -140,6 +140,7 @@ fun typeStringFromTypeInt(type: Int?): String = when (type) {
     11 -> STRING_TYPE
     12 -> EMPTY_TYPE
     25 -> INT_TYPE
+    38 -> STRING_TYPE
     else -> EMPTY_TYPE
 }
 
