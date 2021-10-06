@@ -43,8 +43,6 @@ import MustacheConstants.TABLENAMES
 import MustacheConstants.TABLENAMES_LAYOUT
 import MustacheConstants.TABLENAMES_LOWERCASE
 import MustacheConstants.TABLENAMES_NAVIGATION
-import MustacheConstants.TABLENAMES_RELATIONS
-import MustacheConstants.TABLENAMES_RELATIONS_DISTINCT
 import MustacheConstants.TABLENAMES_WITHOUT_RELATIONS
 import MustacheConstants.TABLENAMES_LAYOUT_RELATIONS
 import MustacheConstants.TABLENAMES_WITH_RELATIONS
@@ -81,7 +79,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
     private val tableNamesForNavigation = mutableListOf<TemplateLayoutFiller>()
     private val tableNamesForLayoutType = mutableListOf<TemplateLayoutTypeFiller>()
     private var tableNames = mutableListOf<TemplateTableFiller>()
-    private var tableNames_lowercase = mutableListOf<TemplateLayoutFiller>()
+    private var tableNamesLowercase = mutableListOf<TemplateLayoutFiller>()
     private var relations = mutableListOf<TemplateRelationFiller>()
     private var customFormatterImages = mutableListOf<TemplateFormatterFiller>()
     private var tableNamesWithRelation = mutableListOf<TemplateTableWithRelationFiller>()
@@ -214,13 +212,12 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
         var entityClassesString = ""
 
-        val dataModelRelationList = mutableListOf<TemplateRelationFiller>()
         val layoutRelationList = mutableListOf<TemplateRelationFiller>()
 
         projectEditor.dataModelList.forEach { dataModel ->
 
             dataModel.relationList?.filter { it.relationType == RelationType.MANY_TO_ONE }?.forEach { relation ->
-                dataModelRelationList.add(TemplateRelationFiller(relation_source = relation.source.tableNameAdjustment(),
+                relations.add(TemplateRelationFiller(relation_source = relation.source.tableNameAdjustment(),
                     relation_target = relation.target.tableNameAdjustment(),
                     relation_name = relation.name.fieldAdjustment()
                 ))
@@ -232,7 +229,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                 nameCamelCase = dataModel.name.dataBindingAdjustment(),
                 concat_fields = dataModel.fields?.joinToString { "\"${it.name}\"" } ?: ""))
 
-            tableNames_lowercase.add(
+            tableNamesLowercase.add(
                 TemplateLayoutFiller(
                     name = dataModel.name.tableNameAdjustment(),
                     name_original = dataModel.name,
@@ -246,19 +243,19 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
             Log.d("ProjectDataModelList  ${entityClassesString}:: ${dataModel.name.tableNameAdjustment()}")
         }
 
-        val tableNames_without_relations = mutableListOf<TemplateTableFiller>()
+        val tableNamesWithoutRelations = mutableListOf<TemplateTableFiller>()
 
         tableNames.forEach { tableName ->
-            if (!dataModelRelationList.map { it.relation_source.tableNameAdjustment() }.contains(tableName.name))
-                tableNames_without_relations.add(tableName)
+            if (!relations.map { it.relation_source.tableNameAdjustment() }.contains(tableName.name))
+                tableNamesWithoutRelations.add(tableName)
         }
 
         data[TABLENAMES] = tableNames
-        data[TABLENAMES_LOWERCASE] = tableNames_lowercase
-        data[TABLENAMES_RELATIONS] = dataModelRelationList
-        data[TABLENAMES_WITHOUT_RELATIONS] = tableNames_without_relations
-        data[TABLENAMES_RELATIONS_DISTINCT] =
-            dataModelRelationList.distinctBy { it.relation_source to it.relation_target }
+        data[TABLENAMES_LOWERCASE] = tableNamesLowercase
+
+        data[RELATIONS] = relations
+        data[RELATIONS_IMPORT] = relations.distinctBy { it.relation_source to it.relation_target }
+        data[TABLENAMES_WITHOUT_RELATIONS] = tableNamesWithoutRelations
         data[ENTITY_CLASSES] = entityClassesString.dropLast(2)
 
         val typesAndTables = mutableListOf<TemplateTableFiller>()
@@ -381,16 +378,20 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
         val newFilePath = fileHelper.pathHelper.getPath(currentFile.absolutePath.replaceXmlTxtSuffix())
 
-        relations.clear()
         projectEditor.dataModelList.forEach { dataModel ->
-            dataModel.relationList?.filter { it.relationType == RelationType.MANY_TO_ONE }
-                ?.forEach { relation ->
-                    relations.add(TemplateRelationFiller(relation_source = relation.source.tableNameAdjustment(),
+            dataModel.relationList?.filter { it.relationType == RelationType.MANY_TO_ONE }?.forEach { relation ->
+                relations.add(
+                    TemplateRelationFiller(
+                        relation_source = relation.source.tableNameAdjustment(),
                         relation_target = relation.target.tableNameAdjustment(),
-                        relation_name = relation.name.fieldAdjustment()))
-                }
+                        relation_name = relation.name.fieldAdjustment()
+                    )
+                )
+            }
         }
+
         data[RELATIONS] = relations
+        data[RELATIONS_IMPORT] = relations.distinctBy { it.relation_source to it.relation_target }
 
         if (currentFile.isWithTemplateName()) {
 
@@ -504,9 +505,8 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         }
 
         relations.clear()
+        data.remove(RELATIONS_IMPORT)
         data[HAS_ANY_RELATION] = false
-        val relationsImport =
-            mutableListOf<TemplateRelationFiller>() // need another list, to remove double in import section
 
         projectEditor.dataModelList.find { it.name.tableNameAdjustment() == tableName.name.tableNameAdjustment() }?.relationList?.filter { it.relationType == RelationType.MANY_TO_ONE }
             ?.forEach { relation ->
@@ -516,7 +516,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                     relation_target = relation.target.tableNameAdjustment(),
                     relation_name = relation.name.fieldAdjustment()))
 
-                var isAlreadyImported = false
+                /*var isAlreadyImported = false
                 for (relationImport in relationsImport) {
                     if (relationImport.relation_source == relation.source.tableNameAdjustment() && relationImport.relation_target == relation.target.tableNameAdjustment())
                         isAlreadyImported = true
@@ -525,12 +525,12 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                     relationsImport.add(TemplateRelationFiller(
                         relation_source = relation.source.tableNameAdjustment(),
                         relation_target = relation.target.tableNameAdjustment(),
-                        relation_name = relation.name.fieldAdjustment())) // name is unused
+                        relation_name = relation.name.fieldAdjustment())) // name is unused*/
             }
 
         data[RELATIONS] = relations
         if (relations.size > 0) data[HAS_ANY_RELATION] = true
-        data[RELATIONS_IMPORT] = relationsImport
+        data[RELATIONS_IMPORT] = relations.distinctBy { it.relation_source to it.relation_target }
     }
 
     fun applyListFormTemplate() {
