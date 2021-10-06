@@ -3,5 +3,5 @@ data class Relation(
         val target: String,
         val name: String,
         val relationType: RelationType,
-        val subFields: List<Field>
+        var subFields: List<Field>
 )
