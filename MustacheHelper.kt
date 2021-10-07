@@ -1017,25 +1017,35 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         map: MutableMap<String, FieldMapping>,
         customFormattersImagesMap: MutableMap<String, Map<String, Pair<String, String>>>
     ) {
-        field.format?.let { format ->
+        if (field.format != null) {
+            val format = field.format as String
             Log.d("getCustomFormatterFields()  /  Format = $format")
             if (format.startsWith("/")) {
 
                 val formatPath = fileHelper.pathHelper.getCustomFormatterPath(format)
                 getManifestJSONContent(formatPath)?.let {
-                    extractFormatter(it, field, relationName, formatPath, format, map, customFormattersImagesMap)
+
+                    val fieldMapping = getFieldMapping(it, format)
+                    Log.d("extractFormatter : relationName = $relationName")
+                    Log.d("fieldMapping = $fieldMapping")
+                    if (isValidFormatter(fieldMapping)) {
+                        extractFormatter(fieldMapping, field, relationName, formatPath, format, map, customFormattersImagesMap)
+                        customFormatMap.put(dataModel.name.tableNameAdjustment(), map)
+                    } else {
+                        Log.d("Not adding this custom formatter as it's not valid")
+                    }
                 }
 
             } else {
                 customFormatMap.put(dataModel.name.tableNameAdjustment(), map)
             }
-        } ?: kotlin.run {
+        } else {
             customFormatMap.put(dataModel.name.tableNameAdjustment(), map)
         }
     }
 
     private fun extractFormatter(
-        manifestContent: JSONObject,
+        fieldMapping: FieldMapping,
         field: Field,
         relationName: String?,
         formatPath: String,
@@ -1043,45 +1053,40 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         map: MutableMap<String, FieldMapping>,
         customFormattersImagesMap: MutableMap<String, Map<String, Pair<String, String>>>
     ) {
-        val fieldMapping = getFieldMapping(manifestContent, format)
-        Log.d("extractFormatter : relationName = $relationName")
-        Log.d("fieldMapping = $fieldMapping")
-        if (isValidFormatter(fieldMapping)) {
-            if (relationName.isNullOrEmpty())
-                map[field.name.fieldAdjustment()] = fieldMapping
-            else
-                map[relationName.fieldAdjustment() + "." + field.name.fieldAdjustment()] = fieldMapping
+        if (relationName.isNullOrEmpty())
+            map[field.name.fieldAdjustment()] = fieldMapping
+        else
+            map[relationName.fieldAdjustment() + "." + field.name.fieldAdjustment()] = fieldMapping
 
-            if (isImageNamed(fieldMapping)) {
+        Log.d("map = $map")
 
-                val imageMap = mutableMapOf<String, Pair<String, String>>()
+        if (isImageNamed(fieldMapping)) {
 
-                // choiceList can be Map<String, String> (JSONObject in app_info.json)
-                // or a List<String> (JSONArray in app_info.json)
-                when (fieldMapping.choiceList) {
-                    is Map<*, *> -> {
-                        fieldMapping.choiceList.values.forEach eachImageName@ { imageName ->
-                            if (imageName !is String) return@eachImageName
-                            if (imageName.contains(".") && imageExistsInFormatter(formatPath, imageName)) {
-                                val darkModeExists = imageExistsInFormatterInDarkMode(formatPath, imageName)
-                                imageMap[imageName] = getResourceName(format, imageName, darkModeExists)
-                            }
-                        }
-                    }
-                    is List<*> -> {
-                        fieldMapping.choiceList.forEach eachImageName@ { imageName ->
-                            if (imageName !is String) return@eachImageName
-                            if (imageName.contains(".") && imageExistsInFormatter(formatPath, imageName)) {
-                                val darkModeExists = imageExistsInFormatterInDarkMode(formatPath, imageName)
-                                imageMap[imageName] = getResourceName(format, imageName, darkModeExists)
-                            }
+            val imageMap = mutableMapOf<String, Pair<String, String>>()
+
+            // choiceList can be Map<String, String> (JSONObject in app_info.json)
+            // or a List<String> (JSONArray in app_info.json)
+            when (fieldMapping.choiceList) {
+                is Map<*, *> -> {
+                    fieldMapping.choiceList.values.forEach eachImageName@ { imageName ->
+                        if (imageName !is String) return@eachImageName
+                        if (imageName.contains(".") && imageExistsInFormatter(formatPath, imageName)) {
+                            val darkModeExists = imageExistsInFormatterInDarkMode(formatPath, imageName)
+                            imageMap[imageName] = getResourceName(format, imageName, darkModeExists)
                         }
                     }
                 }
-                customFormattersImagesMap.putIfAbsent(format, imageMap)
+                is List<*> -> {
+                    fieldMapping.choiceList.forEach eachImageName@ { imageName ->
+                        if (imageName !is String) return@eachImageName
+                        if (imageName.contains(".") && imageExistsInFormatter(formatPath, imageName)) {
+                            val darkModeExists = imageExistsInFormatterInDarkMode(formatPath, imageName)
+                            imageMap[imageName] = getResourceName(format, imageName, darkModeExists)
+                        }
+                    }
+                }
             }
-        } else {
-            Log.d("Not adding this custom formatter as it's not valid")
+            customFormattersImagesMap.putIfAbsent(format, imageMap)
         }
     }
 
