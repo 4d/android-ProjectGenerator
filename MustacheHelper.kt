@@ -515,17 +515,6 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                     relation_source = relation.source.tableNameAdjustment(),
                     relation_target = relation.target.tableNameAdjustment(),
                     relation_name = relation.name.fieldAdjustment()))
-
-                /*var isAlreadyImported = false
-                for (relationImport in relationsImport) {
-                    if (relationImport.relation_source == relation.source.tableNameAdjustment() && relationImport.relation_target == relation.target.tableNameAdjustment())
-                        isAlreadyImported = true
-                }
-                if (!isAlreadyImported)
-                    relationsImport.add(TemplateRelationFiller(
-                        relation_source = relation.source.tableNameAdjustment(),
-                        relation_target = relation.target.tableNameAdjustment(),
-                        relation_name = relation.name.fieldAdjustment())) // name is unused*/
             }
 
         data[RELATIONS] = relations
