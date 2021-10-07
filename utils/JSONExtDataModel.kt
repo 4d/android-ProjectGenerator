@@ -61,7 +61,7 @@ fun JSONObject.getDataModelList(): List<DataModel> {
 
             newDataModelJSONObject.getSafeObject(EMPTY_KEY)?.getSafeObject(FILTER_KEY)?.let {
                 if (it.getSafeBoolean(VALIDATED_KEY) == true)
-                    newDataModel.query = it.getSafeString(STRING_KEY)
+                    newDataModel.query = it.getSafeString(STRING_KEY)?.replace("\"", "'")
             }
 
             val fieldList = mutableListOf<Field>()
@@ -132,7 +132,7 @@ fun JSONObject.getDataModelList(): List<DataModel> {
                                 val dataModelIndex =
                                     dataModelList.indexOfFirst { dataModel -> dataModel.name == relatedDataClass } // -1 if not found
                                 when {
-                                    dataModelIndex != -1 -> { // in case we did added this dataModel already
+                                    dataModelIndex != -1 -> { // in case we added this dataModel already
                                         slaveFieldList.forEach { slaveField ->
                                             if (dataModelList[dataModelIndex].fields?.find { field -> field.name == slaveField.name } == null) {
                                                 dataModelList[dataModelIndex].fields?.add(slaveField)
@@ -178,7 +178,52 @@ fun JSONObject.getDataModelList(): List<DataModel> {
             dataModelList.add(newDataModel)
         }
     }
-//    }
+
+    // Sanity check for missing DataModel definition
+    dataModelList.forEach { dataModel ->
+        val sanityFieldList = mutableListOf<Field>()
+        dataModel.fields?.forEach { field ->
+            field.relatedTableNumber?.let { relatedTableNumber -> // relation
+                if (dataModelList.map { it.id }.contains(relatedTableNumber.toString())) {
+                    sanityFieldList.add(field)
+                } else {
+                    Log.e("Excluding unknown field $field")
+                }
+            } ?: kotlin.run { // not relation
+                sanityFieldList.add(field)
+            }
+        }
+        Log.d("dataModel ${dataModel.name}, previous fields size = ${dataModel.fields?.size}, new size = ${sanityFieldList.size}")
+        dataModel.fields = sanityFieldList
+
+        val sanityRelationList = mutableListOf<Relation>()
+        dataModel.relationList?.forEach { relation ->
+            if (dataModelList.map { it.name }.contains(relation.target)) {
+
+                val sanitySubFieldList = mutableListOf<Field>()
+                relation.subFields.forEach { subField ->
+                    subField.relatedTableNumber?.let { relatedTableNumber -> // relation
+                        if (dataModelList.map { it.id }.contains(relatedTableNumber.toString())) {
+                            sanitySubFieldList.add(subField)
+                        } else {
+                            Log.e("Excluding unknown subField $subField")
+                        }
+                    } ?: kotlin.run { // not relation
+                        sanitySubFieldList.add(subField)
+                    }
+                }
+                Log.d("relation ${relation.name} from dataModel ${dataModel.name}, previous subField size = ${relation.subFields.size}, new size = ${sanitySubFieldList.size}")
+                relation.subFields = sanitySubFieldList
+
+                sanityRelationList.add(relation)
+            } else {
+                Log.e("Excluding unknown relation $relation")
+            }
+        }
+        Log.d("dataModel ${dataModel.name}, previous relationList size = ${dataModel.relationList?.size}, new size = ${sanityRelationList.size}")
+        dataModel.relationList = sanityRelationList
+    }
+
     dataModelList.forEach {
         it.reOrderFields()
     }
@@ -260,8 +305,6 @@ fun JSONObject?.getActionsList(dataModelList: List<DataModel>, nameInJson: Strin
     val allActions = mutableListOf<JSONObject>()
     val jsonObject = JSONObject()
 
-
-
     if (jsonArray == null)
     // Return empty jsonObject
         return jsonObject
@@ -298,6 +341,7 @@ fun getRelation(field: Field, tableName: String, subFields: List<Field>): Relati
         )
     }
     field.relatedDataClass?.let {
+        subFields.forEach { subField -> subField.relatedTableNumber = field.relatedTableNumber }
         return Relation(
             source = tableName,
             target = it,

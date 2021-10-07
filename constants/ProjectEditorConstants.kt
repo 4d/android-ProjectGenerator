@@ -47,6 +47,7 @@ object ProjectEditorConstants {
     const val AUTHENTICATION_KEY = "authentication"
     const val EMAIL_KEY = "email"
     const val SCOP_KEY = "scope"
+    const val HAS_RELATIONS_KEY = "hasRelations"
 
     /**
      * TYPE STRING PARSING
