@@ -61,4 +61,5 @@ object ProjectEditorConstants {
     const val INT_TYPE = "Int"
     const val TIME_TYPE = "Time"
     const val EMPTY_TYPE = ""
+    const val OBJECT_TYPE = "Map<String, Any>"
 }
