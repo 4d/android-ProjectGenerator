@@ -13,6 +13,7 @@ import ProjectEditorConstants.FLOAT_TYPE
 import ProjectEditorConstants.HAS_RELATIONS_KEY
 import ProjectEditorConstants.INT_TYPE
 import ProjectEditorConstants.NAME_KEY
+import ProjectEditorConstants.OBJECT_TYPE
 import ProjectEditorConstants.ORGANIZATION_KEY
 import ProjectEditorConstants.PACKAGE_KEY
 import ProjectEditorConstants.PATH_KEY
@@ -140,7 +141,7 @@ fun typeStringFromTypeInt(type: Int?): String = when (type) {
     11 -> STRING_TYPE
     12 -> EMPTY_TYPE
     25 -> INT_TYPE
-    38 -> STRING_TYPE
+    38 -> OBJECT_TYPE
     else -> EMPTY_TYPE
 }
 
@@ -158,5 +159,6 @@ fun typeFromTypeInt(type: Int?): String = when (type) {
     11 -> TIME_TYPE
     12 -> EMPTY_TYPE
     25 -> INT_TYPE
+    38 -> OBJECT_TYPE
     else -> EMPTY_TYPE
 }
