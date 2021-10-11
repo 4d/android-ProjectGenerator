@@ -2,6 +2,7 @@ import ProjectEditorConstants.BOOLEAN_TYPE
 import ProjectEditorConstants.DATE_TYPE
 import ProjectEditorConstants.FLOAT_TYPE
 import ProjectEditorConstants.INT_TYPE
+import ProjectEditorConstants.OBJECT_TYPE
 import ProjectEditorConstants.TIME_TYPE
 import java.io.File
 
@@ -121,6 +122,7 @@ fun Field.getFormatNameForType(): String {
             TIME_TYPE -> "mediumTime"
             INT_TYPE -> "integer"
             FLOAT_TYPE -> "decimal"
+            OBJECT_TYPE -> "jsonPrettyPrinted"
             else -> ""
         }
     } else {

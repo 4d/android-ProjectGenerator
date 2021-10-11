@@ -21,7 +21,7 @@ import MustacheConstants.COLOR_PRIMARY_LIGHTER_PLUS
 import MustacheConstants.COLOR_PRIMARY_LIGHTER_PLUS_PLUS
 import MustacheConstants.COLOR_PRIMARY_NEUTRAL
 import MustacheConstants.COMPANY_HEADER
-import MustacheConstants.CUSTOM_FORMATTERS_IMAGES
+import MustacheConstants.CUSTOM_FORMATTER_IMAGES
 import MustacheConstants.DATE_DAY
 import MustacheConstants.DATE_MONTH
 import MustacheConstants.DATE_YEAR
@@ -30,6 +30,9 @@ import MustacheConstants.FIELDS
 import MustacheConstants.FIRST_FIELD
 import MustacheConstants.FORM_FIELDS
 import MustacheConstants.HAS_ANY_RELATION
+import MustacheConstants.HAS_CUSTOM_FORMATTER_IMAGES
+import MustacheConstants.HAS_MANY_TO_ONE_RELATION
+import MustacheConstants.TABLE_HAS_ANY_RELATION
 import MustacheConstants.HAS_REMOTE_ADDRESS
 import MustacheConstants.PACKAGE
 import MustacheConstants.RELATIONS
@@ -50,6 +53,9 @@ import MustacheConstants.TABLENAMES_WITH_RELATIONS
 import MustacheConstants.TABLENAME_CAMELCASE
 import MustacheConstants.TABLENAME_LOWERCASE
 import MustacheConstants.TABLENAME_ORIGINAL
+import MustacheConstants.TABLE_HAS_DATE_FIELD
+import MustacheConstants.TABLE_HAS_ONE_TO_MANY_FIELD
+import MustacheConstants.TABLE_HAS_TIME_FIELD
 import MustacheConstants.THEME_COLOR_ON_PRIMARY
 import MustacheConstants.THEME_COLOR_PRIMARY
 import MustacheConstants.THEME_COLOR_PRIMARY_DARKER
@@ -228,7 +234,8 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                 name = dataModel.name.tableNameAdjustment(),
                 name_original = dataModel.name,
                 nameCamelCase = dataModel.name.dataBindingAdjustment(),
-                concat_fields = dataModel.fields?.joinToString { "\"${it.name}\"" } ?: ""))
+                concat_fields = dataModel.fields?.joinToString { "\"${it.name}\"" } ?: "",
+                type = dataModel.name.tableNameAdjustment()))
 
             tableNamesLowercase.add(
                 TemplateLayoutFiller(
@@ -255,6 +262,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         data[TABLENAMES_LOWERCASE] = tableNamesLowercase
 
         data[RELATIONS] = relations
+        data[HAS_ANY_RELATION] = relations.isNotEmpty()
         data[RELATIONS_IMPORT] = relations.distinctBy { it.relation_source to it.relation_target }
         data[TABLENAMES_WITHOUT_RELATIONS] = tableNamesWithoutRelations
         data[ENTITY_CLASSES] = entityClassesString.dropLast(2)
@@ -264,15 +272,23 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         typesAndTables.add(TemplateTableFiller(name = "Photo",
             name_original = "Photo",
             nameCamelCase = "photo",
-            concat_fields = ""))
+            concat_fields = "",
+            type = "Photo"))
         typesAndTables.add(TemplateTableFiller(name = "Date",
             name_original = "Date",
             nameCamelCase = "date",
-            concat_fields = ""))
+            concat_fields = "",
+            type = "Date"))
         typesAndTables.add(TemplateTableFiller(name = "Time",
             name_original = "Time",
             nameCamelCase = "time",
-            concat_fields = ""))
+            concat_fields = "",
+            type = "Time"))
+        typesAndTables.add(TemplateTableFiller(name = "Map",
+            name_original = "Time",
+            nameCamelCase = "time",
+            concat_fields = "",
+            type = "Map<String, Any>"))
         data[TYPES_AND_TABLES] = typesAndTables
 
 
@@ -311,6 +327,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         }
         data[TABLENAMES_NAVIGATION] = tableNamesForNavigation
         data[TABLENAMES_LAYOUT_RELATIONS] = layoutRelationList
+        data[HAS_MANY_TO_ONE_RELATION] = layoutRelationList.isNotEmpty()
 
         // Specifying if list layout is table or collection (LinearLayout or GridLayout)
         tableNamesForNavigation.map { it.name }.forEach { tableName ->
@@ -337,7 +354,8 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                 ))
             }
         }
-        data[CUSTOM_FORMATTERS_IMAGES] = customFormatterImages
+        data[CUSTOM_FORMATTER_IMAGES] = customFormatterImages
+        data[HAS_CUSTOM_FORMATTER_IMAGES] = customFormatterImages.isNotEmpty()
 
 
         projectEditor.dataModelList.forEach { dataModel ->
@@ -416,6 +434,9 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
                 //cleaning
                 data.remove(FIELDS)
+                data.remove(TABLE_HAS_DATE_FIELD)
+                data.remove(TABLE_HAS_TIME_FIELD)
+                data.remove(TABLE_HAS_ONE_TO_MANY_FIELD)
                 data.remove(RELATIONS)
                 data.remove(FIRST_FIELD)
             }
@@ -500,6 +521,9 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
             }
 
             data[FIELDS] = fieldList
+            data[TABLE_HAS_DATE_FIELD] = fieldList.map { it.fieldTypeString }.contains("Date")
+            data[TABLE_HAS_TIME_FIELD] = fieldList.map { it.fieldTypeString }.contains("Time")
+            data[TABLE_HAS_ONE_TO_MANY_FIELD] = fieldList.map { it.fieldTypeString }.firstOrNull { it.startsWith("Entities<") } != null
             Log.d("FIELDS", "${data[FIELDS]}")
             val firstField: String = fieldList.firstOrNull()?.name ?: ""
             data[FIRST_FIELD] = firstField
@@ -507,7 +531,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
         relations.clear()
         data.remove(RELATIONS_IMPORT)
-        data[HAS_ANY_RELATION] = false
+        data[TABLE_HAS_ANY_RELATION] = false
 
         projectEditor.dataModelList.find { it.name.tableNameAdjustment() == tableName.name.tableNameAdjustment() }?.relationList?.filter { it.relationType == RelationType.MANY_TO_ONE }
             ?.forEach { relation ->
@@ -519,7 +543,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
             }
 
         data[RELATIONS] = relations
-        if (relations.size > 0) data[HAS_ANY_RELATION] = true
+        if (relations.size > 0) data[TABLE_HAS_ANY_RELATION] = true
         data[RELATIONS_IMPORT] = relations.distinctBy { it.relation_source to it.relation_target }
     }
 
