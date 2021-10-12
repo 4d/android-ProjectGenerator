@@ -12,6 +12,7 @@ import ProjectEditorConstants.DOMINANT_COLOR_KEY
 import ProjectEditorConstants.EMAIL_KEY
 import ProjectEditorConstants.EMPTY_TYPE
 import ProjectEditorConstants.FLOAT_TYPE
+import ProjectEditorConstants.HAS_ACTIONS_KEY
 import ProjectEditorConstants.HAS_RELATIONS_KEY
 import ProjectEditorConstants.INT_TYPE
 import ProjectEditorConstants.NAME_KEY
@@ -72,8 +73,11 @@ class ProjectEditor(projectEditorFile: File) {
             detailFormList = jsonObj.getFormList(dataModelList, FormType.DETAIL, navigationTableList)
             Log.d("> Detail forms list successfully read.")
 
-            ActionScope.values().forEach { scope ->
-                actions[scope] = jsonObj.getActionsList(dataModelList, scope.nameInJson)
+            val hasActions = findJsonBoolean(HAS_ACTIONS_KEY) ?: false
+            if (hasActions) {
+                ActionScope.values().forEach { scope ->
+                    actions[scope] = jsonObj.getActionsList(dataModelList, scope.nameInJson)
+                }
             }
             Log.d("> Actions  list successfully read.")
 
@@ -89,17 +93,17 @@ class ProjectEditor(projectEditorFile: File) {
             "androidSdk" -> jsonObj.getSafeString(SDK_KEY)
             "cache4dSdk" -> jsonObj.getSafeString(CACHE_4D_SDK_KEY)
             "companyWithCaps" -> jsonObj.getSafeObject(PROJECT_KEY)?.getSafeObject(ORGANIZATION_KEY)
-                ?.getSafeString(NAME_KEY)
+                    ?.getSafeString(NAME_KEY)
             "appNameWithCaps" -> jsonObj.getSafeObject(PROJECT_KEY)?.getSafeObject(PRODUCT_KEY)?.getSafeString(NAME_KEY)
             "package" -> jsonObj.getSafeString(PACKAGE_KEY)
             "productionUrl" -> jsonObj.getSafeObject(PROJECT_KEY)?.getSafeObject(SERVER_KEY)?.getSafeObject(URLS_KEY)
-                ?.getSafeString(PRODUCTION_KEY)
+                    ?.getSafeString(PRODUCTION_KEY)
             "remoteUrl" -> jsonObj.getSafeString(REMOTE_URL_KEY)
             "teamId" -> jsonObj.getSafeObject(PROJECT_KEY)?.getSafeObject(ORGANIZATION_KEY)?.getSafeString(TEAMID_KEY)
             "embeddedData" -> jsonObj.getSafeObject(PROJECT_KEY)?.getSafeObject(DATASOURCE_KEY)
-                ?.getSafeString(SOURCE_KEY)
+                    ?.getSafeString(SOURCE_KEY)
             "dominantColor" -> jsonObj.getSafeObject(PROJECT_KEY)?.getSafeObject(UI_KEY)
-                ?.getSafeString(DOMINANT_COLOR_KEY)
+                    ?.getSafeString(DOMINANT_COLOR_KEY)
             else -> return null
         }
     }
@@ -107,8 +111,9 @@ class ProjectEditor(projectEditorFile: File) {
     fun findJsonBoolean(key: String): Boolean? {
         return when (key) {
             "mailAuth" -> jsonObj.getSafeObject(PROJECT_KEY)?.getSafeObject(SERVER_KEY)
-                ?.getSafeObject(AUTHENTICATION_KEY)?.getSafeBoolean(EMAIL_KEY)
+                    ?.getSafeObject(AUTHENTICATION_KEY)?.getSafeBoolean(EMAIL_KEY)
             "hasRelations" -> jsonObj.getSafeBoolean(HAS_RELATIONS_KEY)
+            "hasActions" -> jsonObj.getSafeBoolean(HAS_ACTIONS_KEY)
             else -> return null
         }
     }
@@ -123,13 +128,13 @@ class ProjectEditor(projectEditorFile: File) {
         val teamId = findJsonString("teamId") ?: ""
         val hasRelations = findJsonBoolean("hasRelations") ?: true
         return AppInfo(
-            team = Team(TeamID = teamId, TeamName = ""),
-            guestLogin = mailAuth.not(),
-            remoteUrl = remoteUrl,
-            initialGlobalStamp = 0,
-            dumpedTables = mutableListOf(),
-            logLevel = DEFAULT_LOG_LEVEL,
-            relations = hasRelations
+                team = Team(TeamID = teamId, TeamName = ""),
+                guestLogin = mailAuth.not(),
+                remoteUrl = remoteUrl,
+                initialGlobalStamp = 0,
+                dumpedTables = mutableListOf(),
+                logLevel = DEFAULT_LOG_LEVEL,
+                relations = hasRelations
         )
     }
 }
