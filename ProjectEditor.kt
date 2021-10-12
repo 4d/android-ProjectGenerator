@@ -1,7 +1,5 @@
 import DefaultValues.DEFAULT_LOG_LEVEL
 import DefaultValues.DEFAULT_REMOTE_URL
-import FileHelperConstants.ACTIONS_DETAILS_FILENAME
-import FileHelperConstants.ACTIONS_LIST_FILENAME
 import ProjectEditorConstants.AUTHENTICATION_KEY
 import ProjectEditorConstants.BOOLEAN_TYPE
 import ProjectEditorConstants.CACHE_4D_SDK_KEY
@@ -79,7 +77,7 @@ class ProjectEditor(projectEditorFile: File) {
                     actions[scope] = jsonObj.getActionsList(dataModelList, scope.nameInJson)
                 }
             }
-            Log.d("> Actions  list successfully read.")
+            Log.d("> Actions list successfully read.")
 
         } ?: kotlin.run {
             Log.e("Could not read global json object from file ${projectEditorFile.name}")
@@ -174,9 +172,4 @@ fun typeFromTypeInt(type: Int?): String = when (type) {
     25 -> INT_TYPE
     38 -> OBJECT_TYPE
     else -> EMPTY_TYPE
-}
-
-enum class ActionScope(val fileName: String, val nameInJson: String) {
-    CURRENT_RECORD(ACTIONS_DETAILS_FILENAME, "currentRecord"),
-    LIST(ACTIONS_LIST_FILENAME, "table"),
 }

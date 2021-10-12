@@ -22,6 +22,7 @@
 //INCLUDE models/fillers/TemplateRelationFiller.kt
 //INCLUDE models/fillers/TemplateTableFiller.kt
 //INCLUDE models/fillers/TemplateTableWithRelationFiller.kt
+//INCLUDE models/projecteditor/ActionScope.kt
 //INCLUDE models/projecteditor/DataModel.kt
 //INCLUDE models/projecteditor/Field.kt
 //INCLUDE models/projecteditor/FieldMapping.kt
@@ -34,6 +35,7 @@
 //INCLUDE utils/Formatters.kt
 //INCLUDE utils/StringHelper.kt
 //INCLUDE utils/JSONExt.kt
+//INCLUDE utils/JSONExtAction.kt
 //INCLUDE utils/JSONExtDataModel.kt
 //INCLUDE utils/JSONExtField.kt
 //INCLUDE utils/JSONExtForm.kt
