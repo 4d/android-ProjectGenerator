@@ -106,7 +106,7 @@ fun correctIconPath(iconPath: String): String {
     return correctedIconPath
 }
 
-fun Field.getFormatNameForType(): String {
+fun Field.getFormatNameForType(pathHelper: PathHelper): String {
     val format = this.format
     if (format.equals("integer")) {
         return when (this.fieldType) {
@@ -126,6 +126,24 @@ fun Field.getFormatNameForType(): String {
             else -> ""
         }
     } else {
+        if (format.startsWith("/")) {
+
+            val formatPath = pathHelper.getCustomFormatterPath(format)
+            getManifestJSONContent(formatPath)?.let {
+
+                val fieldMapping = getFieldMapping(it, format)
+                Log.d("fieldMapping = $fieldMapping")
+                return if (isValidFormatter(fieldMapping)) {
+                    format
+                } else {
+                    when (typeFromTypeInt(this.fieldType)) {
+                        OBJECT_TYPE -> "jsonPrettyPrinted"
+                        else -> ""
+                    }
+                }
+            }
+
+        }
         return format
     }
 }
@@ -155,9 +173,9 @@ fun getIconWithFixes(dataModelList: List<DataModel>, form: Form, field: Field): 
     return fieldFromDataModel?.getIcon(form.dataModel.id) ?: field.getIcon(form.dataModel.id)
 }
 
-fun getFormatWithFixes(dataModelList: List<DataModel>, form: Form, field: Field): String {
+fun getFormatWithFixes(dataModelList: List<DataModel>, form: Form, field: Field, pathHelper: PathHelper): String {
     val fieldFromDataModel: Field? = getDataModelField(dataModelList, form, field)
-    return fieldFromDataModel?.getFormatNameForType() ?: field.getFormatNameForType()
+    return fieldFromDataModel?.getFormatNameForType(pathHelper) ?: field.getFormatNameForType(pathHelper)
 }
 
 fun getShortLabelWithFixes(dataModelList: List<DataModel>, form: Form, field: Field): String {

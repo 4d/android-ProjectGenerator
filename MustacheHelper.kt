@@ -702,7 +702,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                                 val field = fieldList[i]
                                                 if (field.name.isNotEmpty()) {
 
-                                                    val format = getFormatWithFixes(projectEditor.dataModelList, detailForm, field)
+                                                    val format = getFormatWithFixes(projectEditor.dataModelList, detailForm, field, fileHelper.pathHelper)
                                                     val formField = createDetailFormField(
                                                         field = field,
                                                         i = i + 1,
@@ -764,7 +764,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                                         Log.d("field.name = ${field.name}")
                                                         Log.d("field.name fieldAdjusted = ${field.name.fieldAdjustment()}")
                                                         Log.d("form's dataModel = ${projectEditor.dataModelList.find { it.id == detailForm.dataModel.id }?.name}")
-                                                        val format = getFormatWithFixes(projectEditor.dataModelList, detailForm, field)
+                                                        val format = getFormatWithFixes(projectEditor.dataModelList, detailForm, field, fileHelper.pathHelper)
                                                         val formField = createDetailFormField(
                                                             field = field,
                                                             i = k + 1,
@@ -879,7 +879,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
             data["field_${i}_hasIcon"] = true
         }
 
-        val format = getFormatWithFixes(projectEditor.dataModelList, form, field)
+        val format = getFormatWithFixes(projectEditor.dataModelList, form, field, fileHelper.pathHelper)
         data["field_${i}_format_type"] = format
 
         if (format.startsWith("/")) {
