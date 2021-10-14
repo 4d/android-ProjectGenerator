@@ -24,7 +24,7 @@ fun JSONObject?.getActionsList(dataModelList: List<DataModel>, nameInJson: Strin
         actionsGroupedByTableNumber.values.forEach {
             val tableNumber = it.firstOrNull()?.getSafeInt("tableNumber")
             if (tableNumber.toString() == keyDataModel.id)
-                jsonObject.put(keyDataModel.name, it)
+                jsonObject.put(keyDataModel.name.tableNameAdjustment(), it)
         }
     }
 
