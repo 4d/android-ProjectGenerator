@@ -137,6 +137,11 @@ fun replaceTemplateText(oldFormText: String, formType: FormType): String {
         val id = matchResult.destructured.component2()
         "${indent}{{#field_${id}_defined}}\n" +
                 "${indent}{{^field_${id}_is_image}}\n" +
+                "${indent}{{#field_${id}_is_relation}}\n" +
+                "${indent}android:text=\"{{field_${id}_label}}\"\n" +
+                "${indent}app:linkColor=\"true\"\n" +
+                "${indent}{{/field_${id}_is_relation}}\n" +
+                "${indent}{{^field_${id}_is_relation}}\n" +
                 "${indent}{{#field_${id}_custom_formatted}}\n" +
                 "${indent}app:tableName='@{\"{{{field_${id}_field_table_name}}}\"}'\n" +
                 "${indent}app:fieldName='@{\"{{{field_${id}_format_field_name}}}\"}'\n" +
@@ -147,6 +152,7 @@ fun replaceTemplateText(oldFormText: String, formType: FormType): String {
                 "${indent}{{/field_${id}_custom_formatted}}\n" +
                 "${indent}app:text=\"@{ {{field_${id}_accessor}}{{field_${id}_name}} }\"\n" +
                 "${indent}app:format='@{\"{{field_${id}_format_type}}\"}'\n" +
+                "${indent}{{/field_${id}_is_relation}}\n" +
                 "${indent}{{/field_${id}_is_image}}\n" +
                 "${indent}{{/field_${id}_defined}}"
     }

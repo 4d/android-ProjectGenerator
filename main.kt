@@ -114,13 +114,13 @@ class GenerateCommand : CliktCommand(name = "generate") {
 
         Log.i("Start applying Mustache templating...")
 
-        mustacheHelper.processTemplates()
-
         mustacheHelper.applyListFormTemplate()
 
         mustacheHelper.applyDetailFormTemplate()
 
         pathHelper.deleteTemporaryUnzippedDirectories()
+
+        mustacheHelper.processTemplates()
 
         Log.i("Mustache templating done.")
         Log.v("-------------------------")

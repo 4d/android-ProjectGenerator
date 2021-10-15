@@ -94,6 +94,8 @@ fun Field.getIcon(dataModelKey: String): String {
     return this.icon ?: ""
 }
 
+fun Field.isRelation(): Boolean = !this.inverseName.isNullOrEmpty()
+
 fun correctIconPath(iconPath: String): String {
     val correctedIconPath = iconPath
         .substring(0, iconPath.lastIndexOf('.')) // removes extension
@@ -142,7 +144,6 @@ fun Field.getFormatNameForType(pathHelper: PathHelper): String {
                     }
                 }
             }
-
         }
         return format
     }
