@@ -13,8 +13,8 @@ fun JSONObject?.getActionsList(dataModelList: List<DataModel>, nameInJson: Strin
 
     // get All actions
     for (i in 0 until jsonArray.length()) {
-        val action = jsonArray.getJSONObject(i)
-        if (action.getSafeString(SCOPE_KEY) == nameInJson) {
+        val action = jsonArray.getSafeObject(i)
+        if (action?.getSafeString(SCOPE_KEY) == nameInJson) {
             allActions.add(action)
         }
     }
