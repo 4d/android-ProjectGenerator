@@ -307,8 +307,7 @@ fun getRelation(field: Field, tableName: String, subFields: List<Field>): Relati
             name = field.name,
             relationType = RelationType.ONE_TO_MANY,
             subFields = subFields,
-            inverseName = field.inverseName ?: "",
-            associatedViewId = ""
+            inverseName = field.inverseName ?: ""
         )
     }
     field.relatedDataClass?.let {
@@ -319,8 +318,7 @@ fun getRelation(field: Field, tableName: String, subFields: List<Field>): Relati
             name = field.name,
             relationType = RelationType.MANY_TO_ONE,
             subFields = subFields,
-            inverseName = field.inverseName ?: "",
-            associatedViewId = ""
+            inverseName = field.inverseName ?: ""
         )
     }
     return null

@@ -4,6 +4,5 @@ data class Relation(
     val name: String,
     val relationType: RelationType,
     var subFields: List<Field>,
-    val inverseName: String,
-    var associatedViewId: String
+    val inverseName: String
 )

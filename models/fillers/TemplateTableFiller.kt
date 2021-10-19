@@ -22,17 +22,40 @@ fun getTemplateTableFiller(name: String): TemplateTableFiller =
 fun getTemplateTableFillerType(name: String): String =
     when (name) {
         "Map" -> "Map<String, Any>"
-        else -> ""
+        else -> name
     }
 
-fun DataModel.getTemplateTableFiller(): TemplateTableFiller =
-    TemplateTableFiller(
+fun DataModel.getTemplateTableFiller(dataModelList: List<DataModel>): TemplateTableFiller {
+
+    val manyToOneRelationList = mutableListOf<String>()
+    val oneToManyRelationList = mutableListOf<String>()
+
+    // Will add many-to-one's relations
+    this.relationList?.filter { it.relationType == RelationType.MANY_TO_ONE }?.forEach { relation ->
+        manyToOneRelationList.add(relation.name)
+        relation.subFields.forEach { subField ->
+            if (subField.isRelation()) {
+                dataModelList.find { it.name == relation.target }?.relationList?.find { it.name == subField.name }?.let { subRelation ->
+                    if (subRelation.relationType == RelationType.MANY_TO_ONE) {
+                        manyToOneRelationList.add("${relation.name}.${subField.name}")
+                    } else {
+                        oneToManyRelationList.add("${relation.name}.${subField.name}")
+                    }
+                }
+            }
+        }
+    }
+
+    this.relationList?.filter { it.relationType == RelationType.ONE_TO_MANY }?.forEach { relation ->
+        oneToManyRelationList.add(relation.name)
+    }
+
+    return  TemplateTableFiller(
         name = this.name.tableNameAdjustment(),
         name_original = this.name,
         nameCamelCase = this.name.dataBindingAdjustment(),
         concat_fields = this.fields?.joinToString { "\"${it.name}\"" } ?: "",
-        concat_relations_many_to_one = this.relationList?.filter { it.relationType == RelationType.MANY_TO_ONE }
-            ?.joinToString { "\"${it.name}\"" } ?: "",
-        concat_relations_one_to_many = this.relationList?.filter { it.relationType == RelationType.ONE_TO_MANY }
-            ?.joinToString { "\"${it.name}\"" } ?: "",
+        concat_relations_many_to_one = manyToOneRelationList.joinToString { "\"$it\"" },
+        concat_relations_one_to_many = oneToManyRelationList.joinToString { "\"$it\"" },
         type = this.name.tableNameAdjustment())
+}

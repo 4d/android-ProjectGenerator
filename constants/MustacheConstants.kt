@@ -46,6 +46,10 @@ object MustacheConstants {
     const val TABLE_HAS_ONE_TO_MANY_FIELD = "table_has_one_to_many_field"
     const val HAS_MANY_TO_ONE_RELATION = "has_many_to_one_relation"
     const val HAS_CUSTOM_FORMATTER_IMAGES = "has_custom_formatter_images"
+    const val RELATIONS_ONE_TO_MANY_FOR_LIST = "relations_one_to_many_for_list"
+    const val RELATIONS_MANY_TO_ONE_FOR_LIST = "relations_many_to_one_for_list"
+    const val RELATIONS_ONE_TO_MANY_FOR_DETAIL = "relations_one_to_many_for_detail"
+    const val RELATIONS_MANY_TO_ONE_FOR_DETAIL = "relations_many_to_one_for_detail"
 
     const val COLORS_DEFINED = "logo_colors_defined"
     const val COLOR_PRIMARY_NEUTRAL = "color_primary_neutral"

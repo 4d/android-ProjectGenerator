@@ -28,7 +28,7 @@ fun replaceTemplateText(oldFormText: String, formType: FormType): String {
         .replace("<!--END_IF_IS_NOT_IMAGE-->", "{{/isImage}}")
         .replace("___LABEL_ID___", "{{tableName_lowercase}}_field_label_{{viewId}}")
         .replace("___VALUE_ID___", "{{tableName_lowercase}}_field_value_{{viewId}}")
-        .replace("___BUTTON_ID___", "{{tableName_lowercase}}_field_button_{{viewId}}")
+        .replace("___BUTTON_ID___", "{{tableName_lowercase}}_field_value_{{viewId}}")
 
     var regex = ("(\\h*)app:imageUrl=\"___IMAGE___\"").toRegex()
     newFormText = regex.replace(newFormText) { matchResult ->
@@ -104,11 +104,11 @@ fun replaceTemplateText(oldFormText: String, formType: FormType): String {
             "${indent}<variable\n" +
                 "${indent}\tname=\"${variableName}\"\n" +
                 "${indent}\ttype=\"${variableType}\"/>\n\n" +
-                "${indent}{{#relations}}\n" +
+                "${indent}{{#relations_many_to_one}}\n" +
                 "${indent}<variable\n" +
                 "${indent}\tname=\"{{relation_name}}\"\n" +
                 "${indent}\ttype=\"{{package}}.data.model.entity.{{relation_target}}\"/>\n" +
-                "${indent}{{/relations}}"
+                "${indent}{{/relations_many_to_one}}"
         else
             "${indent}<variable\n" +
                     "${indent}\tname=\"${variableName}\"\n" +
@@ -139,7 +139,7 @@ fun replaceTemplateText(oldFormText: String, formType: FormType): String {
                 "${indent}{{^field_${id}_is_image}}\n" +
                 "${indent}{{#field_${id}_is_relation}}\n" +
                 "${indent}android:text=\"{{field_${id}_label}}\"\n" +
-                "${indent}app:linkColor=\"true\"\n" +
+                "${indent}app:linkColor=\"@{true}\"\n" +
                 "${indent}{{/field_${id}_is_relation}}\n" +
                 "${indent}{{^field_${id}_is_relation}}\n" +
                 "${indent}{{#field_${id}_custom_formatted}}\n" +
