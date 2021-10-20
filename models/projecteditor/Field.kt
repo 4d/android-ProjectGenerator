@@ -122,7 +122,7 @@ fun Field.getFormatNameForType(pathHelper: PathHelper): String {
             TIME_TYPE -> "mediumTime"
             INT_TYPE -> "integer"
             FLOAT_TYPE -> "decimal"
-            OBJECT_TYPE -> "jsonPrettyPrinted"
+            OBJECT_TYPE -> "yaml"
             else -> ""
         }
     } else {
@@ -137,7 +137,7 @@ fun Field.getFormatNameForType(pathHelper: PathHelper): String {
                     format
                 } else {
                     when (typeFromTypeInt(this.fieldType)) {
-                        OBJECT_TYPE -> "jsonPrettyPrinted"
+                        OBJECT_TYPE -> "yaml"
                         else -> ""
                     }
                 }
