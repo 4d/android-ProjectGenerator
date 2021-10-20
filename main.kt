@@ -67,7 +67,7 @@ class GenerateCommand : CliktCommand(name = "generate") {
 
     private fun start() {
 
-        Log.d("e ${projectEditorJson.name}...")
+        Log.d("file: ${projectEditorJson.path}...")
 
         val projectEditor = ProjectEditor(projectEditorJson)
 
@@ -140,6 +140,8 @@ class GenerateCommand : CliktCommand(name = "generate") {
         mustacheHelper.makeSearchableFields()
 
         Log.i("\"searchable_fields.json\" file successfully generated.")
+
+        mustacheHelper.makeActionsList()
 
         Log.d("Output: ${projectEditor.findJsonString("targetDirPath")}")
     }

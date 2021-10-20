@@ -63,6 +63,7 @@ import MustacheConstants.TYPES_AND_TABLES
 import PathHelperConstants.TEMPLATE_PLACEHOLDER
 import PathHelperConstants.TEMPLATE_RELATION_DAO_PLACEHOLDER
 import PathHelperConstants.TEMPLATE_RELATION_ENTITY_PLACEHOLDER
+import ProjectEditorConstants.HAS_ACTIONS_KEY
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.samskivert.mustache.Mustache
@@ -973,13 +974,27 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         makeJsonFile(SEARCHABLE_FIELDS_FILENAME, projectEditor.searchableFields)
     }
 
+    fun makeActionsList() {
+        val hasActions = projectEditor.findJsonBoolean(HAS_ACTIONS_KEY) ?: false
+        if (hasActions) {
+            projectEditor.actions.forEach {
+                makeJsonFile(it.key.fileName, it.value)
+                Log.i("${it.key.fileName} file successfully generated.")
+            }
+        }
+    }
+
     private fun makeJsonFile(fileName: String, content: Any) {
         val file = File(fileHelper.pathHelper.assetsPath(), fileName)
         file.parentFile.mkdirs()
         if (!file.createNewFile()) {
             throw Exception("An error occurred while creating new file : $file")
         }
-        file.writeText(gson.toJson(content))
+        if (content is JSONObject) {
+            file.writeText(content.toString())
+        } else {
+            file.writeText(gson.toJson(content))
+        }
     }
 
     private fun generateCompilerFolder(templateFileFolder: String): Mustache.Compiler {
