@@ -574,7 +574,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                     }
                                 }
 
-                                Log.d("wholeFormHasIcons = $wholeFormHasIcons")
+                                Log.d("ListForm - ${listForm.dataModel.name} - wholeFormHasIcons = $wholeFormHasIcons")
 
                                 var i = 0
                                 listForm.fields?.forEach { field -> // Could also iterate over specificFieldsCount as Detail form
@@ -665,7 +665,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                         }
                                     }
 
-                                    Log.d("wholeFormHasIcons = $wholeFormHasIcons")
+                                    Log.d("DetailForm - ${detailForm.dataModel.name} - wholeFormHasIcons = $wholeFormHasIcons")
 
                                     if (fieldList.isNotEmpty()) {
 

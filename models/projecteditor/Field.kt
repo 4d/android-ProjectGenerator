@@ -85,8 +85,11 @@ fun Field.getShortLabel(): String {
 
 fun Field.getIcon(dataModelKey: String): String {
     if (this.icon.isNullOrEmpty()) {
+        if (this.id == null) {
+            this.id = this.name
+        }
         this.id?.let { this.id = it.toLowerCase().replace("[^a-z0-9]+".toRegex(), "_") }
-        return if (this.inverseName.isNullOrEmpty() && this.relatedTableNumber == null)
+        return if (this.isSlave == false)
             "field_icon_${dataModelKey}_${this.id}"
         else
             "related_field_icon_${dataModelKey}_${this.relatedTableNumber}_${this.id}"
