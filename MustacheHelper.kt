@@ -29,19 +29,21 @@ import MustacheConstants.FIELDS
 import MustacheConstants.FIRST_FIELD
 import MustacheConstants.FORM_FIELDS
 import MustacheConstants.HAS_ANY_MANY_TO_ONE_RELATION
+import MustacheConstants.HAS_ANY_ONE_TO_MANY_RELATION
 import MustacheConstants.HAS_CUSTOM_FORMATTER_IMAGES
-import MustacheConstants.HAS_MANY_TO_ONE_RELATION
+import MustacheConstants.HAS_RELATION
 import MustacheConstants.TABLE_HAS_ANY_MANY_TO_ONE_RELATION
 import MustacheConstants.HAS_REMOTE_ADDRESS
 import MustacheConstants.PACKAGE
 import MustacheConstants.RELATIONS_MANY_TO_ONE
-import MustacheConstants.MANY_TO_ONE_RELATIONS_IMPORT
+import MustacheConstants.RELATIONS_IMPORT
 import MustacheConstants.RELATIONS_MANY_TO_ONE_FOR_DETAIL
 import MustacheConstants.RELATIONS_MANY_TO_ONE_FOR_LIST
 import MustacheConstants.RELATIONS_ONE_TO_MANY
 import MustacheConstants.RELATIONS_ONE_TO_MANY_FOR_DETAIL
 import MustacheConstants.RELATIONS_ONE_TO_MANY_FOR_LIST
 import MustacheConstants.RELATION_NAME
+import MustacheConstants.RELATION_NAME_CAP
 import MustacheConstants.RELATION_SAME_TYPE
 import MustacheConstants.RELATION_SOURCE
 import MustacheConstants.RELATION_TARGET
@@ -57,6 +59,7 @@ import MustacheConstants.TABLENAMES_WITH_MANY_TO_ONE_RELATIONS
 import MustacheConstants.TABLENAME_CAMELCASE
 import MustacheConstants.TABLENAME_LOWERCASE
 import MustacheConstants.TABLENAME_ORIGINAL
+import MustacheConstants.TABLE_HAS_ANY_RELATION
 import MustacheConstants.TABLE_HAS_DATE_FIELD
 import MustacheConstants.TABLE_HAS_ONE_TO_MANY_FIELD
 import MustacheConstants.TABLE_HAS_TIME_FIELD
@@ -73,6 +76,7 @@ import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.samskivert.mustache.Mustache
 import com.samskivert.mustache.Template
+import org.json.JSONObject
 import java.io.File
 import java.io.FileReader
 import java.lang.Integer.toHexString
@@ -256,13 +260,17 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                 tableNamesWithoutManyToOneRelation.add(tableName)
         }
 
+
         data[TABLENAMES] = tableNames
         data[TABLENAMES_LOWERCASE] = tableNamesLowercase
 
         data[RELATIONS_MANY_TO_ONE] = relationsManyToOne
         data[RELATIONS_ONE_TO_MANY] = relationsOneToMany
         data[HAS_ANY_MANY_TO_ONE_RELATION] = relationsManyToOne.isNotEmpty()
-        data[MANY_TO_ONE_RELATIONS_IMPORT] = relationsManyToOne.distinctBy { it.relation_source to it.relation_target }
+        data[HAS_ANY_ONE_TO_MANY_RELATION] = relationsOneToMany.isNotEmpty()
+
+        val inverseRelationsOneToMany = relationsOneToMany.getInverseRelationsOneToMany()
+        data[RELATIONS_IMPORT] = relationsManyToOne.plus(inverseRelationsOneToMany).distinctBy { it.relation_source to it.relation_target /*to it.relation_name*/ }
         data[TABLENAMES_WITHOUT_MANY_TO_ONE_RELATION] = tableNamesWithoutManyToOneRelation
         data[ENTITY_CLASSES] = entityClassesString.dropLast(2)
 
@@ -284,10 +292,9 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
                     navigationTableCounter++
 
-                    dataModel.relationList?.filter { it.relationType == RelationType.MANY_TO_ONE }
-                        ?.forEach { relation ->
-                            layoutRelationList.add(relation.getTemplateRelationFiller())
-                        }
+                    dataModel.relationList?.forEach { relation ->
+                        layoutRelationList.add(relation.getTemplateRelationFiller())
+                    }
                 } else {
                     Log.w("Not adding [${dataModel.name}] in navigation table list")
                 }
@@ -295,7 +302,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         }
         data[TABLENAMES_NAVIGATION] = tableNamesForNavigation
         data[TABLENAMES_LAYOUT_RELATIONS] = layoutRelationList
-        data[HAS_MANY_TO_ONE_RELATION] = layoutRelationList.isNotEmpty()
+        data[HAS_RELATION] = layoutRelationList.isNotEmpty()
 
         // Specifying if list layout is table or collection (LinearLayout or GridLayout)
         tableNamesForNavigation.map { it.name }.forEach { tableName ->
@@ -363,6 +370,9 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
         val newFilePath = fileHelper.pathHelper.getPath(currentFile.absolutePath.replaceXmlTxtSuffix())
 
+        relationsManyToOne.clear()
+        relationsOneToMany.clear()
+
         projectEditor.dataModelList.forEach { dataModel ->
             dataModel.relationList?.forEach { relation ->
                 val filler = relation.getTemplateRelationFiller()
@@ -376,7 +386,9 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
         data[RELATIONS_MANY_TO_ONE] = relationsManyToOne
         data[RELATIONS_ONE_TO_MANY] = relationsOneToMany
-        data[MANY_TO_ONE_RELATIONS_IMPORT] = relationsManyToOne.distinctBy { it.relation_source to it.relation_target }
+
+        val inverseRelationsOneToMany = relationsOneToMany.getInverseRelationsOneToMany()
+        data[RELATIONS_IMPORT] = relationsManyToOne.plus(inverseRelationsOneToMany).distinctBy { it.relation_source to it.relation_target to it.relation_name }
 
         data[RELATIONS_ONE_TO_MANY_FOR_LIST] = oneToManyRelationFillerForEachListLayout
         data[RELATIONS_MANY_TO_ONE_FOR_LIST] = manyToOneRelationFillerForEachListLayout
@@ -420,15 +432,17 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
                         data[RELATION_SOURCE] = relation.source.tableNameAdjustment()
                         data[RELATION_TARGET] = relation.target.tableNameAdjustment()
+                        data[RELATION_NAME_CAP] = relation.name.fieldAdjustment().capitalize()
 
                         val replacedPath = newFilePath.replace(TEMPLATE_RELATION_DAO_PLACEHOLDER,
-                            "${relation.source.tableNameAdjustment()}Has${relation.target.tableNameAdjustment()}")
+                            "${relation.source.tableNameAdjustment()}Has${relation.target.tableNameAdjustment()}With${relation.name.fieldAdjustment().capitalize()}Key")
 
                         applyTemplate(replacedPath)
 
                         //cleaning
                         data.remove(RELATION_SOURCE)
                         data.remove(RELATION_TARGET)
+                        data.remove(RELATION_NAME_CAP)
                     }
             }
 
@@ -441,15 +455,17 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                         data[RELATION_SOURCE] = relation.source.tableNameAdjustment()
                         data[RELATION_TARGET] = relation.target.tableNameAdjustment()
                         data[RELATION_NAME] = relation.name.fieldAdjustment()
+                        data[RELATION_NAME_CAP] = relation.name.fieldAdjustment().capitalize()
                         data[RELATION_SAME_TYPE] = relation.source == relation.target
 
                         val replacedPath = newFilePath.replace(TEMPLATE_RELATION_ENTITY_PLACEHOLDER,
-                            "${relation.source.tableNameAdjustment()}And${relation.target.tableNameAdjustment()}")
+                            "${relation.source.tableNameAdjustment()}And${relation.target.tableNameAdjustment()}With${relation.name.fieldAdjustment().capitalize()}Key")
 
                         applyTemplate(replacedPath)
 
                         //cleaning
                         data.remove(RELATION_NAME)
+                        data.remove(RELATION_NAME_CAP)
                         data.remove(RELATION_SOURCE)
                         data.remove(RELATION_TARGET)
                         data.remove(RELATION_SAME_TYPE)
@@ -495,8 +511,9 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
         relationsManyToOne.clear()
         relationsOneToMany.clear()
-        data.remove(MANY_TO_ONE_RELATIONS_IMPORT)
+        data.remove(RELATIONS_IMPORT)
         data[TABLE_HAS_ANY_MANY_TO_ONE_RELATION] = false
+        data[TABLE_HAS_ANY_RELATION] = false
 
         projectEditor.dataModelList.find { it.name.tableNameAdjustment() == tableName.name.tableNameAdjustment() }?.relationList?.forEach { relation ->
             val filler = relation.getTemplateRelationFiller()
@@ -511,7 +528,11 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         data[RELATIONS_ONE_TO_MANY] = relationsOneToMany
         if (relationsManyToOne.size > 0)
             data[TABLE_HAS_ANY_MANY_TO_ONE_RELATION] = true
-        data[MANY_TO_ONE_RELATIONS_IMPORT] = relationsManyToOne.distinctBy { it.relation_source to it.relation_target }
+        if (relationsManyToOne.size > 0 || relationsOneToMany.size >0)
+            data[TABLE_HAS_ANY_RELATION] = true
+
+        val inverseRelationsOneToMany = relationsOneToMany.getInverseRelationsOneToMany()
+        data[RELATIONS_IMPORT] = relationsManyToOne.plus(inverseRelationsOneToMany).distinctBy { it.relation_source to it.relation_target to it.relation_name }
     }
 
     fun applyListFormTemplate() {
@@ -559,6 +580,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                 }
                                 data[RELATIONS_MANY_TO_ONE] = relationsManyToOne
                                 data[RELATIONS_ONE_TO_MANY] = relationsOneToMany
+                                data[HAS_ANY_ONE_TO_MANY_RELATION] = relationsOneToMany.isNotEmpty()
 
                                 var wholeFormHasIcons = false
 
@@ -601,6 +623,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                     removeIndexedEntries(j)
                                 }
                                 data.remove(RELATIONS_MANY_TO_ONE)
+                                data.remove(RELATIONS_ONE_TO_MANY)
                             } else { // any file to copy in project
 
                                 copyOtherTemplateFiles(currentFile, formPath)

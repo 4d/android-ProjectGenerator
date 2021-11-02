@@ -74,13 +74,11 @@ fun Field.getSourceTableName(dataModelList: List<DataModel>, form: Form): String
 }
 
 fun Field.getLabel(): String {
-    label?.let { if (it.isNotEmpty()) return it }
-    return ""
+    return label ?: ""
 }
 
 fun Field.getShortLabel(): String {
-    shortLabel?.let { if (it.isNotEmpty()) return it }
-    return ""
+    return shortLabel ?: ""
 }
 
 fun Field.getIcon(dataModelKey: String): String {
