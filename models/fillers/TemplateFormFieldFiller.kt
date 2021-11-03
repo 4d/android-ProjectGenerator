@@ -17,5 +17,45 @@ data class TemplateFormFieldFiller(
     val imageWidth: Int,
     val imageHeight: Int,
     val hasIcon: Boolean,
-    val iconPath: String
+    val iconPath: String,
+    val labelHasLengthPlaceHolder: Boolean
 )
+
+fun Field.getTemplateFormFieldFiller(
+    i: Int,
+    dataModelList: List<DataModel>,
+    form: Form,
+    formatType: String,
+    isImageNamed: Boolean,
+    imageWidth: Int,
+    imageHeight: Int,
+    wholeFormHasIcons: Boolean
+): TemplateFormFieldFiller {
+    Log.d("createDetailFormField : field = $this")
+    Log.d("createDetailFormField : field.fieldName() = ${this.getFieldName()}")
+
+    val templateFormFieldFiller = TemplateFormFieldFiller(
+        name = this.name.fieldAdjustment(),
+        label = getLabelWithFixes(dataModelList, form, this),
+        shortLabel = getShortLabelWithFixes(dataModelList, form, this),
+        viewId = i,
+        isRelation = this.isRelation(),
+        isImage = this.isImage(),
+        sourceTableName = this.getSourceTableName(dataModelList, form),
+        accessor = this.getLayoutVariableAccessor(FormType.DETAIL),
+        isCustomFormat = formatType.startsWith("/"),
+        formatFieldName = this.name,
+        isImageNamed = isImageNamed,
+        formatType = formatType,
+        fieldName = this.getFieldName(),
+        imageKeyAccessor = this.getFieldKeyAccessor(FormType.DETAIL),
+        fieldTableName = form.dataModel.name,
+        imageWidth = imageWidth,
+        imageHeight = imageHeight,
+        hasIcon = wholeFormHasIcons,
+        iconPath = getIconWithFixes(dataModelList, form, this),
+        labelHasLengthPlaceHolder =  getLabelWithFixes(dataModelList, form, this).contains("%length%")
+    )
+    Log.d("createDetailFormField : templateFormFieldFiller = $templateFormFieldFiller")
+    return templateFormFieldFiller
+}

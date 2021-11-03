@@ -28,7 +28,7 @@ fun replaceTemplateText(oldFormText: String, formType: FormType): String {
         .replace("<!--END_IF_IS_NOT_IMAGE-->", "{{/isImage}}")
         .replace("___LABEL_ID___", "{{tableName_lowercase}}_field_label_{{viewId}}")
         .replace("___VALUE_ID___", "{{tableName_lowercase}}_field_value_{{viewId}}")
-        .replace("___BUTTON_ID___", "{{tableName_lowercase}}_field_button_{{viewId}}")
+        .replace("___BUTTON_ID___", "{{tableName_lowercase}}_field_value_{{viewId}}")
 
     var regex = ("(\\h*)app:imageUrl=\"___IMAGE___\"").toRegex()
     newFormText = regex.replace(newFormText) { matchResult ->
@@ -102,13 +102,21 @@ fun replaceTemplateText(oldFormText: String, formType: FormType): String {
         val indent = matchResult.destructured.component1()
         if (formType == FormType.LIST)
             "${indent}<variable\n" +
-                "${indent}\tname=\"${variableName}\"\n" +
-                "${indent}\ttype=\"${variableType}\"/>\n\n" +
-                "${indent}{{#relations}}\n" +
-                "${indent}<variable\n" +
-                "${indent}\tname=\"{{relation_name}}\"\n" +
-                "${indent}\ttype=\"{{package}}.data.model.entity.{{relation_target}}\"/>\n" +
-                "${indent}{{/relations}}"
+                    "${indent}\tname=\"${variableName}\"\n" +
+                    "${indent}\ttype=\"${variableType}\"/>\n\n" +
+                    "${indent}{{#relations_many_to_one}}\n" +
+                    "${indent}<variable\n" +
+                    "${indent}\tname=\"{{relation_name}}\"\n" +
+                    "${indent}\ttype=\"{{package}}.data.model.entity.{{relation_target}}\"/>\n" +
+                    "${indent}{{/relations_many_to_one}}\n" +
+                    "${indent}{{#has_any_one_to_many_relation}}\n" +
+                    "${indent}<import type=\"java.util.List\" />\n" +
+                    "${indent}{{#relations_one_to_many}}\n" +
+                    "${indent}<variable\n" +
+                    "${indent}\tname=\"{{relation_name}}\"\n" +
+                    "${indent}\ttype=\"List&lt;{{package}}.data.model.entity.{{relation_target}}>\"/>\n" +
+                    "${indent}{{/relations_one_to_many}}\n" +
+                    "${indent}{{/has_any_one_to_many_relation}}"
         else
             "${indent}<variable\n" +
                     "${indent}\tname=\"${variableName}\"\n" +
@@ -137,6 +145,11 @@ fun replaceTemplateText(oldFormText: String, formType: FormType): String {
         val id = matchResult.destructured.component2()
         "${indent}{{#field_${id}_defined}}\n" +
                 "${indent}{{^field_${id}_is_image}}\n" +
+                "${indent}{{#field_${id}_is_relation}}\n" +
+                "${indent}android:text=\"{{field_${id}_label}}\"\n" +
+                "${indent}app:linkColor=\"@{true}\"\n" +
+                "${indent}{{/field_${id}_is_relation}}\n" +
+                "${indent}{{^field_${id}_is_relation}}\n" +
                 "${indent}{{#field_${id}_custom_formatted}}\n" +
                 "${indent}app:tableName='@{\"{{{field_${id}_field_table_name}}}\"}'\n" +
                 "${indent}app:fieldName='@{\"{{{field_${id}_format_field_name}}}\"}'\n" +
@@ -147,6 +160,7 @@ fun replaceTemplateText(oldFormText: String, formType: FormType): String {
                 "${indent}{{/field_${id}_custom_formatted}}\n" +
                 "${indent}app:text=\"@{ {{field_${id}_accessor}}{{field_${id}_name}} }\"\n" +
                 "${indent}app:format='@{\"{{field_${id}_format_type}}\"}'\n" +
+                "${indent}{{/field_${id}_is_relation}}\n" +
                 "${indent}{{/field_${id}_is_image}}\n" +
                 "${indent}{{/field_${id}_defined}}"
     }

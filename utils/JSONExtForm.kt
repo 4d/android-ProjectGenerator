@@ -53,8 +53,8 @@ fun JSONObject.getFormList(dataModelList: List<DataModel>, formType: FormType, n
             val fields = mutableListOf<Field>()
             dataModelList.find { it.name == form.dataModel.name }?.fields?.forEach {
                 if (!isPrivateRelationField(it.name) && it.isSlave == false) {
-                    // if Simple Table (default list form, avoid photo and relations)
-                    if (formType == FormType.LIST && (it.inverseName != null || it.fieldTypeString == PHOTO_TYPE)) {
+                    // if Simple Table (default list form, avoid photo)
+                    if (formType == FormType.LIST && it.fieldTypeString == PHOTO_TYPE) {
                         // don't add this field
                     } else {
                         Log.d("adding field to default form = $it")
