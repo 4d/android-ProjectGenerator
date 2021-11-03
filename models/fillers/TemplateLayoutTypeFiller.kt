@@ -7,7 +7,16 @@ fun getLayoutManagerType(formPath: String): String {
     Log.i("getLayoutManagerType: $formPath")
     var type = "Collection"
     getManifestJSONContent(formPath)?.let {
-        type = it.getSafeObject("tags")?.getSafeString("___LISTFORMTYPE___") ?: "Collection"
+        val isSwipeAllowed: Boolean? = it.getSafeObject("tags")?.getSafeBoolean("swipe")
+        type = if (isSwipeAllowed != null) {
+            if (isSwipeAllowed) {
+                "Table"
+            } else {
+                "Collection"
+            }
+        } else {
+            it.getSafeObject("tags")?.getSafeString("___LISTFORMTYPE___") ?: "Collection"
+        }
     }
     return when (type) {
         "Collection" -> "GRID"
