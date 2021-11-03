@@ -1007,8 +1007,18 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         Log.i("getLayoutManagerType: $formPath")
         var type = "Collection"
         getManifestJSONContent(formPath)?.let {
-            type = it.getSafeObject("tags")?.getSafeString("___LISTFORMTYPE___") ?: "Collection"
+            val isSwipeAllowed = it.getSafeObject("tags")?.getSafeBoolean("swipe") ?: null
+            type = if (isSwipeAllowed != null) {
+                if (isSwipeAllowed) {
+                    "GRID"
+                } else {
+                    "Collection"
+                }
+            } else {
+                it.getSafeObject("tags")?.getSafeString("___LISTFORMTYPE___") ?: "Collection"
+            }
         }
+
         return when (type) {
             "Collection" -> "GRID"
             "Table" -> "LINEAR"
