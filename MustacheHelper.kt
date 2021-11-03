@@ -1010,7 +1010,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
             val isSwipeAllowed = it.getSafeObject("tags")?.getSafeBoolean("swipe") ?: null
             type = if (isSwipeAllowed != null) {
                 if (isSwipeAllowed) {
-                    "GRID"
+                    "Table"
                 } else {
                     "Collection"
                 }
