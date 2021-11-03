@@ -30,6 +30,10 @@ import MustacheConstants.FIRST_FIELD
 import MustacheConstants.FORM_FIELDS
 import MustacheConstants.HAS_ANY_MANY_TO_ONE_RELATION
 import MustacheConstants.HAS_ANY_ONE_TO_MANY_RELATION
+import MustacheConstants.HAS_ANY_RELATIONS_MANY_TO_ONE_FOR_DETAIL
+import MustacheConstants.HAS_ANY_RELATIONS_MANY_TO_ONE_FOR_LIST
+import MustacheConstants.HAS_ANY_RELATIONS_ONE_TO_MANY_FOR_DETAIL
+import MustacheConstants.HAS_ANY_RELATIONS_ONE_TO_MANY_FOR_LIST
 import MustacheConstants.HAS_CUSTOM_FORMATTER_IMAGES
 import MustacheConstants.HAS_RELATION
 import MustacheConstants.TABLE_HAS_ANY_MANY_TO_ONE_RELATION
@@ -394,6 +398,10 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         data[RELATIONS_MANY_TO_ONE_FOR_LIST] = manyToOneRelationFillerForEachListLayout
         data[RELATIONS_ONE_TO_MANY_FOR_DETAIL] = oneToManyRelationFillerForEachDetailLayout
         data[RELATIONS_MANY_TO_ONE_FOR_DETAIL] = manyToOneRelationFillerForEachDetailLayout
+        data[HAS_ANY_RELATIONS_ONE_TO_MANY_FOR_LIST] = oneToManyRelationFillerForEachListLayout.isNotEmpty()
+        data[HAS_ANY_RELATIONS_MANY_TO_ONE_FOR_LIST] = manyToOneRelationFillerForEachListLayout.isNotEmpty()
+        data[HAS_ANY_RELATIONS_ONE_TO_MANY_FOR_DETAIL] = oneToManyRelationFillerForEachDetailLayout.isNotEmpty()
+        data[HAS_ANY_RELATIONS_MANY_TO_ONE_FOR_DETAIL] = manyToOneRelationFillerForEachDetailLayout.isNotEmpty()
 
         if (currentFile.isWithTemplateName()) {
 
@@ -481,10 +489,10 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
         data[TABLENAME] = tableName.name.tableNameAdjustment()
 
-        data[TABLENAME_ORIGINAL] = tableName.name_original
+        data[TABLENAME_ORIGINAL] = tableName.name_original.encode()
         projectEditor.dataModelList.find { it.name.tableNameAdjustment() == tableName.name.tableNameAdjustment() }
             ?.let { dataModel ->
-                data[TABLENAME_ORIGINAL] = dataModel.getLabel()
+                data[TABLENAME_ORIGINAL] = dataModel.getLabel().encode()
             }
 
         data[TABLENAME_LOWERCASE] = tableName.name.toLowerCase().fieldAdjustment()
@@ -846,6 +854,13 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
     private fun fillRelationFillerForEachRelation(source: String, target: String, relationName: String, inverseName: String, index: Int, formType: FormType, relation: Relation) {
         val filler = getTemplateRelationFillerForLayout(source, target, relationName, inverseName, index)
+        // if source table or target table is not in navigation, return
+        Log.d("source = ${source.tableNameAdjustment()}")
+        Log.d("target = ${target.tableNameAdjustment()}")
+        if (tableNamesForNavigation.find { it.name.tableNameAdjustment() == source.tableNameAdjustment() } == null)
+            return
+        if (tableNamesForNavigation.find { it.name.tableNameAdjustment() == target.tableNameAdjustment() } == null)
+            return
         when {
             formType == FormType.LIST && relation.relationType == RelationType.ONE_TO_MANY ->
                 oneToManyRelationFillerForEachListLayout.add(filler)
@@ -879,6 +894,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         data.remove("field_${i}_field_table_name")
         data.remove("field_${i}_field_image_width")
         data.remove("field_${i}_field_image_height")
+        data.remove("field_${i}_label_has_length_placeholder")
     }
 
     private fun resetIndexedEntries(i: Int) {
@@ -901,6 +917,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         data["field_${i}_field_table_name"] = ""
         data["field_${i}_field_image_width"] = 0
         data["field_${i}_field_image_height"] = 0
+        data["field_${i}_label_has_length_placeholder"] = false
     }
 
     private fun fillIndexedFormData(i: Int, field: Field, formType: FormType, form: Form, wholeFormHasIcons: Boolean) {
@@ -918,6 +935,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         data["field_${i}_accessor"] = field.getLayoutVariableAccessor(formType)
         data["field_${i}_field_name"] = field.getFieldName()
         data["field_${i}_source_table_name"] = field.getSourceTableName(projectEditor.dataModelList, form)
+        data["field_${i}_label_has_length_placeholder"] = getLabelWithFixes(projectEditor.dataModelList, form, field).contains("%length%")
         if (field.isImage()) {
             data["field_${i}_image_key_accessor"] = field.getFieldKeyAccessor(formType)
         }

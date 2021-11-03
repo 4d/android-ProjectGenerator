@@ -17,7 +17,8 @@ data class TemplateFormFieldFiller(
     val imageWidth: Int,
     val imageHeight: Int,
     val hasIcon: Boolean,
-    val iconPath: String
+    val iconPath: String,
+    val labelHasLengthPlaceHolder: Boolean
 )
 
 fun Field.getTemplateFormFieldFiller(
@@ -52,7 +53,8 @@ fun Field.getTemplateFormFieldFiller(
         imageWidth = imageWidth,
         imageHeight = imageHeight,
         hasIcon = wholeFormHasIcons,
-        iconPath = getIconWithFixes(dataModelList, form, this)
+        iconPath = getIconWithFixes(dataModelList, form, this),
+        labelHasLengthPlaceHolder =  getLabelWithFixes(dataModelList, form, this).contains("%length%")
     )
     Log.d("createDetailFormField : templateFormFieldFiller = $templateFormFieldFiller")
     return templateFormFieldFiller

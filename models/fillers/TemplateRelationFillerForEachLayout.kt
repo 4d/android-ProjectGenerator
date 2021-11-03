@@ -14,7 +14,7 @@ fun getTemplateRelationFillerForLayout(source: String, target: String, relationN
     TemplateRelationFillerForEachLayout(
         relation_source = source.tableNameAdjustment(),
         relation_target = target.tableNameAdjustment(),
-        relation_name = relationName.fieldAdjustment(),
+        relation_name = relationName,
         inverse_name = inverseName,
         tableNameLowercase = source.dataBindingAdjustment().decapitalize(Locale.getDefault()),
         associatedViewId = viewId,

@@ -114,7 +114,7 @@ fun replaceTemplateText(oldFormText: String, formType: FormType): String {
                     "${indent}{{#relations_one_to_many}}\n" +
                     "${indent}<variable\n" +
                     "${indent}\tname=\"{{relation_name}}\"\n" +
-                    "${indent}\ttype=\"List&lt;{{package}}.data.model.entity.{{relation_target}}>\"/>\n\n" +
+                    "${indent}\ttype=\"List&lt;{{package}}.data.model.entity.{{relation_target}}>\"/>\n" +
                     "${indent}{{/relations_one_to_many}}\n" +
                     "${indent}{{/has_any_one_to_many_relation}}"
         else

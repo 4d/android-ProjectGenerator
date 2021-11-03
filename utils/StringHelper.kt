@@ -79,6 +79,8 @@ fun String.validateWordDecapitalized(): String {
     }
 }
 
+fun String.encode(): String = this.replace("&", "&amp;")
+
 val reservedKeywords = listOf(
     "as",
     "break",

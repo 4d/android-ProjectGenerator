@@ -74,11 +74,11 @@ fun Field.getSourceTableName(dataModelList: List<DataModel>, form: Form): String
 }
 
 fun Field.getLabel(): String {
-    return label ?: ""
+    return label?.encode() ?: ""
 }
 
 fun Field.getShortLabel(): String {
-    return shortLabel ?: ""
+    return shortLabel?.encode() ?: ""
 }
 
 fun Field.getIcon(dataModelKey: String): String {

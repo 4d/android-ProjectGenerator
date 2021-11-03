@@ -11,10 +11,10 @@ data class TemplateLayoutFiller(
 fun DataModel.getTemplateLayoutFillerForNavigation(): TemplateLayoutFiller =
     TemplateLayoutFiller(
         name = this.name.tableNameAdjustment(),
-        name_original = this.name,
+        name_original = this.name.encode(),
         nameLowerCase = this.name.tableNameAdjustment().toLowerCase(),
         nameCamelCase = this.name.dataBindingAdjustment(),
-        label = this.getLabel(),
+        label = this.getLabel().encode(),
         hasIcon = (this.iconPath != null && this.iconPath != ""),
         icon = this.iconPath ?: ""
     )
