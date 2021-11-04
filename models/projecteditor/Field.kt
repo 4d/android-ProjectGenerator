@@ -167,6 +167,29 @@ fun getDataModelField(dataModelList: List<DataModel>, form: Form, field: Field):
 }
 
 /**
+ * Returns true if it has %length% placeholder AND it is a 1-N relation
+ */
+fun hasLabelLengthPlaceholder(dataModelList: List<DataModel>, form: Form, field: Field): Boolean {
+    val fieldFromDataModel: Field? = getDataModelField(dataModelList, form, field)
+    val label = getLabelWithFixes(dataModelList, form, field)
+    return label.contains("%length%") && fieldFromDataModel?.relatedEntities != null
+}
+
+fun getLabelWithLengthPlaceholder(dataModelList: List<DataModel>, form: Form, field: Field, formType: FormType): String {
+    val label = getLabelWithFixes(dataModelList, form, field)
+    val relationName = field.name.fieldAdjustment().replace(".", "_")
+    Log.d("getLabelWithLengthPlaceholder, label = $label")
+    Log.d("getLabelWithLengthPlaceholder, relationName = $relationName")
+    val lengthPlaceholder = "%length%"
+    val sizeReplacement = if (formType == FormType.LIST)
+        "$relationName.size"
+    else
+        "viewModel.$relationName.size"
+    val labelWithLength = "\"" + label.replace(lengthPlaceholder, "\" + $sizeReplacement + \"") + "\""
+    return labelWithLength.removePrefix("\"\" + ").removeSuffix(" + \"\"")
+}
+
+/**
  * fieldFromDataModel is here to get the Field from dataModel instead of list/detail form as some information may be missing.
  * If it's a related field, fieldFromDataModel will be null, therefore check the field variable
 */

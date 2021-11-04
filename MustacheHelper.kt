@@ -30,6 +30,7 @@ import MustacheConstants.FIRST_FIELD
 import MustacheConstants.FORM_FIELDS
 import MustacheConstants.HAS_ANY_MANY_TO_ONE_RELATION
 import MustacheConstants.HAS_ANY_ONE_TO_MANY_RELATION
+import MustacheConstants.HAS_ANY_ONE_TO_MANY_RELATION_FOR_LAYOUT
 import MustacheConstants.HAS_ANY_RELATIONS_MANY_TO_ONE_FOR_DETAIL
 import MustacheConstants.HAS_ANY_RELATIONS_MANY_TO_ONE_FOR_LIST
 import MustacheConstants.HAS_ANY_RELATIONS_ONE_TO_MANY_FOR_DETAIL
@@ -246,6 +247,9 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                 val filler = relation.getTemplateRelationFiller()
                 if (relation.relationType == RelationType.MANY_TO_ONE) {
                     relationsManyToOne.add(filler)
+                    // Check for sub 1-N relations
+                    val subTemplateRelationFillerList = relation.checkSubRelations(projectEditor.dataModelList)
+                    relationsOneToMany.addAll(subTemplateRelationFillerList)
                 } else {
                     relationsOneToMany.add(filler)
                 }
@@ -298,6 +302,11 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
                     dataModel.relationList?.forEach { relation ->
                         layoutRelationList.add(relation.getTemplateRelationFiller())
+                        // Check for sub 1-N relations
+                        if (relation.relationType == RelationType.MANY_TO_ONE) {
+                            val subTemplateRelationFillerList = relation.checkSubRelations(projectEditor.dataModelList)
+                            layoutRelationList.addAll(subTemplateRelationFillerList)
+                        }
                     }
                 } else {
                     Log.w("Not adding [${dataModel.name}] in navigation table list")
@@ -382,6 +391,9 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                 val filler = relation.getTemplateRelationFiller()
                 if (relation.relationType == RelationType.MANY_TO_ONE) {
                     relationsManyToOne.add(filler)
+                    // Check for sub 1-N relations
+                    val subTemplateRelationFillerList = relation.checkSubRelations(projectEditor.dataModelList)
+                    relationsOneToMany.addAll(subTemplateRelationFillerList)
                 } else {
                     relationsOneToMany.add(filler)
                 }
@@ -527,6 +539,9 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
             val filler = relation.getTemplateRelationFiller()
             if (relation.relationType == RelationType.MANY_TO_ONE) {
                 relationsManyToOne.add(filler)
+                // Check for sub 1-N relations
+                val subTemplateRelationFillerList = relation.checkSubRelations(projectEditor.dataModelList)
+                relationsOneToMany.addAll(subTemplateRelationFillerList)
             } else {
                 relationsOneToMany.add(filler)
             }
@@ -579,16 +594,20 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                 relationsManyToOne.clear()
                                 relationsOneToMany.clear()
                                 projectEditor.dataModelList.find { it.name.tableNameAdjustment() == listForm.dataModel.name.tableNameAdjustment() }?.relationList?.forEach { relation ->
+                                    Log.d("RRR relation = $relation")
                                     val filler = relation.getTemplateRelationFiller()
                                     if (relation.relationType == RelationType.MANY_TO_ONE) {
                                         relationsManyToOne.add(filler)
+                                        // Check for sub 1-N relations
+                                        val subTemplateRelationFillerList = relation.checkSubRelations(projectEditor.dataModelList)
+                                        relationsOneToMany.addAll(subTemplateRelationFillerList)
                                     } else {
                                         relationsOneToMany.add(filler)
                                     }
                                 }
                                 data[RELATIONS_MANY_TO_ONE] = relationsManyToOne
                                 data[RELATIONS_ONE_TO_MANY] = relationsOneToMany
-                                data[HAS_ANY_ONE_TO_MANY_RELATION] = relationsOneToMany.isNotEmpty()
+                                data[HAS_ANY_ONE_TO_MANY_RELATION_FOR_LAYOUT] = relationsOneToMany.isNotEmpty()
 
                                 var wholeFormHasIcons = false
 
@@ -895,6 +914,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         data.remove("field_${i}_field_image_width")
         data.remove("field_${i}_field_image_height")
         data.remove("field_${i}_label_has_length_placeholder")
+        data.remove("field_${i}_label_with_length_placeholder")
     }
 
     private fun resetIndexedEntries(i: Int) {
@@ -918,9 +938,11 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         data["field_${i}_field_image_width"] = 0
         data["field_${i}_field_image_height"] = 0
         data["field_${i}_label_has_length_placeholder"] = false
+        data["field_${i}_label_with_length_placeholder"] = ""
     }
 
     private fun fillIndexedFormData(i: Int, field: Field, formType: FormType, form: Form, wholeFormHasIcons: Boolean) {
+        Log.d("fillIndexedFormData, field = $field")
         data["field_${i}_name"] = field.name.fieldAdjustment()
         data["field_${i}_defined"] = field.name.isNotEmpty()
         data["field_${i}_is_relation"] = field.isRelation()
@@ -935,7 +957,11 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         data["field_${i}_accessor"] = field.getLayoutVariableAccessor(formType)
         data["field_${i}_field_name"] = field.getFieldName()
         data["field_${i}_source_table_name"] = field.getSourceTableName(projectEditor.dataModelList, form)
-        data["field_${i}_label_has_length_placeholder"] = getLabelWithFixes(projectEditor.dataModelList, form, field).contains("%length%")
+        val labelHashLengthPlaceholder = hasLabelLengthPlaceholder(projectEditor.dataModelList, form, field)
+        if (labelHashLengthPlaceholder) {
+            data["field_${i}_label_has_length_placeholder"] = true
+            data["field_${i}_label_with_length_placeholder"] = getLabelWithLengthPlaceholder(projectEditor.dataModelList, form, field, formType)
+        }
         if (field.isImage()) {
             data["field_${i}_image_key_accessor"] = field.getFieldKeyAccessor(formType)
         }
