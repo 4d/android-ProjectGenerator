@@ -67,7 +67,13 @@ fun replaceTemplateText(oldFormText: String, formType: FormType): String {
     regex = ("(\\h*)android:text=\"___BUTTON___\"").toRegex()
     newFormText = regex.replace(newFormText) { matchResult ->
         val indent = matchResult.destructured.component1()
-        "${indent}android:text=\"{{label}}\"\n" +
+
+        "${indent}{{#labelHasLengthPlaceHolder}}\n" +
+                "${indent}android:text='@{ {{labelWithLengthPlaceHolder}} }'\n" +
+                "${indent}{{/labelHasLengthPlaceHolder}}\n" +
+                "${indent}{{^labelHasLengthPlaceHolder}}\n" +
+                "${indent}android:text=\"{{label}}\"\n" +
+                "${indent}{{/labelHasLengthPlaceHolder}}\n" +
                 "${indent}{{#hasIcon}}\n" +
                 "${indent}app:icon='@{\"{{iconPath}}\"}'\n" +
                 "${indent}{{/hasIcon}}"
@@ -109,14 +115,14 @@ fun replaceTemplateText(oldFormText: String, formType: FormType): String {
                     "${indent}\tname=\"{{relation_name}}\"\n" +
                     "${indent}\ttype=\"{{package}}.data.model.entity.{{relation_target}}\"/>\n" +
                     "${indent}{{/relations_many_to_one}}\n" +
-                    "${indent}{{#has_any_one_to_many_relation}}\n" +
+                    "${indent}{{#has_any_one_to_many_relation_for_layout}}\n" +
                     "${indent}<import type=\"java.util.List\" />\n" +
                     "${indent}{{#relations_one_to_many}}\n" +
                     "${indent}<variable\n" +
                     "${indent}\tname=\"{{relation_name}}\"\n" +
                     "${indent}\ttype=\"List&lt;{{package}}.data.model.entity.{{relation_target}}>\"/>\n" +
                     "${indent}{{/relations_one_to_many}}\n" +
-                    "${indent}{{/has_any_one_to_many_relation}}"
+                    "${indent}{{/has_any_one_to_many_relation_for_layout}}"
         else
             "${indent}<variable\n" +
                     "${indent}\tname=\"${variableName}\"\n" +
@@ -133,7 +139,13 @@ fun replaceTemplateText(oldFormText: String, formType: FormType): String {
     newFormText = regex.replace(newFormText) { matchResult ->
         val indent = matchResult.destructured.component1()
         val id = matchResult.destructured.component2()
-        "${indent}android:text=\"{{field_${id}_label}}\"\n" +
+
+        "${indent}{{#field_${id}_label_has_length_placeholder}}\n" +
+                "${indent}android:text='@{ {{field_${id}_label_with_length_placeholder}} }'\n" +
+                "${indent}{{/field_${id}_label_has_length_placeholder}}\n" +
+                "${indent}{{^field_${id}_label_has_length_placeholder}}\n" +
+                "${indent}android:text=\"{{field_${id}_label}}\"\n" +
+                "${indent}{{/field_${id}_label_has_length_placeholder}}\n" +
                 "${indent}{{#field_${id}_hasIcon}}\n" +
                 "${indent}app:icon='@{\"{{field_${id}_iconPath}}\"}'\n" +
                 "${indent}{{/field_${id}_hasIcon}}"
@@ -146,7 +158,12 @@ fun replaceTemplateText(oldFormText: String, formType: FormType): String {
         "${indent}{{#field_${id}_defined}}\n" +
                 "${indent}{{^field_${id}_is_image}}\n" +
                 "${indent}{{#field_${id}_is_relation}}\n" +
+                "${indent}{{#field_${id}_label_has_length_placeholder}}\n" +
+                "${indent}android:text='@{ {{field_${id}_label_with_length_placeholder}} }'\n" +
+                "${indent}{{/field_${id}_label_has_length_placeholder}}\n" +
+                "${indent}{{^field_${id}_label_has_length_placeholder}}\n" +
                 "${indent}android:text=\"{{field_${id}_label}}\"\n" +
+                "${indent}{{/field_${id}_label_has_length_placeholder}}\n" +
                 "${indent}app:linkColor=\"@{true}\"\n" +
                 "${indent}{{/field_${id}_is_relation}}\n" +
                 "${indent}{{^field_${id}_is_relation}}\n" +
