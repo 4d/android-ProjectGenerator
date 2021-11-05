@@ -847,7 +847,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
             projectEditor.dataModelList.find { it.id  == form.dataModel.id }?.relationList?.find { it.name == field.name }?.let { relation ->
                 Log.d(">>>> relation : $relation")
 
-                fillRelationFillerForEachRelation(source, target, field.name, inverseName, index, formType, relation)
+                fillRelationFillerForEachRelation(source, target, field.name, inverseName, index, formType, relation, field.format)
 
             } ?: kotlin.run {
                 Log.d(">>>> no relation found with this name, here is relation list :")
@@ -862,7 +862,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                         projectEditor.dataModelList.find { it.id  == relationBaseTableNumber.toString() }?.relationList?.find { it.name == relationEndName }?.let { subRelation ->
                             Log.d(">>>> subRelation = $subRelation")
 
-                            fillRelationFillerForEachRelation(source, subRelation.target, field.name, inverseName, index, formType, subRelation)
+                            fillRelationFillerForEachRelation(source, subRelation.target, field.name, inverseName, index, formType, subRelation, field.format)
 
                         }
                     }
@@ -871,8 +871,9 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         }
     }
 
-    private fun fillRelationFillerForEachRelation(source: String, target: String, relationName: String, inverseName: String, index: Int, formType: FormType, relation: Relation) {
-        val filler = getTemplateRelationFillerForLayout(source, target, relationName, inverseName, index)
+    private fun fillRelationFillerForEachRelation(source: String, target: String, relationName: String, inverseName: String, index: Int, formType: FormType, relation: Relation, format: String?) {
+        val navbarTitle = getNavbarTitle(format, source, target)
+        val filler = getTemplateRelationFillerForLayout(source, target, relationName, inverseName, index, navbarTitle)
         // if source table or target table is not in navigation, return
         Log.d("source = ${source.tableNameAdjustment()}")
         Log.d("target = ${target.tableNameAdjustment()}")
@@ -891,6 +892,38 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                 manyToOneRelationFillerForEachDetailLayout.add(filler)
         }
         Log.d("Adding filler : $filler")
+    }
+
+    private fun getNavbarTitle(format: String?, source: String, target: String): String {
+        if (format == null) return ""
+        val dataModel = projectEditor.dataModelList.find { it.name.tableNameAdjustment() == source.tableNameAdjustment() }
+
+        val regex = ("((?:%[\\w|\\s|\\.]+%)+)").toRegex()
+        val navbarTitle = regex.replace(format) { matchResult ->
+            val fieldName = matchResult.destructured.component1().removePrefix("%").removeSuffix("%")
+            // Verify that fieldName exists in source dataModel
+            if (fieldName.contains(".")) {
+                val baseFieldName = fieldName.split(".")[0]
+                val relatedFieldName = fieldName.split(".")[1]
+                val baseField = dataModel?.fields?.find { it.name.fieldAdjustment() == baseFieldName.fieldAdjustment() }
+                Log.d("baseField = $baseField")
+                val relatedDataModel = projectEditor.dataModelList.find { it.id == "${baseField?.relatedTableNumber}" }
+                val relatedField = relatedDataModel?.fields?.find { it.name.fieldAdjustment() == relatedFieldName.fieldAdjustment() }
+                if (relatedField != null) {
+                    "\${(anyRelatedEntity as ${relatedDataModel.name.tableNameAdjustment()}?)?.${relatedFieldName.fieldAdjustment()}.toString()}"
+                } else {
+                    fieldName
+                }
+            } else {
+                val field = dataModel?.fields?.find { it.name.fieldAdjustment() == fieldName.fieldAdjustment() }
+                if (field != null) {
+                    "\${(entity as ${source.tableNameAdjustment()}?)?.${fieldName.fieldAdjustment()}.toString()}"
+                } else {
+                    fieldName
+                }
+            }
+        }
+        return navbarTitle
     }
 
     private fun removeIndexedEntries(i: Int) {
