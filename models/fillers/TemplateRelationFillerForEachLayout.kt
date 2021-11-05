@@ -7,10 +7,11 @@ data class TemplateRelationFillerForEachLayout(
     val inverse_name: String,
     val tableNameLowercase: String,
     val associatedViewId: Int,
-    val isSubRelation: Boolean
+    val isSubRelation: Boolean,
+    val navbarTitle: String
 )
 
-fun getTemplateRelationFillerForLayout(source: String, target: String, relationName: String, inverseName: String, viewId: Int): TemplateRelationFillerForEachLayout =
+fun getTemplateRelationFillerForLayout(source: String, target: String, relationName: String, inverseName: String, viewId: Int, navbarTitle: String): TemplateRelationFillerForEachLayout =
     TemplateRelationFillerForEachLayout(
         relation_source = source.tableNameAdjustment(),
         relation_target = target.tableNameAdjustment(),
@@ -18,5 +19,6 @@ fun getTemplateRelationFillerForLayout(source: String, target: String, relationN
         inverse_name = inverseName,
         tableNameLowercase = source.dataBindingAdjustment().decapitalize(Locale.getDefault()),
         associatedViewId = viewId,
-        isSubRelation = relationName.fieldAdjustment().contains(".")
+        isSubRelation = relationName.fieldAdjustment().contains("."),
+        navbarTitle = navbarTitle
     )
