@@ -60,6 +60,7 @@ import MustacheConstants.TABLENAMES_LOWERCASE
 import MustacheConstants.TABLENAMES_NAVIGATION
 import MustacheConstants.TABLENAMES_WITHOUT_MANY_TO_ONE_RELATION
 import MustacheConstants.TABLENAMES_LAYOUT_RELATIONS
+import MustacheConstants.TABLENAMES_NAVIGATION_FOR_NAVBAR
 import MustacheConstants.TABLENAMES_WITH_MANY_TO_ONE_RELATIONS
 import MustacheConstants.TABLENAME_CAMELCASE
 import MustacheConstants.TABLENAME_LOWERCASE
@@ -97,6 +98,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
     private lateinit var template: Template
 
     private val tableNamesForNavigation = mutableListOf<TemplateLayoutFiller>()
+    private val tableNamesForNavigationForNavBar = mutableListOf<TemplateLayoutFiller>()
     private val tableNamesForLayoutType = mutableListOf<TemplateLayoutTypeFiller>()
     private var tableNames = mutableListOf<TemplateTableFiller>()
     private var tableNamesLowercase = mutableListOf<TemplateLayoutFiller>()
@@ -291,36 +293,40 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         data[TYPES_AND_TABLES] = typesAndTables
 
         var navigationTableCounter = 0 // Counter to limit to 4 navigation tables as it is not possible to have more than 5
-        projectEditor.navigationTableList.forEach { navigationTableId ->
-            projectEditor.dataModelList.find { it.id == navigationTableId }?.let { dataModel ->
+        projectEditor.dataModelList.forEach { dataModel ->
+            if (projectEditor.navigationTableList.contains(dataModel.id)) {
                 if (navigationTableCounter <= 3) {
-                    Log.w("Adding [${dataModel.name}] in navigation table list")
-
-                    tableNamesForNavigation.add(dataModel.getTemplateLayoutFillerForNavigation())
 
                     navigationTableCounter++
-
-                    dataModel.relationList?.forEach { relation ->
-                        layoutRelationList.add(relation.getTemplateRelationFiller())
-                        // Check for sub 1-N relations
-                        if (relation.relationType == RelationType.MANY_TO_ONE) {
-                            val subTemplateRelationFillerList = relation.checkSubRelations(projectEditor.dataModelList)
-                            layoutRelationList.addAll(subTemplateRelationFillerList)
-                        }
-                    }
+                    Log.w("Adding [${dataModel.name}] in navigation table list for navbar")
+                    tableNamesForNavigationForNavBar.add(dataModel.getTemplateLayoutFillerForNavigation())
                 } else {
-                    Log.w("Not adding [${dataModel.name}] in navigation table list")
+                    Log.w("Not adding [${dataModel.name}] in navigation table list for navbar")
+                }
+            }
+            Log.w("Adding [${dataModel.name}] in navigation table list")
+
+            tableNamesForNavigation.add(dataModel.getTemplateLayoutFillerForNavigation())
+
+
+            dataModel.relationList?.forEach { relation ->
+                layoutRelationList.add(relation.getTemplateRelationFiller())
+                // Check for sub 1-N relations
+                if (relation.relationType == RelationType.MANY_TO_ONE) {
+                    val subTemplateRelationFillerList = relation.checkSubRelations(projectEditor.dataModelList)
+                    layoutRelationList.addAll(subTemplateRelationFillerList)
                 }
             }
         }
         data[TABLENAMES_NAVIGATION] = tableNamesForNavigation
+        data[TABLENAMES_NAVIGATION_FOR_NAVBAR] = tableNamesForNavigationForNavBar
         data[TABLENAMES_LAYOUT_RELATIONS] = layoutRelationList
         data[HAS_RELATION] = layoutRelationList.isNotEmpty()
 
         // Specifying if list layout is table or collection (LinearLayout or GridLayout)
         tableNamesForNavigation.map { it.name }.forEach { tableName ->
             val listFormName =
-                projectEditor.listFormList.find { listform -> listform.dataModel.name.tableNameAdjustment() == tableName.tableNameAdjustment() }?.name
+                projectEditor.listFormList.find { listForm -> listForm.dataModel.name.tableNameAdjustment() == tableName.tableNameAdjustment() }?.name
             var formPath = fileHelper.pathHelper.getFormPath(listFormName, FormType.LIST)
             formPath = fileHelper.pathHelper.verifyFormPath(formPath, FormType.LIST)
             tableNamesForLayoutType.add(getTemplateLayoutTypeFiller(tableName, formPath))
@@ -847,7 +853,8 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
             projectEditor.dataModelList.find { it.id  == form.dataModel.id }?.relationList?.find { it.name == field.name }?.let { relation ->
                 Log.d(">>>> relation : $relation")
 
-                fillRelationFillerForEachRelation(source, target, field.name, inverseName, index, formType, relation, field.format)
+                val navbarTitle = getNavbarTitleWithFixes(projectEditor.dataModelList, form, field, source)
+                fillRelationFillerForEachRelation(source, target, field.name, inverseName, index, formType, relation, navbarTitle)
 
             } ?: kotlin.run {
                 Log.d(">>>> no relation found with this name, here is relation list :")
@@ -862,7 +869,8 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                         projectEditor.dataModelList.find { it.id  == relationBaseTableNumber.toString() }?.relationList?.find { it.name == relationEndName }?.let { subRelation ->
                             Log.d(">>>> subRelation = $subRelation")
 
-                            fillRelationFillerForEachRelation(source, subRelation.target, field.name, inverseName, index, formType, subRelation, field.format)
+                            val navbarTitle = getNavbarTitleWithFixes(projectEditor.dataModelList, form, field, source)
+                            fillRelationFillerForEachRelation(source, subRelation.target, field.name, inverseName, index, formType, subRelation, navbarTitle)
 
                         }
                     }
@@ -871,16 +879,15 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         }
     }
 
-    private fun fillRelationFillerForEachRelation(source: String, target: String, relationName: String, inverseName: String, index: Int, formType: FormType, relation: Relation, format: String?) {
-        val navbarTitle = getNavbarTitle(format, source, target)
+    private fun fillRelationFillerForEachRelation(source: String, target: String, relationName: String, inverseName: String, index: Int, formType: FormType, relation: Relation, navbarTitle: String) {
         val filler = getTemplateRelationFillerForLayout(source, target, relationName, inverseName, index, navbarTitle)
         // if source table or target table is not in navigation, return
         Log.d("source = ${source.tableNameAdjustment()}")
         Log.d("target = ${target.tableNameAdjustment()}")
-        if (tableNamesForNavigation.find { it.name.tableNameAdjustment() == source.tableNameAdjustment() } == null)
-            return
-        if (tableNamesForNavigation.find { it.name.tableNameAdjustment() == target.tableNameAdjustment() } == null)
-            return
+//        if (tableNamesForNavigation.find { it.name.tableNameAdjustment() == source.tableNameAdjustment() } == null)
+//            return
+//        if (tableNamesForNavigation.find { it.name.tableNameAdjustment() == target.tableNameAdjustment() } == null)
+//            return
         when {
             formType == FormType.LIST && relation.relationType == RelationType.ONE_TO_MANY ->
                 oneToManyRelationFillerForEachListLayout.add(filler)
@@ -892,38 +899,6 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                 manyToOneRelationFillerForEachDetailLayout.add(filler)
         }
         Log.d("Adding filler : $filler")
-    }
-
-    private fun getNavbarTitle(format: String?, source: String, target: String): String {
-        if (format == null) return ""
-        val dataModel = projectEditor.dataModelList.find { it.name.tableNameAdjustment() == source.tableNameAdjustment() }
-
-        val regex = ("((?:%[\\w|\\s|\\.]+%)+)").toRegex()
-        val navbarTitle = regex.replace(format) { matchResult ->
-            val fieldName = matchResult.destructured.component1().removePrefix("%").removeSuffix("%")
-            // Verify that fieldName exists in source dataModel
-            if (fieldName.contains(".")) {
-                val baseFieldName = fieldName.split(".")[0]
-                val relatedFieldName = fieldName.split(".")[1]
-                val baseField = dataModel?.fields?.find { it.name.fieldAdjustment() == baseFieldName.fieldAdjustment() }
-                Log.d("baseField = $baseField")
-                val relatedDataModel = projectEditor.dataModelList.find { it.id == "${baseField?.relatedTableNumber}" }
-                val relatedField = relatedDataModel?.fields?.find { it.name.fieldAdjustment() == relatedFieldName.fieldAdjustment() }
-                if (relatedField != null) {
-                    "\${(anyRelatedEntity as ${relatedDataModel.name.tableNameAdjustment()}?)?.${relatedFieldName.fieldAdjustment()}.toString()}"
-                } else {
-                    fieldName
-                }
-            } else {
-                val field = dataModel?.fields?.find { it.name.fieldAdjustment() == fieldName.fieldAdjustment() }
-                if (field != null) {
-                    "\${(entity as ${source.tableNameAdjustment()}?)?.${fieldName.fieldAdjustment()}.toString()}"
-                } else {
-                    fieldName
-                }
-            }
-        }
-        return navbarTitle
     }
 
     private fun removeIndexedEntries(i: Int) {

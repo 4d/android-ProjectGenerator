@@ -189,6 +189,38 @@ fun getLabelWithLengthPlaceholder(dataModelList: List<DataModel>, form: Form, fi
     return labelWithLength.removePrefix("\"\" + ").removeSuffix(" + \"\"")
 }
 
+fun Field.getNavbarTitle(dataModelList: List<DataModel>, source: String): String {
+    val format = this.format ?: return ""
+    val dataModel = dataModelList.find { it.name.tableNameAdjustment() == source.tableNameAdjustment() }
+
+    val regex = ("((?:%[\\w|\\s|\\.]+%)+)").toRegex()
+    val navbarTitle = regex.replace(format) { matchResult ->
+        val fieldName = matchResult.destructured.component1().removePrefix("%").removeSuffix("%")
+        // Verify that fieldName exists in source dataModel
+        if (fieldName.contains(".")) {
+            val baseFieldName = fieldName.split(".")[0]
+            val relatedFieldName = fieldName.split(".")[1]
+            val baseField = dataModel?.fields?.find { it.name.fieldAdjustment() == baseFieldName.fieldAdjustment() }
+            Log.d("baseField = $baseField")
+            val relatedDataModel = dataModelList.find { it.id == "${baseField?.relatedTableNumber}" }
+            val relatedField = relatedDataModel?.fields?.find { it.name.fieldAdjustment() == relatedFieldName.fieldAdjustment() }
+            if (relatedField != null) {
+                "\${(anyRelatedEntity as ${relatedDataModel.name.tableNameAdjustment()}?)?.${relatedFieldName.fieldAdjustment()}.toString()}"
+            } else {
+                fieldName
+            }
+        } else {
+            val field = dataModel?.fields?.find { it.name.fieldAdjustment() == fieldName.fieldAdjustment() }
+            if (field != null) {
+                "\${(entity as ${source.tableNameAdjustment()}?)?.${fieldName.fieldAdjustment()}.toString()}"
+            } else {
+                fieldName
+            }
+        }
+    }
+    return navbarTitle
+}
+
 /**
  * fieldFromDataModel is here to get the Field from dataModel instead of list/detail form as some information may be missing.
  * If it's a related field, fieldFromDataModel will be null, therefore check the field variable
@@ -211,4 +243,9 @@ fun getShortLabelWithFixes(dataModelList: List<DataModel>, form: Form, field: Fi
 fun getLabelWithFixes(dataModelList: List<DataModel>, form: Form, field: Field): String {
     val fieldFromDataModel: Field? = getDataModelField(dataModelList, form, field)
     return fieldFromDataModel?.getLabel() ?: field.getLabel()
+}
+
+fun getNavbarTitleWithFixes(dataModelList: List<DataModel>, form: Form, field: Field, source: String): String {
+    val fieldFromDataModel: Field? = getDataModelField(dataModelList, form, field)
+    return fieldFromDataModel?.getNavbarTitle(dataModelList, source) ?: field.getNavbarTitle(dataModelList, source)
 }
