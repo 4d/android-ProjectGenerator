@@ -642,6 +642,8 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                         fillIndexedFormData(i, field, FormType.LIST, listForm, wholeFormHasIcons)
                                         if (field.isRelation()) {
 
+                                            Log.d("XXX : field = $field")
+                                            Log.d("XXX : form = $listForm")
                                             fillRelationFillerForEachLayout(field, listForm, FormType.LIST, i)
                                         }
                                     }
