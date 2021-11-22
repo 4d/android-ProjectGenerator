@@ -139,7 +139,6 @@ fun replaceTemplateText(oldFormText: String, formType: FormType): String {
     newFormText = regex.replace(newFormText) { matchResult ->
         val indent = matchResult.destructured.component1()
         val id = matchResult.destructured.component2()
-
         "${indent}{{#field_${id}_label_has_length_placeholder}}\n" +
                 "${indent}android:text='@{ {{field_${id}_label_with_length_placeholder}} }'\n" +
                 "${indent}{{/field_${id}_label_has_length_placeholder}}\n" +
