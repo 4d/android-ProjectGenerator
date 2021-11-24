@@ -6,7 +6,9 @@ data class TemplateRelationFiller(
     val relation_name_cap: String = relation_name.capitalize(),
     val inverse_name_cap: String = inverse_name.capitalize(),
     val isSubRelation: Boolean,
-    val originalSubRelationName: String
+    val originalSubRelationName: String,
+    val relation_source_camelCase: String,
+    val relation_target_camelCase: String
 )
 
 fun Relation.getTemplateRelationFiller(): TemplateRelationFiller =
@@ -16,7 +18,9 @@ fun Relation.getTemplateRelationFiller(): TemplateRelationFiller =
         relation_name = this.name.fieldAdjustment(),
         inverse_name = this.inverseName.fieldAdjustment(),
         isSubRelation = false,
-        originalSubRelationName = ""
+        originalSubRelationName = "",
+        relation_source_camelCase = this.source.dataBindingAdjustment(),
+        relation_target_camelCase = this.target.dataBindingAdjustment()
     )
 
 fun getSubTemplateRelationFiller(source: String, target: String, name: String, inverseName: String, originalSubRelationName: String): TemplateRelationFiller =
@@ -26,7 +30,9 @@ fun getSubTemplateRelationFiller(source: String, target: String, name: String, i
         relation_name = name.fieldAdjustment(),
         inverse_name = inverseName.fieldAdjustment(),
         isSubRelation = true,
-        originalSubRelationName = originalSubRelationName
+        originalSubRelationName = originalSubRelationName,
+        relation_source_camelCase = source.dataBindingAdjustment(),
+        relation_target_camelCase = target.dataBindingAdjustment()
     )
 
 fun Relation.checkSubRelations(dataModelList: List<DataModel>): List<TemplateRelationFiller> {
@@ -56,7 +62,9 @@ fun List<TemplateRelationFiller>.getInverseRelationsOneToMany(): List<TemplateRe
                 relation_name = it.inverse_name,
                 inverse_name = it.inverse_name,
                 isSubRelation = it.isSubRelation,
-                originalSubRelationName = it.originalSubRelationName
+                originalSubRelationName = it.originalSubRelationName,
+                relation_source_camelCase = it.relation_source_camelCase,
+                relation_target_camelCase = it.relation_target_camelCase
             )
         )
     }

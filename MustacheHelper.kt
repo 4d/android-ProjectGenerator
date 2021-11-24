@@ -640,7 +640,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                         resetIndexedEntries(i)
                                     } else { // not a relation
                                         fillIndexedFormData(i, field, FormType.LIST, listForm, wholeFormHasIcons)
-                                        if (field.isRelation()) {
+                                        if (isRelationWithFixes(projectEditor.dataModelList, listForm, field)) {
 
                                             Log.d("XXX : field = $field")
                                             Log.d("XXX : form = $listForm")
@@ -847,7 +847,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
         val source: String = form.dataModel.name
         val target: String? = projectEditor.dataModelList.find { it.id == field.relatedTableNumber.toString() }?.name
-        val inverseName: String? = field.inverseName
+        val inverseName: String? = getInverseNameWithFixes(projectEditor.dataModelList, form, field)
 
         if (inverseName != null && target != null) {
 
@@ -923,8 +923,10 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         data.remove("field_${i}_field_table_name")
         data.remove("field_${i}_field_image_width")
         data.remove("field_${i}_field_image_height")
-        data.remove("field_${i}_label_has_length_placeholder")
-        data.remove("field_${i}_label_with_length_placeholder")
+        data.remove("field_${i}_label_has_percent_placeholder")
+        data.remove("field_${i}_label_with_percent_placeholder")
+        data.remove("field_${i}_shortLabel_has_percent_placeholder")
+        data.remove("field_${i}_shortLabel_with_percent_placeholder")
     }
 
     private fun resetIndexedEntries(i: Int) {
@@ -947,15 +949,16 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         data["field_${i}_field_table_name"] = ""
         data["field_${i}_field_image_width"] = 0
         data["field_${i}_field_image_height"] = 0
-        data["field_${i}_label_has_length_placeholder"] = false
-        data["field_${i}_label_with_length_placeholder"] = ""
+        data["field_${i}_label_has_percent_placeholder"] = false
+        data["field_${i}_label_with_percent_placeholder"] = ""
+        data["field_${i}_shortLabel_has_percent_placeholder"] = false
+        data["field_${i}_shortLabel_with_percent_placeholder"] = ""
     }
 
     private fun fillIndexedFormData(i: Int, field: Field, formType: FormType, form: Form, wholeFormHasIcons: Boolean) {
         Log.d("fillIndexedFormData, field = $field")
         data["field_${i}_name"] = field.name.fieldAdjustment()
         data["field_${i}_defined"] = field.name.isNotEmpty()
-        data["field_${i}_is_relation"] = field.isRelation()
         data["field_${i}_is_image"] = field.isImage()
         data["field_${i}_label"] = getLabelWithFixes(projectEditor.dataModelList, form, field)
         data["field_${i}_shortLabel"] = getShortLabelWithFixes(projectEditor.dataModelList, form, field)
@@ -967,11 +970,23 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         data["field_${i}_accessor"] = field.getLayoutVariableAccessor(formType)
         data["field_${i}_field_name"] = field.getFieldName()
         data["field_${i}_source_table_name"] = field.getSourceTableName(projectEditor.dataModelList, form)
-        val labelHashLengthPlaceholder = hasLabelLengthPlaceholder(projectEditor.dataModelList, form, field)
-        if (labelHashLengthPlaceholder) {
-            data["field_${i}_label_has_length_placeholder"] = true
-            data["field_${i}_label_with_length_placeholder"] = getLabelWithLengthPlaceholder(projectEditor.dataModelList, form, field, formType)
+        val isRelation = isRelationWithFixes(projectEditor.dataModelList, form, field)
+        Log.d("field ${field.name}, isRelation ? : $isRelation")
+        if (isRelation) {
+            data["field_${i}_is_relation"] = true
+            val labelHasPercentPlaceholder = hasLabelPercentPlaceholder(projectEditor.dataModelList, form, field)
+            if (labelHasPercentPlaceholder) {
+                data["field_${i}_label_has_percent_placeholder"] = true
+                data["field_${i}_label_with_percent_placeholder"] = getLabelWithPercentPlaceholder(projectEditor.dataModelList, form, field, formType)
+            }
+
+            val shortLabelHasPercentPlaceholder = hasShortLabelPercentPlaceholder(projectEditor.dataModelList, form, field)
+            if (shortLabelHasPercentPlaceholder) {
+                data["field_${i}_shortLabel_has_percent_placeholder"] = true
+                data["field_${i}_shortLabel_with_percent_placeholder"] = getShortLabelWithPercentPlaceholder(projectEditor.dataModelList, form, field, formType)
+            }
         }
+
         if (field.isImage()) {
             data["field_${i}_image_key_accessor"] = field.getFieldKeyAccessor(formType)
         }

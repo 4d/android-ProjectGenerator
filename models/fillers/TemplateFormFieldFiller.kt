@@ -18,8 +18,10 @@ data class TemplateFormFieldFiller(
     val imageHeight: Int,
     val hasIcon: Boolean,
     val iconPath: String,
-    val labelHasLengthPlaceHolder: Boolean,
-    val labelWithLengthPlaceHolder: String
+    val labelHasPercentPlaceholder: Boolean,
+    val labelWithPercentPlaceholder: String,
+    val shortLabelHasPercentPlaceholder: Boolean,
+    val shortLabelWithPercentPlaceholder: String
 )
 
 fun Field.getTemplateFormFieldFiller(
@@ -40,7 +42,7 @@ fun Field.getTemplateFormFieldFiller(
         label = getLabelWithFixes(dataModelList, form, this),
         shortLabel = getShortLabelWithFixes(dataModelList, form, this),
         viewId = i,
-        isRelation = this.isRelation(),
+        isRelation = isRelationWithFixes(dataModelList, form, this),
         isImage = this.isImage(),
         sourceTableName = this.getSourceTableName(dataModelList, form),
         accessor = this.getLayoutVariableAccessor(FormType.DETAIL),
@@ -55,8 +57,10 @@ fun Field.getTemplateFormFieldFiller(
         imageHeight = imageHeight,
         hasIcon = wholeFormHasIcons,
         iconPath = getIconWithFixes(dataModelList, form, this),
-        labelHasLengthPlaceHolder =  hasLabelLengthPlaceholder(dataModelList, form, this),
-        labelWithLengthPlaceHolder =  getLabelWithLengthPlaceholder(dataModelList, form, this, FormType.DETAIL)
+        labelHasPercentPlaceholder = hasLabelPercentPlaceholder(dataModelList, form, this),
+        labelWithPercentPlaceholder = getLabelWithPercentPlaceholder(dataModelList, form, this, FormType.DETAIL),
+        shortLabelHasPercentPlaceholder = hasShortLabelPercentPlaceholder(dataModelList, form, this),
+        shortLabelWithPercentPlaceholder = getShortLabelWithPercentPlaceholder(dataModelList, form, this, FormType.DETAIL)
     )
     Log.d("createDetailFormField : templateFormFieldFiller = $templateFormFieldFiller")
     return templateFormFieldFiller
