@@ -68,12 +68,12 @@ fun replaceTemplateText(oldFormText: String, formType: FormType): String {
     newFormText = regex.replace(newFormText) { matchResult ->
         val indent = matchResult.destructured.component1()
 
-        "${indent}{{#labelHasLengthPlaceHolder}}\n" +
-                "${indent}android:text='@{ {{labelWithLengthPlaceHolder}} }'\n" +
-                "${indent}{{/labelHasLengthPlaceHolder}}\n" +
-                "${indent}{{^labelHasLengthPlaceHolder}}\n" +
+        "${indent}{{#labelHasPercentPlaceholder}}\n" +
+                "${indent}android:text='@{ {{labelWithPercentPlaceholder}} }'\n" +
+                "${indent}{{/labelHasPercentPlaceholder}}\n" +
+                "${indent}{{^labelHasPercentPlaceholder}}\n" +
                 "${indent}android:text=\"{{label}}\"\n" +
-                "${indent}{{/labelHasLengthPlaceHolder}}\n" +
+                "${indent}{{/labelHasPercentPlaceholder}}\n" +
                 "${indent}{{#hasIcon}}\n" +
                 "${indent}app:icon='@{\"{{iconPath}}\"}'\n" +
                 "${indent}{{/hasIcon}}"
@@ -139,12 +139,12 @@ fun replaceTemplateText(oldFormText: String, formType: FormType): String {
     newFormText = regex.replace(newFormText) { matchResult ->
         val indent = matchResult.destructured.component1()
         val id = matchResult.destructured.component2()
-        "${indent}{{#field_${id}_label_has_length_placeholder}}\n" +
-                "${indent}android:text='@{ {{field_${id}_label_with_length_placeholder}} }'\n" +
-                "${indent}{{/field_${id}_label_has_length_placeholder}}\n" +
-                "${indent}{{^field_${id}_label_has_length_placeholder}}\n" +
+        "${indent}{{#field_${id}_label_has_percent_placeholder}}\n" +
+                "${indent}android:text='@{ {{field_${id}_label_with_percent_placeholder}} }'\n" +
+                "${indent}{{/field_${id}_label_has_percent_placeholder}}\n" +
+                "${indent}{{^field_${id}_label_has_percent_placeholder}}\n" +
                 "${indent}android:text=\"{{field_${id}_label}}\"\n" +
-                "${indent}{{/field_${id}_label_has_length_placeholder}}\n" +
+                "${indent}{{/field_${id}_label_has_percent_placeholder}}\n" +
                 "${indent}{{#field_${id}_hasIcon}}\n" +
                 "${indent}app:icon='@{\"{{field_${id}_iconPath}}\"}'\n" +
                 "${indent}{{/field_${id}_hasIcon}}"
@@ -157,12 +157,12 @@ fun replaceTemplateText(oldFormText: String, formType: FormType): String {
         "${indent}{{#field_${id}_defined}}\n" +
                 "${indent}{{^field_${id}_is_image}}\n" +
                 "${indent}{{#field_${id}_is_relation}}\n" +
-                "${indent}{{#field_${id}_label_has_length_placeholder}}\n" +
-                "${indent}android:text='@{ {{field_${id}_label_with_length_placeholder}} }'\n" +
-                "${indent}{{/field_${id}_label_has_length_placeholder}}\n" +
-                "${indent}{{^field_${id}_label_has_length_placeholder}}\n" +
+                "${indent}{{#field_${id}_label_has_percent_placeholder}}\n" +
+                "${indent}android:text='@{ {{field_${id}_label_with_percent_placeholder}} }'\n" +
+                "${indent}{{/field_${id}_label_has_percent_placeholder}}\n" +
+                "${indent}{{^field_${id}_label_has_percent_placeholder}}\n" +
                 "${indent}android:text=\"{{field_${id}_label}}\"\n" +
-                "${indent}{{/field_${id}_label_has_length_placeholder}}\n" +
+                "${indent}{{/field_${id}_label_has_percent_placeholder}}\n" +
                 "${indent}app:linkColor=\"@{true}\"\n" +
                 "${indent}{{/field_${id}_is_relation}}\n" +
                 "${indent}{{^field_${id}_is_relation}}\n" +
