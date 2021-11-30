@@ -3,8 +3,6 @@ import PathHelperConstants.XML_TXT_EXT
 import java.text.Normalizer
 import java.util.*
 
-fun String.isNumber(): Boolean = if (this.isEmpty()) false else this.all { Character.isDigit(it) }
-
 /**
  * File extensions
  */
@@ -79,7 +77,12 @@ fun String.validateWordDecapitalized(): String {
     }
 }
 
-fun String.encode(): String = this.replace("&", "&amp;")
+fun String.encode(): String = this
+    .replace("&", "&amp;")
+    .replace("<", "&lt;")
+    .replace(">", "&gt;")
+    .replace("\"", "&quot;")
+    .replace("'", "\\'") // &apos; does not work in strings.xml file
 
 val reservedKeywords = listOf(
     "as",
