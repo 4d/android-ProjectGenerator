@@ -772,7 +772,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
                                                     Log.i("applyDetailFormTemplate fieldName :: ${field.name.fieldAdjustment()}")
 
-                                                    fillRelationFillerForEachLayout(field, detailForm, FormType.DETAIL, i)
+                                                    fillRelationFillerForEachLayout(field, detailForm, FormType.DETAIL, i + 1)
 
                                                 } else {
                                                     Log.d("Field list shorter than specific fields count")
