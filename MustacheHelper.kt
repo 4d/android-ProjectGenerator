@@ -293,8 +293,8 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         data[TYPES_AND_TABLES] = typesAndTables
 
         var navigationTableCounter = 0 // Counter to limit to 4 navigation tables as it is not possible to have more than 5
-        projectEditor.dataModelList.forEach { dataModel ->
-            if (projectEditor.navigationTableList.contains(dataModel.id)) {
+        projectEditor.navigationTableList.forEach { dataModelId ->
+            projectEditor.dataModelList.find { it.id == dataModelId }?.let { dataModel ->
                 if (navigationTableCounter <= 3) {
 
                     navigationTableCounter++
@@ -304,10 +304,12 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                     Log.w("Not adding [${dataModel.name}] in navigation table list for navbar")
                 }
             }
+        }
+
+        projectEditor.dataModelList.forEach { dataModel ->
             Log.w("Adding [${dataModel.name}] in navigation table list")
 
             tableNamesForNavigation.add(dataModel.getTemplateLayoutFillerForNavigation())
-
 
             dataModel.relationList?.forEach { relation ->
                 layoutRelationList.add(relation.getTemplateRelationFiller())

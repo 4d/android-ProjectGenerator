@@ -8,7 +8,8 @@ data class TemplateRelationFiller(
     val isSubRelation: Boolean,
     val originalSubRelationName: String,
     val relation_source_camelCase: String,
-    val relation_target_camelCase: String
+    val relation_target_camelCase: String,
+    val relation_name_original: String
 )
 
 fun Relation.getTemplateRelationFiller(): TemplateRelationFiller =
@@ -20,7 +21,8 @@ fun Relation.getTemplateRelationFiller(): TemplateRelationFiller =
         isSubRelation = false,
         originalSubRelationName = "",
         relation_source_camelCase = this.source.dataBindingAdjustment(),
-        relation_target_camelCase = this.target.dataBindingAdjustment()
+        relation_target_camelCase = this.target.dataBindingAdjustment(),
+        relation_name_original = this.name
     )
 
 fun getSubTemplateRelationFiller(source: String, target: String, name: String, inverseName: String, originalSubRelationName: String): TemplateRelationFiller =
@@ -32,7 +34,8 @@ fun getSubTemplateRelationFiller(source: String, target: String, name: String, i
         isSubRelation = true,
         originalSubRelationName = originalSubRelationName,
         relation_source_camelCase = source.dataBindingAdjustment(),
-        relation_target_camelCase = target.dataBindingAdjustment()
+        relation_target_camelCase = target.dataBindingAdjustment(),
+        relation_name_original = name
     )
 
 fun Relation.checkSubRelations(dataModelList: List<DataModel>): List<TemplateRelationFiller> {
@@ -64,7 +67,8 @@ fun List<TemplateRelationFiller>.getInverseRelationsOneToMany(): List<TemplateRe
                 isSubRelation = it.isSubRelation,
                 originalSubRelationName = it.originalSubRelationName,
                 relation_source_camelCase = it.relation_source_camelCase,
-                relation_target_camelCase = it.relation_target_camelCase
+                relation_target_camelCase = it.relation_target_camelCase,
+                relation_name_original = it.inverse_name
             )
         )
     }

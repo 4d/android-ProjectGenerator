@@ -211,13 +211,13 @@ fun getShortLabelWithPercentPlaceholder(dataModelList: List<DataModel>, form: Fo
 fun replacePercentPlaceholder(label: String, dataModelList: List<DataModel>, form: Form, field: Field, formType: FormType): String {
     val hasLengthPlaceholder = hasLengthPlaceholder(label, dataModelList, form, field)
     val labelWithLength = if (hasLengthPlaceholder) {
-        replaceLengthPlaceholder(label, dataModelList, form, field, formType)
+        replaceLengthPlaceholder(label, field, formType)
     } else {
         label
     }
     val hasFieldPlaceholder = hasFieldPlaceholder(label, dataModelList, form, field)
     return if (hasFieldPlaceholder) {
-        replaceFieldPlaceholder(labelWithLength, dataModelList, form, field, formType)
+        replaceFieldPlaceholder(labelWithLength, field, formType)
     } else {
         cleanPrefixSuffix("\"$labelWithLength\"")
     }
@@ -227,7 +227,7 @@ fun cleanPrefixSuffix(label: String): String {
     return label.removePrefix("\"\" + ").removeSuffix(" + \"\"").removePrefix("\" + ").removeSuffix(" + \"")
 }
 
-fun replaceLengthPlaceholder(label: String, dataModelList: List<DataModel>, form: Form, field: Field, formType: FormType): String {
+fun replaceLengthPlaceholder(label: String, field: Field, formType: FormType): String {
     var labelWithLength = ""
     val relationName = field.name.fieldAdjustment().replace(".", "_")
     Log.d("replaceLengthPlaceholder, label = $label")
@@ -243,14 +243,18 @@ fun replaceLengthPlaceholder(label: String, dataModelList: List<DataModel>, form
 }
 
 fun hasFieldPlaceholder(label: String, dataModelList: List<DataModel>, form: Form, field: Field): Boolean {
+    Log.d("hasFieldPlaceholder, label: $label")
+    Log.d("hasFieldPlaceholder, field: $field")
     if (!isRelationWithFixes(dataModelList, form, field)) return false
     if (!isManyToOneRelationWithFixes(dataModelList, form, field)) return false
+    Log.d("hasFieldPlaceholder, is relation, and is many to one")
     val dataModel = form.dataModel
     val regex = ("((?:%[\\w|\\s|\\.]+%)+)").toRegex()
     regex.findAll(label).forEach { matchResult ->
         val fieldName = matchResult.destructured.component1().removePrefix("%").removeSuffix("%")
         // Verify that fieldName exists in source dataModel
         if (fieldName.contains(".")) {
+            Log.d("Contains '.'")
             val baseFieldName = fieldName.split(".")[0]
             val relatedFieldName = fieldName.split(".")[1]
             val baseField = dataModel.fields?.find { it.name.fieldAdjustment() == baseFieldName.fieldAdjustment() }
@@ -259,18 +263,23 @@ fun hasFieldPlaceholder(label: String, dataModelList: List<DataModel>, form: For
             if (relatedDataModel?.fields?.find { it.name.fieldAdjustment() == relatedFieldName.fieldAdjustment() } != null)
                 return true
         } else {
-            if (dataModel.fields?.find { it.name.fieldAdjustment() == fieldName.fieldAdjustment() } != null)
+            Log.d("Doesn't contains '.'")
+            val relatedDataModel = dataModelList.find { it.id == field.relatedTableNumber.toString() }
+            Log.d("fieldName.fieldAdjustment() = ${fieldName.fieldAdjustment()}")
+            Log.d("relatedDataModel.name = ${relatedDataModel?.name}}")
+            Log.d("relatedDataModel.fields = ${relatedDataModel?.fields?.map { it.name.fieldAdjustment() }}")
+
+//            if (dataModel.fields?.find { it.name.fieldAdjustment() == fieldName.fieldAdjustment() } != null)
+            if (relatedDataModel?.fields?.find { it.name.fieldAdjustment() == fieldName.fieldAdjustment() } != null)
                 return true
         }
     }
     return false
 }
 
-fun replaceFieldPlaceholder(label: String, dataModelList: List<DataModel>, form: Form, field: Field, formType: FormType): String {
+fun replaceFieldPlaceholder(label: String, field: Field, formType: FormType): String {
     Log.d("TTT getFieldPlaceholder : label = $label")
-//    val fieldFromDataModel: Field? = getDataModelField(dataModelList, form, field)
     Log.d("TTT getFieldPlaceholder : field = $field")
-//    Log.d("TTT getFieldPlaceholder : fieldFromDataModel = $fieldFromDataModel")
     Log.d("label = $label")
     val labelWithoutRemainingLength = label.replace("%length%", "")
     Log.d("labelWithoutRemainingLength = $labelWithoutRemainingLength")
@@ -286,7 +295,6 @@ fun replaceFieldPlaceholder(label: String, dataModelList: List<DataModel>, form:
     }
     Log.d("newLabel = $newLabel")
     val labelWithField = "\"" + newLabel.removePrefix(" ").removeSuffix(" ") + "\""
-//    val labelWithField = "\"" + newLabel.removePrefix(" ").removeSuffix(" ") + "\""
     Log.d("labelWithField = $labelWithField")
     return cleanPrefixSuffix(labelWithField)
 }
