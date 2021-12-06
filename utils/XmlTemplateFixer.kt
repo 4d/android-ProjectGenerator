@@ -67,9 +67,10 @@ fun replaceTemplateText(oldFormText: String, formType: FormType): String {
     regex = ("(\\h*)android:text=\"___BUTTON___\"").toRegex()
     newFormText = regex.replace(newFormText) { matchResult ->
         val indent = matchResult.destructured.component1()
-
         "${indent}{{#labelHasPercentPlaceholder}}\n" +
-                "${indent}android:text='@{ {{labelWithPercentPlaceholder}} }'\n" +
+                "${indent}app:buttonText='@{ {{labelWithPercentPlaceholder}} }'\n" +
+                "${indent}app:entryRelation='@{ viewModel.{{entryRelation}} }'\n" +
+                "${indent}app:altButtonText='@{ \"{{altButtonText}}\" }'\n" +
                 "${indent}{{/labelHasPercentPlaceholder}}\n" +
                 "${indent}{{^labelHasPercentPlaceholder}}\n" +
                 "${indent}android:text=\"{{label}}\"\n" +
