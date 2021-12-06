@@ -21,7 +21,9 @@ data class TemplateFormFieldFiller(
     val labelHasPercentPlaceholder: Boolean,
     val labelWithPercentPlaceholder: String,
     val shortLabelHasPercentPlaceholder: Boolean,
-    val shortLabelWithPercentPlaceholder: String
+    val shortLabelWithPercentPlaceholder: String,
+    val entryRelation: String,
+    val altButtonText: String
 )
 
 fun Field.getTemplateFormFieldFiller(
@@ -60,7 +62,9 @@ fun Field.getTemplateFormFieldFiller(
         labelHasPercentPlaceholder = hasLabelPercentPlaceholder(dataModelList, form, this),
         labelWithPercentPlaceholder = getLabelWithPercentPlaceholder(dataModelList, form, this, FormType.DETAIL),
         shortLabelHasPercentPlaceholder = hasShortLabelPercentPlaceholder(dataModelList, form, this),
-        shortLabelWithPercentPlaceholder = getShortLabelWithPercentPlaceholder(dataModelList, form, this, FormType.DETAIL)
+        shortLabelWithPercentPlaceholder = getShortLabelWithPercentPlaceholder(dataModelList, form, this, FormType.DETAIL),
+        entryRelation = this.name.fieldAdjustment(),
+        altButtonText = if (hasFieldPlaceholder(getShortLabelWithFixes(dataModelList, form, this), dataModelList, form, this)) "" else getShortLabelWithFixes(dataModelList, form, this)
     )
     Log.d("createDetailFormField : templateFormFieldFiller = $templateFormFieldFiller")
     return templateFormFieldFiller
