@@ -679,8 +679,11 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
             // not used in list form
             var specificFieldsCount = 0
+            var maxFields = 0
             getManifestJSONContent(formPath)?.let {
                 specificFieldsCount = it.getSafeObject("fields")?.getSafeInt("count") ?: 0
+                maxFields = it.getSafeObject("fields")?.getSafeInt("max") ?: detailForm.fields?.size ?: 0
+                if (maxFields == 0) maxFields = detailForm.fields?.size ?: 0
             }
 
             val appFolderInTemplate = fileHelper.pathHelper.getAppFolderInTemplate(formPath)
@@ -783,9 +786,10 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                             Log.i("fieldList.size = ${fieldList.size}")
                                             Log.i("specificFieldsCount = $specificFieldsCount")
                                             Log.d("fieldList = $fieldList")
-                                            if (fieldList.size > specificFieldsCount) {
+                                            Log.d("maxFields = $maxFields")
+                                            if (fieldList.size > specificFieldsCount && specificFieldsCount < maxFields) {
                                                 var k = specificFieldsCount // another counter to avoid null field
-                                                for (i in specificFieldsCount until fieldList.size) {
+                                                for (i in specificFieldsCount until maxFields) {
                                                     Log.d("in for loop, i = $i")
                                                     Log.d("in for loop, k = $k")
                                                     val field = fieldList[i]
