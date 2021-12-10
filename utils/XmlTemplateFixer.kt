@@ -59,8 +59,13 @@ fun replaceTemplateText(oldFormText: String, formType: FormType): String {
                     "${indent}app:imageHeight=\"@{ {{imageHeight}} }\"\n" +
                     "${indent}{{/isImageNamed}}\n" + // End is imageNamed
                     "${indent}{{/isCustomFormat}}\n" + //End If Custom
+                    "${indent}{{#isKotlinCustomFormat}}\n" +
+                    "${indent}app:{{formatType}}=\"@{ {{accessor}}{{name}} }\"\n" +
+                    "${indent}{{/isKotlinCustomFormat}}\n" +
+                    "${indent}{{^isKotlinCustomFormat}}\n" +
                     "${indent}app:text=\"@{ {{accessor}}{{name}} }\"\n" +
                     "${indent}app:format='@{\"{{formatType}}\"}'\n" +
+                    "${indent}{{/isKotlinCustomFormat}}\n" +
                     "${indent}{{/isImage}}"
     }
 
@@ -175,8 +180,13 @@ fun replaceTemplateText(oldFormText: String, formType: FormType): String {
                 "${indent}app:imageHeight=\"@{ {{field_${id}_field_image_height}} }\"\n" +
                 "${indent}{{/field_${id}_custom_formatted_imageNamed}}\n" +
                 "${indent}{{/field_${id}_custom_formatted}}\n" +
+                "${indent}{{#field_${id}_is_kotlin_custom_formatted}}\n" +
+                "${indent}app:{{field_${id}_format_type}}=\"@{ {{field_${id}_accessor}}{{field_${id}_name}} }\"\n" +
+                "${indent}{{/field_${id}_is_kotlin_custom_formatted}}\n" +
+                "${indent}{{^field_${id}_is_kotlin_custom_formatted}}\n" +
                 "${indent}app:text=\"@{ {{field_${id}_accessor}}{{field_${id}_name}} }\"\n" +
                 "${indent}app:format='@{\"{{field_${id}_format_type}}\"}'\n" +
+                "${indent}{{/field_${id}_is_kotlin_custom_formatted}}\n" +
                 "${indent}{{/field_${id}_is_relation}}\n" +
                 "${indent}{{/field_${id}_is_image}}\n" +
                 "${indent}{{/field_${id}_defined}}"

@@ -23,7 +23,8 @@ data class TemplateFormFieldFiller(
     val shortLabelHasPercentPlaceholder: Boolean,
     val shortLabelWithPercentPlaceholder: String,
     val entryRelation: String,
-    val altButtonText: String
+    val altButtonText: String,
+    val isKotlinCustomFormat: Boolean
 )
 
 fun Field.getTemplateFormFieldFiller(
@@ -34,7 +35,9 @@ fun Field.getTemplateFormFieldFiller(
     isImageNamed: Boolean,
     imageWidth: Int,
     imageHeight: Int,
-    wholeFormHasIcons: Boolean
+    wholeFormHasIcons: Boolean,
+    isCustomFormat: Boolean,
+    isKotlinCustomFormat: Boolean
 ): TemplateFormFieldFiller {
     Log.d("createDetailFormField : field = $this")
     Log.d("createDetailFormField : field.fieldName() = ${this.getFieldName()}")
@@ -48,7 +51,7 @@ fun Field.getTemplateFormFieldFiller(
         isImage = this.isImage(),
         sourceTableName = this.getSourceTableName(dataModelList, form),
         accessor = this.getLayoutVariableAccessor(FormType.DETAIL),
-        isCustomFormat = formatType.startsWith("/"),
+        isCustomFormat = isCustomFormat,
         formatFieldName = this.name,
         isImageNamed = isImageNamed,
         formatType = formatType,
@@ -64,7 +67,8 @@ fun Field.getTemplateFormFieldFiller(
         shortLabelHasPercentPlaceholder = hasShortLabelPercentPlaceholder(dataModelList, form, this),
         shortLabelWithPercentPlaceholder = getShortLabelWithPercentPlaceholder(dataModelList, form, this, FormType.DETAIL),
         entryRelation = this.name.fieldAdjustment(),
-        altButtonText = if (hasFieldPlaceholder(getShortLabelWithFixes(dataModelList, form, this), dataModelList, form, this)) "" else getShortLabelWithFixes(dataModelList, form, this)
+        altButtonText = if (hasFieldPlaceholder(getShortLabelWithFixes(dataModelList, form, this), dataModelList, form, this)) "" else getShortLabelWithFixes(dataModelList, form, this),
+        isKotlinCustomFormat = isKotlinCustomFormat
     )
     Log.d("createDetailFormField : templateFormFieldFiller = $templateFormFieldFiller")
     return templateFormFieldFiller

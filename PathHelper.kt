@@ -34,7 +34,7 @@ class PathHelper(
     val pkg: String
 ) {
 
-    val tmpUnzippedTemplateListToBeDeleted: MutableList<File> = mutableListOf()
+    private val tmpUnzippedTemplateListToBeDeleted: MutableList<File> = mutableListOf()
 
     fun getPath(currentPath: String): String {
         val path = targetDirPath + replacePath(currentPath)
@@ -235,7 +235,20 @@ class PathHelper(
 
     fun getCustomFormatterPath(name: String): String {
         if (name.startsWith("/")) {
-            return hostFormattersPath + File.separator + name.removePrefix(File.separator)
+            var formatterPath = ""
+            formatterPath = hostFormattersPath
+            var newFormatterName = name
+            if (name.endsWith(".zip")) {
+                val zipFile = File(formatterPath + File.separator + name.removePrefix("/"))
+                if (zipFile.exists()) {
+                    val tmpDir = ZipManager.unzip(zipFile)
+                    tmpUnzippedTemplateListToBeDeleted.add(tmpDir)
+                    newFormatterName = TEMPORARY_UNZIPPED_TEMPLATE_PREFIX + name.removePrefix("/").removeSuffix(".zip")
+                } else {
+                    throw IllegalArgumentException("Zip file '$name' could not be found")
+                }
+            }
+            return hostFormattersPath + File.separator + newFormatterName.removePrefix(File.separator)
         }
         throw IllegalArgumentException("Getting path of formatter $name that is not a host one ie. starting with '/'")
     }
@@ -249,5 +262,25 @@ class PathHelper(
                 Log.w("Could not delete temporary unzipped template directory.")
             }
         }
+    }
+
+    fun isValidFormatter(format: String): Boolean {
+        if (!format.startsWith("/")) return false
+        val formatPath = getCustomFormatterPath(format)
+        getManifestJSONContent(formatPath)?.let {
+            val fieldMapping = getFieldMapping(it, format)
+            return fieldMapping.isValidFormatter()
+        }
+        return false
+    }
+
+    fun isValidKotlinCustomFormatter(format: String): Boolean {
+        if (!format.startsWith("/")) return false
+        val formatPath = getCustomFormatterPath(format)
+        getManifestJSONContent(formatPath)?.let {
+            val fieldMapping = getFieldMapping(it, format)
+            return fieldMapping.isValidKotlinCustomDataFormatter()
+        }
+        return false
     }
 }
