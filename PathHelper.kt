@@ -7,6 +7,7 @@ import PathHelperConstants.ASSETS_PATH_KEY
 import PathHelperConstants.DETAIL_FORMS_KEY
 import PathHelperConstants.DETAIL_FORM_PREFIX
 import PathHelperConstants.DRAWABLE_PATH_KEY
+import PathHelperConstants.FORMATTERS_FORMATTER_KEY
 import PathHelperConstants.HOST_FORMATTERS_KEY
 import PathHelperConstants.HOST_FORMS
 import PathHelperConstants.IMAGES_FORMATTER_KEY
@@ -294,5 +295,6 @@ class PathHelper(
         return ""
     }
 
-    private fun formattersFolderExistsInFormatter(path: String): Boolean = File(path + File.separator + "Formatters").exists()
+    private fun formattersFolderExistsInFormatter(path: String): Boolean =
+        File(path + File.separator + ANDROID_PATH_KEY + File.separator + FORMATTERS_FORMATTER_KEY).exists()
 }
