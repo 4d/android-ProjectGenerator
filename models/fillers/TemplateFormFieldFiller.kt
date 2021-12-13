@@ -24,7 +24,8 @@ data class TemplateFormFieldFiller(
     val shortLabelWithPercentPlaceholder: String,
     val entryRelation: String,
     val altButtonText: String,
-    val isKotlinCustomFormat: Boolean
+    val isKotlinCustomFormat: Boolean,
+    val kotlinCustomFormatBinding: String
 )
 
 fun Field.getTemplateFormFieldFiller(
@@ -36,8 +37,7 @@ fun Field.getTemplateFormFieldFiller(
     imageWidth: Int,
     imageHeight: Int,
     wholeFormHasIcons: Boolean,
-    isCustomFormat: Boolean,
-    isKotlinCustomFormat: Boolean
+    pathHelper: PathHelper
 ): TemplateFormFieldFiller {
     Log.d("createDetailFormField : field = $this")
     Log.d("createDetailFormField : field.fieldName() = ${this.getFieldName()}")
@@ -51,7 +51,7 @@ fun Field.getTemplateFormFieldFiller(
         isImage = this.isImage(),
         sourceTableName = this.getSourceTableName(dataModelList, form),
         accessor = this.getLayoutVariableAccessor(FormType.DETAIL),
-        isCustomFormat = isCustomFormat,
+        isCustomFormat = pathHelper.isValidFormatter(formatType),
         formatFieldName = this.name,
         isImageNamed = isImageNamed,
         formatType = formatType,
@@ -68,7 +68,8 @@ fun Field.getTemplateFormFieldFiller(
         shortLabelWithPercentPlaceholder = getShortLabelWithPercentPlaceholder(dataModelList, form, this, FormType.DETAIL),
         entryRelation = this.name.fieldAdjustment(),
         altButtonText = if (hasFieldPlaceholder(getShortLabelWithFixes(dataModelList, form, this), dataModelList, form, this)) "" else getShortLabelWithFixes(dataModelList, form, this),
-        isKotlinCustomFormat = isKotlinCustomFormat
+        isKotlinCustomFormat = !pathHelper.isValidFormatter(formatType) && pathHelper.isValidKotlinCustomFormatter(formatType),
+        kotlinCustomFormatBinding = if (!pathHelper.isValidFormatter(formatType) && pathHelper.isValidKotlinCustomFormatter(formatType)) pathHelper.getKotlinCustomFormatterBinding(formatType) else ""
     )
     Log.d("createDetailFormField : templateFormFieldFiller = $templateFormFieldFiller")
     return templateFormFieldFiller

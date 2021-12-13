@@ -748,8 +748,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                                         imageWidth = getImageSize(detailForm, field.name, "width"),
                                                         imageHeight = getImageSize(detailForm, field.name, "height"),
                                                         wholeFormHasIcons = wholeFormHasIcons,
-                                                        isCustomFormat = fileHelper.pathHelper.isValidFormatter(format),
-                                                        isKotlinCustomFormat = !fileHelper.pathHelper.isValidFormatter(format) && fileHelper.pathHelper.isValidKotlinCustomFormatter(format)
+                                                        pathHelper = fileHelper.pathHelper
                                                     )
 
                                                     formFieldList.add(formField)
@@ -812,8 +811,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                                             imageWidth = getImageSize(detailForm, field.name, "width"),
                                                             imageHeight = getImageSize(detailForm, field.name, "height"),
                                                             wholeFormHasIcons = wholeFormHasIcons,
-                                                            isCustomFormat = fileHelper.pathHelper.isValidFormatter(format),
-                                                            isKotlinCustomFormat = !fileHelper.pathHelper.isValidFormatter(format) && fileHelper.pathHelper.isValidKotlinCustomFormatter(format)
+                                                            pathHelper = fileHelper.pathHelper
                                                         )
 
                                                         fillRelationFillerForEachLayout(field, detailForm, FormType.DETAIL, k + 1)
@@ -920,6 +918,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         data.remove("field_${i}_hasIcon")
         data.remove("field_${i}_custom_formatted")
         data.remove("field_${i}_is_kotlin_custom_formatted")
+        data.remove("field_${i}_kotlin_custom_format_binding")
         data.remove("field_${i}_custom_formatted_imageNamed")
         data.remove("field_${i}_format_type")
         data.remove("field_${i}_accessor")
@@ -947,6 +946,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         data["field_${i}_hasIcon"] = false
         data["field_${i}_custom_formatted"] = false
         data["field_${i}_is_kotlin_custom_formatted"] = false
+        data["field_${i}_kotlin_custom_format_binding"] = ""
         data["field_${i}_custom_formatted_imageNamed"] = false
         data["field_${i}_format_type"] = ""
         data["field_${i}_accessor"] = ""
@@ -1025,6 +1025,8 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
         } else if (fileHelper.pathHelper.isValidKotlinCustomFormatter(format)) {
             data["field_${i}_is_kotlin_custom_formatted"] = true
+            data["field_${i}_kotlin_custom_format_binding"] = fileHelper.pathHelper.getKotlinCustomFormatterBinding(format)
+
         }
     }
 
@@ -1049,28 +1051,6 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
             }
         }
     }
-
-    /*private fun copyKotlinCustomFormatterFiles(format: String) {
-        val newFile = File(fileHelper.pathHelper.getLayoutTemplatePath(currentFile.absolutePath,
-            formPath))
-
-        if (currentFile.isWithTemplateName()) {
-            for (tableName in tableNames) { // file will be duplicated
-                fillFileWithTemplateName(tableName)
-                val replacedPath = newFile.absolutePath.replace(TEMPLATE_PLACEHOLDER, tableName.name)
-                applyTemplate(newPath = replacedPath, overwrite = true)
-                //cleaning
-                data.remove(FIELDS)
-                data.remove(RELATIONS_MANY_TO_ONE)
-                data.remove(FIRST_FIELD)
-            }
-        } else {
-            Log.i("File to copy : ${currentFile.absolutePath}; target : ${newFile.absolutePath}")
-            if (!currentFile.copyRecursively(target = newFile, overwrite = true)) {
-                throw Exception("An error occurred while copying template files with target : ${newFile.absolutePath}")
-            }
-        }
-    }*/
 
     private fun applyTemplate(newPath: String, overwrite: Boolean = false) {
         var newFile = File(newPath.replaceXmlTxtSuffix())

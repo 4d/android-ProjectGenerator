@@ -277,10 +277,22 @@ class PathHelper(
     fun isValidKotlinCustomFormatter(format: String): Boolean {
         if (!format.startsWith("/")) return false
         val formatPath = getCustomFormatterPath(format)
+        if (!formattersFolderExistsInFormatter(formatPath)) return false
         getManifestJSONContent(formatPath)?.let {
             val fieldMapping = getFieldMapping(it, format)
             return fieldMapping.isValidKotlinCustomDataFormatter()
         }
         return false
     }
+
+    fun getKotlinCustomFormatterBinding(format: String): String {
+        val formatPath = getCustomFormatterPath(format)
+        getManifestJSONContent(formatPath)?.let {
+            val fieldMapping = getFieldMapping(it, format)
+            return fieldMapping.binding ?: ""
+        }
+        return ""
+    }
+
+    private fun formattersFolderExistsInFormatter(path: String): Boolean = File(path + File.separator + "Formatters").exists()
 }
