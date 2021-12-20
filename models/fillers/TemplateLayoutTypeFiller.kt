@@ -24,8 +24,8 @@ fun isSwipeAllowed(formPath: String): Boolean {
         }
     }
     return when (getLayoutManagerType(formPath)) {
-        "Collection" -> false
-        "Table" -> true
+        "GRID" -> false
+        "LINEAR" -> true
         else -> true
     }
 }
