@@ -454,50 +454,47 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
         } else if (currentFile.isWithRelationDaoTemplateName()) {
 
-            projectEditor.dataModelList.forEach { dataModel ->
-                dataModel.relationList?.filter { it.relationType == RelationType.MANY_TO_ONE }
-                    ?.forEach { relation ->
+            Log.d("xXX", "relationsManyToOne= ${relationsManyToOne}")
+            Log.d("xXX", "relationsOneToMany= ${relationsOneToMany}")
+            val manyToOneRelations = relationsManyToOne.plus(inverseRelationsOneToMany).distinctBy { it.relation_source to it.relation_target to it.relation_name }
+            Log.d("xXX", "manyToOneRelations= ${manyToOneRelations}")
+            manyToOneRelations.forEach { manyToOneRelation ->
+                data[RELATION_SOURCE] = manyToOneRelation.relation_source.tableNameAdjustment()
+                data[RELATION_TARGET] = manyToOneRelation.relation_target.tableNameAdjustment()
+                data[RELATION_NAME_CAP] = manyToOneRelation.relation_name.fieldAdjustment().capitalize()
 
-                        data[RELATION_SOURCE] = relation.source.tableNameAdjustment()
-                        data[RELATION_TARGET] = relation.target.tableNameAdjustment()
-                        data[RELATION_NAME_CAP] = relation.name.fieldAdjustment().capitalize()
+                val replacedPath = newFilePath.replace(TEMPLATE_RELATION_DAO_PLACEHOLDER,
+                    "${manyToOneRelation.relation_source.tableNameAdjustment()}Has${manyToOneRelation.relation_target.tableNameAdjustment()}With${manyToOneRelation.relation_name.fieldAdjustment().capitalize()}Key")
 
-                        val replacedPath = newFilePath.replace(TEMPLATE_RELATION_DAO_PLACEHOLDER,
-                            "${relation.source.tableNameAdjustment()}Has${relation.target.tableNameAdjustment()}With${relation.name.fieldAdjustment().capitalize()}Key")
+                applyTemplate(replacedPath)
 
-                        applyTemplate(replacedPath)
-
-                        //cleaning
-                        data.remove(RELATION_SOURCE)
-                        data.remove(RELATION_TARGET)
-                        data.remove(RELATION_NAME_CAP)
-                    }
+                //cleaning
+                data.remove(RELATION_SOURCE)
+                data.remove(RELATION_TARGET)
+                data.remove(RELATION_NAME_CAP)
             }
 
         } else if (currentFile.isWithRelationEntityTemplateName()) {
 
-            projectEditor.dataModelList.forEach { dataModel ->
-                dataModel.relationList?.filter { it.relationType == RelationType.MANY_TO_ONE }
-                    ?.forEach { relation ->
+            val manyToOneRelations = relationsManyToOne.plus(inverseRelationsOneToMany).distinctBy { it.relation_source to it.relation_target to it.relation_name }
+            manyToOneRelations.forEach { manyToOneRelation ->
+                data[RELATION_SOURCE] = manyToOneRelation.relation_source.tableNameAdjustment()
+                data[RELATION_TARGET] = manyToOneRelation.relation_target.tableNameAdjustment()
+                data[RELATION_NAME] = manyToOneRelation.relation_name.fieldAdjustment()
+                data[RELATION_NAME_CAP] = manyToOneRelation.relation_name.fieldAdjustment().capitalize()
+                data[RELATION_SAME_TYPE] = manyToOneRelation.relation_source == manyToOneRelation.relation_target
 
-                        data[RELATION_SOURCE] = relation.source.tableNameAdjustment()
-                        data[RELATION_TARGET] = relation.target.tableNameAdjustment()
-                        data[RELATION_NAME] = relation.name.fieldAdjustment()
-                        data[RELATION_NAME_CAP] = relation.name.fieldAdjustment().capitalize()
-                        data[RELATION_SAME_TYPE] = relation.source == relation.target
+                val replacedPath = newFilePath.replace(TEMPLATE_RELATION_ENTITY_PLACEHOLDER,
+                    "${manyToOneRelation.relation_source.tableNameAdjustment()}And${manyToOneRelation.relation_target.tableNameAdjustment()}With${manyToOneRelation.relation_name.fieldAdjustment().capitalize()}Key")
 
-                        val replacedPath = newFilePath.replace(TEMPLATE_RELATION_ENTITY_PLACEHOLDER,
-                            "${relation.source.tableNameAdjustment()}And${relation.target.tableNameAdjustment()}With${relation.name.fieldAdjustment().capitalize()}Key")
+                applyTemplate(replacedPath)
 
-                        applyTemplate(replacedPath)
-
-                        //cleaning
-                        data.remove(RELATION_NAME)
-                        data.remove(RELATION_NAME_CAP)
-                        data.remove(RELATION_SOURCE)
-                        data.remove(RELATION_TARGET)
-                        data.remove(RELATION_SAME_TYPE)
-                    }
+                //cleaning
+                data.remove(RELATION_NAME)
+                data.remove(RELATION_NAME_CAP)
+                data.remove(RELATION_SOURCE)
+                data.remove(RELATION_TARGET)
+                data.remove(RELATION_SAME_TYPE)
             }
 
         } else {
@@ -517,6 +514,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
         data[TABLENAME_LOWERCASE] = tableName.name.toLowerCase().fieldAdjustment()
         data[TABLENAME_CAMELCASE] = tableName.name.dataBindingAdjustment()
+        Log.d("YYY", "${projectEditor.dataModelList.find { it.name.tableNameAdjustment() == tableName.name.tableNameAdjustment() }?.fields?.map { it.getFieldName() }}")
         projectEditor.dataModelList.find { it.name.tableNameAdjustment() == tableName.name.tableNameAdjustment() }?.fields?.let { fields ->
             val fieldList = mutableListOf<TemplateFieldFiller>()
             for (field in fields) {

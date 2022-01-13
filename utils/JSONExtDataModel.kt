@@ -21,6 +21,8 @@ fun JSONObject.getDataModelList(): List<DataModel> {
     val dataModelList = mutableListOf<DataModel>()
     val dataModels = this.getSafeObject(PROJECT_KEY)?.getSafeObject(DATAMODEL_KEY)
 
+    val fieldToAddList = mutableListOf<FieldToAdd>()
+
     dataModels?.keys()?.forEach { keyDataModel ->
 
         val newDataModelJSONObject = dataModels.getSafeObject(keyDataModel.toString())
@@ -72,6 +74,7 @@ fun JSONObject.getDataModelList(): List<DataModel> {
                     val newFieldJSONObject: JSONObject? = newDataModelJSONObject.getSafeObject(keyField.toString())
                     val field: Field? = newFieldJSONObject?.getDataModelField(keyField)
                     field?.let {
+                        Log.d("ZZZ", "$field")
                         it.isSlave = false
                         fieldList.add(it)
                         val subFields: List<Field> = newFieldJSONObject.getSubFields()
@@ -86,6 +89,30 @@ fun JSONObject.getDataModelList(): List<DataModel> {
                                 relationKeyField.fieldTypeString = typeStringFromTypeInt(relationKeyField.fieldType)
                                 relationKeyField.variableType = VariableType.VAR.string
                                 fieldList.add(relationKeyField)
+                            } else {
+                                // One to many relation, need to add the inverse many to one relation to its Entity definition
+                                it.inverseName?.let { inverseName ->
+                                    val newField = Field(
+                                        name = inverseName,
+                                        inverseName = it.name,
+                                        relatedDataClass = dataModelName,
+                                        fieldTypeString = dataModelName,
+                                        relatedTableNumber = keyDataModel.toString().toIntOrNull(),
+                                        relatedEntities = null,
+                                        variableType = VariableType.VAR.string
+                                    )
+                                    getRelation(newField, relation.target, listOf())?.let { newRelation ->
+                                        val newKeyField =
+                                            Field(name = "__${newRelation.name.validateWordDecapitalized()}Key")
+                                        newKeyField.fieldType = 0
+                                        newKeyField.fieldTypeString = typeStringFromTypeInt(newKeyField.fieldType)
+                                        newKeyField.variableType = VariableType.VAR.string
+
+                                        val fieldToAdd = FieldToAdd(relation.target, newField, newKeyField, newRelation)
+                                        Log.d("ZZZ", "fieldToAdd $fieldToAdd")
+                                        fieldToAddList.add(fieldToAdd)
+                                    }
+                                }
                             }
                         }
 
@@ -122,6 +149,40 @@ fun JSONObject.getDataModelList(): List<DataModel> {
                                                     typeStringFromTypeInt(relationKeyField.fieldType)
                                                 relationKeyField.variableType = VariableType.VAR.string
                                                 slaveFieldList.add(relationKeyField)
+                                            } else {
+                                                // One to many relation, need to add the inverse many to one relation to its Entity definition
+                                                it.inverseName?.let { inverseName ->
+                                                    val newField = Field(
+                                                        name = inverseName,
+                                                        inverseName = it.name,
+                                                        relatedDataClass = relatedDataClass,
+                                                        fieldTypeString = relatedDataClass,
+                                                        relatedTableNumber = relatedTableNumber,
+                                                        relatedEntities = null,
+                                                        variableType = VariableType.VAR.string
+                                                    )
+                                                    getRelation(
+                                                        newField,
+                                                        relation.target,
+                                                        listOf()
+                                                    )?.let { newRelation ->
+                                                        val newKeyField =
+                                                            Field(name = "__${newRelation.name.validateWordDecapitalized()}Key")
+                                                        newKeyField.fieldType = 0
+                                                        newKeyField.fieldTypeString =
+                                                            typeStringFromTypeInt(newKeyField.fieldType)
+                                                        newKeyField.variableType = VariableType.VAR.string
+
+                                                        val fieldToAdd = FieldToAdd(
+                                                            relation.target,
+                                                            newField,
+                                                            newKeyField,
+                                                            newRelation
+                                                        )
+                                                        Log.d("ZZZ", "fieldToAdd $fieldToAdd")
+                                                        fieldToAddList.add(fieldToAdd)
+                                                    }
+                                                }
                                             }
                                         }
                                     }
@@ -223,9 +284,28 @@ fun JSONObject.getDataModelList(): List<DataModel> {
         dataModel.relationList = sanityRelationList
     }
 
+    fieldToAddList.forEach { fieldToAdd ->
+        dataModelList.find { it.name == fieldToAdd.targetTable }?.let { dm ->
+            dm.fields?.let { dmFields ->
+                if (!dmFields.map { it.name }.contains(fieldToAdd.field.name)) {
+                    dmFields.add(fieldToAdd.field)
+                }
+                if (!dmFields.map { it.name }.contains(fieldToAdd.keyField.name)) {
+                    dmFields.add(fieldToAdd.keyField)
+                }
+            }
+            dm.relationList?.let { dmRelations ->
+                if (!dmRelations.map { it.name }.contains(fieldToAdd.relation.name)) {
+                    dmRelations.add(fieldToAdd.relation)
+                }
+            }
+        }
+    }
+
     dataModelList.forEach {
         it.reOrderFields()
     }
+    Log.d("Final", "datamodelList = $dataModelList")
     return dataModelList
 }
 
@@ -323,3 +403,8 @@ fun getRelation(field: Field, tableName: String, subFields: List<Field>): Relati
     }
     return null
 }
+
+
+data class FieldToAdd(
+    val targetTable: String, val field: Field, val keyField: Field, val relation: Relation
+)
