@@ -31,6 +31,7 @@ object PathHelperConstants {
     const val DETAIL_FORM_PREFIX = "fragment_detail_"
     const val HOST_FORMATTERS_KEY = "formatters"
     const val IMAGES_FORMATTER_KEY = "Images"
+    const val FORMATTERS_FORMATTER_KEY = "Formatters"
 
     /**
      * FILE EXTENSIONS

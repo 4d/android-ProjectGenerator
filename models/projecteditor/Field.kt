@@ -139,8 +139,9 @@ fun Field.getFormatNameForType(pathHelper: PathHelper): String {
             getManifestJSONContent(formatPath)?.let {
 
                 val fieldMapping = getFieldMapping(it, format)
-                Log.d("fieldMapping = $fieldMapping")
-                return if (isValidFormatter(fieldMapping)) {
+                Log.d("getFormatNameForType - fieldMapping = $fieldMapping")
+                Log.d("getFormatNameForType - format = $format")
+                return if (fieldMapping.isValidFormatter() || fieldMapping.isValidKotlinCustomDataFormatter()) {
                     format
                 } else {
                     when (typeFromTypeInt(this.fieldType)) {

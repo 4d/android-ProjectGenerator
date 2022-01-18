@@ -745,7 +745,8 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                                         isImageNamed = isImageNamedBinding(detailForm, field.name),
                                                         imageWidth = getImageSize(detailForm, field.name, "width"),
                                                         imageHeight = getImageSize(detailForm, field.name, "height"),
-                                                        wholeFormHasIcons = wholeFormHasIcons
+                                                        wholeFormHasIcons = wholeFormHasIcons,
+                                                        pathHelper = fileHelper.pathHelper
                                                     )
 
                                                     formFieldList.add(formField)
@@ -807,7 +808,8 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                                             isImageNamed = isImageNamedBinding(detailForm, field.name),
                                                             imageWidth = getImageSize(detailForm, field.name, "width"),
                                                             imageHeight = getImageSize(detailForm, field.name, "height"),
-                                                            wholeFormHasIcons = wholeFormHasIcons
+                                                            wholeFormHasIcons = wholeFormHasIcons,
+                                                            pathHelper = fileHelper.pathHelper
                                                         )
 
                                                         fillRelationFillerForEachLayout(field, detailForm, FormType.DETAIL, k + 1)
@@ -890,10 +892,6 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         // if source table or target table is not in navigation, return
         Log.d("source = ${source.tableNameAdjustment()}")
         Log.d("target = ${target.tableNameAdjustment()}")
-//        if (tableNamesForNavigation.find { it.name.tableNameAdjustment() == source.tableNameAdjustment() } == null)
-//            return
-//        if (tableNamesForNavigation.find { it.name.tableNameAdjustment() == target.tableNameAdjustment() } == null)
-//            return
         when {
             formType == FormType.LIST && relation.relationType == RelationType.ONE_TO_MANY ->
                 oneToManyRelationFillerForEachListLayout.add(filler)
@@ -917,6 +915,8 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         data.remove("field_${i}_iconPath")
         data.remove("field_${i}_hasIcon")
         data.remove("field_${i}_custom_formatted")
+        data.remove("field_${i}_is_kotlin_custom_formatted")
+        data.remove("field_${i}_kotlin_custom_format_binding")
         data.remove("field_${i}_custom_formatted_imageNamed")
         data.remove("field_${i}_format_type")
         data.remove("field_${i}_accessor")
@@ -943,6 +943,8 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         data["field_${i}_iconPath"] = ""
         data["field_${i}_hasIcon"] = false
         data["field_${i}_custom_formatted"] = false
+        data["field_${i}_is_kotlin_custom_formatted"] = false
+        data["field_${i}_kotlin_custom_format_binding"] = ""
         data["field_${i}_custom_formatted_imageNamed"] = false
         data["field_${i}_format_type"] = ""
         data["field_${i}_accessor"] = ""
@@ -1003,7 +1005,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         val format = getFormatWithFixes(projectEditor.dataModelList, form, field, fileHelper.pathHelper)
         data["field_${i}_format_type"] = format
 
-        if (format.startsWith("/")) {
+        if (fileHelper.pathHelper.isValidFormatter(format)) {
             data["field_${i}_custom_formatted"] = true
             data["field_${i}_format_field_name"] = field.name
             data["field_${i}_field_table_name"] = form.dataModel.name
@@ -1018,6 +1020,11 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
             } else {
                 Log.d("Field : ${field.name}, table : ${form.dataModel.name}, is not imageNamed binding")
             }
+
+        } else if (fileHelper.pathHelper.isValidKotlinCustomFormatter(format)) {
+            data["field_${i}_is_kotlin_custom_formatted"] = true
+            data["field_${i}_kotlin_custom_format_binding"] = fileHelper.pathHelper.getKotlinCustomFormatterBinding(format)
+
         }
     }
 
@@ -1163,7 +1170,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                     val fieldMapping = getFieldMapping(it, format)
                     Log.d("extractFormatter : relationName = $relationName")
                     Log.d("fieldMapping = $fieldMapping")
-                    if (isValidFormatter(fieldMapping)) {
+                    if (fieldMapping.isValidFormatter()) {
                         extractFormatter(fieldMapping, field, relationName, formatPath, format, map, customFormattersImagesMap)
                         customFormatMap.put(dataModel.name.tableNameAdjustment(), map)
                     } else {
@@ -1195,7 +1202,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
         Log.d("map = $map")
 
-        if (isImageNamed(fieldMapping)) {
+        if (fieldMapping.isImageNamed()) {
 
             val imageMap = mutableMapOf<String, Pair<String, String>>()
 
@@ -1254,12 +1261,12 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
     private fun isImageNamedBinding(form: Form, fieldName: String): Boolean {
         customFormattersFields[form.dataModel.name.tableNameAdjustment()]?.get(fieldName.fieldAdjustment())?.let{ fieldMapping ->
-            return isImageNamed(fieldMapping)
+            return fieldMapping.isImageNamed()
         }
         return false
     }
 
-    private fun isImageNamed(fieldMapping: FieldMapping) = fieldMapping.binding == "imageNamed"
+    private fun FieldMapping.isImageNamed() = this.binding == "imageNamed"
 
     private fun getHexStringColor(red: Int, green: Int, blue: Int): String {
         var redHexString = toHexString(red)

@@ -18,6 +18,9 @@ fun getSize(manifestContent: JSONObject, type: String): Int? =
     manifestContent.getSafeObject("assets")?.getSafeObject("size")?.getSafeInt(type)
         ?: manifestContent.getSafeObject("assets")?.getSafeInt("size")
 
-fun isValidFormatter(fieldMapping: FieldMapping): Boolean =
-    (fieldMapping.binding == "localizedText" || fieldMapping.binding == "imageNamed")
-            && fieldMapping.choiceList != null && fieldMapping.name != null
+fun FieldMapping.isValidFormatter(): Boolean =
+    (this.binding == "localizedText" || this.binding == "imageNamed")
+            && this.choiceList != null && this.name != null
+
+fun FieldMapping.isValidKotlinCustomDataFormatter(): Boolean =
+    this.name != null && !this.binding.isNullOrEmpty()
