@@ -661,7 +661,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                 data.remove(RELATIONS_ONE_TO_MANY)
                             } else { // any file to copy in project
 
-                                copyOtherTemplateFiles(currentFile, formPath)
+                                copyOtherTemplateFiles(currentFile, formPath, listForm.dataModel.name.tableNameAdjustment())
                             }
                         }
                 }
@@ -842,7 +842,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                 }
 
                             } else { // any file to copy in project
-                                copyOtherTemplateFiles(currentFile, formPath)
+                                copyOtherTemplateFiles(currentFile, formPath, detailForm.dataModel.name.tableNameAdjustment())
                             }
                         }
                 }
@@ -1028,14 +1028,14 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         }
     }
 
-    private fun copyOtherTemplateFiles(currentFile: File, formPath: String) {
+    private fun copyOtherTemplateFiles(currentFile: File, formPath: String, tableName: String) {
         val newFile = File(fileHelper.pathHelper.getLayoutTemplatePath(currentFile.absolutePath,
             formPath))
 
         if (currentFile.isWithTemplateName()) {
-            for (tableName in tableNames) { // file will be duplicated
-                fillFileWithTemplateName(tableName)
-                val replacedPath = newFile.absolutePath.replace(TEMPLATE_PLACEHOLDER, tableName.name)
+            tableNames.find { it.name == tableName }?.let { templateTableFiller ->
+                fillFileWithTemplateName(templateTableFiller)
+                val replacedPath = newFile.absolutePath.replace(TEMPLATE_PLACEHOLDER, templateTableFiller.name)
                 applyTemplate(newPath = replacedPath, overwrite = true)
                 //cleaning
                 data.remove(FIELDS)
