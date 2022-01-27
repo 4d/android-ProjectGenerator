@@ -2,8 +2,14 @@
 //DEPS com.squareup.retrofit2:converter-gson:2.9.0
 
 @file:DependsOnMaven("com.github.ajalt.clikt:clikt-jvm:3.2.0")
+@file:DependsOnMaven("org.codehaus.groovy:groovy-sql:3.0.9")
+@file:DependsOnMaven("org.xerial:sqlite-jdbc:3.36.0.3")
 @file:DependsOnMaven("org.json:json:20210307")
-@file:DependsOnMaven("com.google.android:android:4.1.1.4")
+
+//@file:DependsOnMaven("com.google.android:android:4.1.1.4")
+//@file:DependsOnMaven("commons-io:commons-io:2.8.0")
+//@file:DependsOnMaven("org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.5.31")
+//@file:DependsOnMaven("org.graalvm.compiler:compiler:21.3.0")
 
 @file:KotlinOpts("-J-Xmx5g")
 @file:KotlinOpts("-J-server")
@@ -147,8 +153,54 @@ class GenerateCommand : CliktCommand(name = "generate") {
     }
 }
 
+class CreateDatabaseCommand : CliktCommand(name = "createDatabase") {
+
+    private lateinit var ASSETS: String
+    private lateinit var DBFILEPATH: String
+    private lateinit var projectEditorJson: File
+
+    val projectEditor: String by option(help = Clikt.projectEditorText).prompt(Clikt.projectEditorText).validate {
+        projectEditorJson = File(it)
+        require(projectEditorJson.exists()) { "Can't find project editor json file ${projectEditorJson.name}" }
+    }
+    val assets: String by option(help = Clikt.assetsText).prompt(Clikt.assetsText).validate {
+        val assetsDir = File(it)
+        require(assetsDir.exists() && assetsDir.isDirectory) { "Can't find assets directory $it" }
+        ASSETS = assets.removeSuffix("/")
+    }
+    val dbFile: String by option(help = Clikt.dbText).prompt(Clikt.dbText).validate {
+        val dbParentDir = File(it).parentFile
+        dbParentDir.mkdirs()
+        require(dbParentDir.exists() && dbParentDir.isDirectory) { "Can't find db's parent directory directory $dbParentDir" }
+        DBFILEPATH = dbFile.removeSuffix("/")
+    }
+
+    override fun run() {
+        println("Parameters checked.")
+        println("Version: ${Version.VALUE}")
+        println("Starting procedure...")
+        start()
+        println("Procedure complete.")
+    }
+
+    private fun start() {
+
+        println("file: ${projectEditorJson.path}...")
+
+        val projectEditor = ProjectEditor(projectEditorJson, true)
+
+        println("Reading project editor json file done.")
+        println("--------------------------------------")
+
+        println(projectEditor.dataModelList)
+        CreateDatabaseTask(projectEditor.dataModelList, ASSETS, DBFILEPATH)
+
+        println("Output: $DBFILEPATH}")
+    }
+}
+
 class Main : CliktCommand() {
     override fun run() {}
 }
 
-fun main(args: Array<String>) = Main().subcommands(VersionCommand(), GenerateCommand()).main(args)
+fun main(args: Array<String>) = Main().subcommands(VersionCommand(), GenerateCommand(), CreateDatabaseCommand()).main(args)

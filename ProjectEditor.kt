@@ -7,11 +7,11 @@ import ProjectEditorConstants.DATASOURCE_KEY
 import ProjectEditorConstants.DATE_TYPE
 import ProjectEditorConstants.DEVELOPER_KEY
 import ProjectEditorConstants.DOMINANT_COLOR_KEY
+import ProjectEditorConstants.DUMPED_STAMP_KEY
+import ProjectEditorConstants.DUMPED_TABLES_KEY
 import ProjectEditorConstants.EMAIL_KEY
 import ProjectEditorConstants.EMPTY_TYPE
 import ProjectEditorConstants.FLOAT_TYPE
-import ProjectEditorConstants.HAS_ACTIONS_KEY
-import ProjectEditorConstants.HAS_RELATIONS_KEY
 import ProjectEditorConstants.INT_TYPE
 import ProjectEditorConstants.NAME_KEY
 import ProjectEditorConstants.OBJECT_TYPE
@@ -31,10 +31,11 @@ import ProjectEditorConstants.TEAMID_KEY
 import ProjectEditorConstants.TIME_TYPE
 import ProjectEditorConstants.UI_KEY
 import ProjectEditorConstants.URLS_KEY
+import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
 
-class ProjectEditor(projectEditorFile: File) {
+class ProjectEditor(projectEditorFile: File, isCreateDatabaseCommand: Boolean = false) {
 
     lateinit var dataModelList: List<DataModel>
     lateinit var listFormList: List<Form>
@@ -56,28 +57,36 @@ class ProjectEditor(projectEditorFile: File) {
         retrieveJSONObject(jsonString)?.let {
             jsonObj = it
 
-            navigationTableList = jsonObj.getNavigationTableList()
-            Log.d("> Navigation tables list successfully read.")
+            if (isCreateDatabaseCommand) {
 
-            dataModelList = jsonObj.getDataModelList()
-            Log.d("> DataModels list successfully read.")
+                dataModelList = jsonObj.getDataModelList(isCreateDatabaseCommand = true)
+                Log.d("> DataModels list successfully read.")
 
-            searchableFields = jsonObj.getSearchFields(dataModelList)
-            Log.d("> Searchable fields successfully read.")
+            } else {
 
-            listFormList = jsonObj.getFormList(dataModelList, FormType.LIST, navigationTableList)
-            Log.d("> List forms list successfully read.")
+                navigationTableList = jsonObj.getNavigationTableList()
+                Log.d("> Navigation tables list successfully read.")
 
-            detailFormList = jsonObj.getFormList(dataModelList, FormType.DETAIL, navigationTableList)
-            Log.d("> Detail forms list successfully read.")
+                dataModelList = jsonObj.getDataModelList()
+                Log.d("> DataModels list successfully read.")
 
-            val hasActions = findJsonBoolean(HAS_ACTIONS_KEY) ?: false
-            if (hasActions) {
-                ActionScope.values().forEach { scope ->
-                    actions[scope] = jsonObj.getActionsList(dataModelList, scope.nameInJson)
+                searchableFields = jsonObj.getSearchFields(dataModelList)
+                Log.d("> Searchable fields successfully read.")
+
+                listFormList = jsonObj.getFormList(dataModelList, FormType.LIST, navigationTableList)
+                Log.d("> List forms list successfully read.")
+
+                detailFormList = jsonObj.getFormList(dataModelList, FormType.DETAIL, navigationTableList)
+                Log.d("> Detail forms list successfully read.")
+
+                val hasActionsFeatureFlag = findJsonBoolean(FeatureFlagConstants.HAS_ACTIONS_KEY) ?: false
+                if (hasActionsFeatureFlag) {
+                    ActionScope.values().forEach { scope ->
+                        actions[scope] = jsonObj.getActionsList(dataModelList, scope.nameInJson)
+                    }
                 }
+                Log.d("> Actions list successfully read.")
             }
-            Log.d("> Actions list successfully read.")
 
         } ?: kotlin.run {
             Log.e("Could not read global json object from file ${projectEditorFile.name}")
@@ -102,7 +111,21 @@ class ProjectEditor(projectEditorFile: File) {
                     ?.getSafeString(SOURCE_KEY)
             "dominantColor" -> jsonObj.getSafeObject(PROJECT_KEY)?.getSafeObject(UI_KEY)
                     ?.getSafeString(DOMINANT_COLOR_KEY)
-            else -> return null
+            else -> null
+        }
+    }
+
+    fun findJsonInt(key: String): Int? {
+        return when (key) {
+            "dumpedStamp" -> jsonObj.getSafeInt(DUMPED_STAMP_KEY)
+            else -> null
+        }
+    }
+
+    fun findJsonArray(key: String): JSONArray? {
+        return when (key) {
+            "dumpedTables" -> jsonObj.getSafeArray(DUMPED_TABLES_KEY)
+            else -> null
         }
     }
 
@@ -110,9 +133,10 @@ class ProjectEditor(projectEditorFile: File) {
         return when (key) {
             "mailAuth" -> jsonObj.getSafeObject(PROJECT_KEY)?.getSafeObject(SERVER_KEY)
                     ?.getSafeObject(AUTHENTICATION_KEY)?.getSafeBoolean(EMAIL_KEY)
-            "hasRelations" -> jsonObj.getSafeBoolean(HAS_RELATIONS_KEY)
-            "hasActions" -> jsonObj.getSafeBoolean(HAS_ACTIONS_KEY)
-            else -> return null
+            FeatureFlagConstants.HAS_RELATIONS_KEY -> jsonObj.getSafeBoolean(FeatureFlagConstants.HAS_RELATIONS_KEY)
+            FeatureFlagConstants.HAS_ACTIONS_KEY -> jsonObj.getSafeBoolean(FeatureFlagConstants.HAS_ACTIONS_KEY)
+            FeatureFlagConstants.HAS_DATASET_KEY -> jsonObj.getSafeBoolean(FeatureFlagConstants.HAS_DATASET_KEY)
+            else -> null
         }
     }
 
@@ -124,15 +148,14 @@ class ProjectEditor(projectEditorFile: File) {
         if (remoteUrl.isNullOrEmpty())
             remoteUrl = DEFAULT_REMOTE_URL
         val teamId = findJsonString("teamId") ?: ""
-        val hasRelations = findJsonBoolean("hasRelations") ?: true
         return AppInfo(
                 team = Team(TeamID = teamId, TeamName = ""),
                 guestLogin = mailAuth.not(),
                 remoteUrl = remoteUrl,
-                initialGlobalStamp = 0,
-                dumpedTables = mutableListOf(),
+                initialGlobalStamp = findJsonInt("dumpedStamp") ?: 0,
+                dumpedTables = findJsonArray("dumpedTables")?.getStringList() ?: mutableListOf(),
                 logLevel = DEFAULT_LOG_LEVEL,
-                relations = hasRelations
+                relations = findJsonBoolean(FeatureFlagConstants.HAS_RELATIONS_KEY) ?: true
         )
     }
 }

@@ -77,7 +77,6 @@ import MustacheConstants.TYPES_AND_TABLES
 import PathHelperConstants.TEMPLATE_PLACEHOLDER
 import PathHelperConstants.TEMPLATE_RELATION_DAO_PLACEHOLDER
 import PathHelperConstants.TEMPLATE_RELATION_ENTITY_PLACEHOLDER
-import ProjectEditorConstants.HAS_ACTIONS_KEY
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.samskivert.mustache.Mustache
@@ -377,12 +376,24 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
         compiler = generateCompilerFolder(currentFolder.absolutePath)
 
+        val hasDataSet = projectEditor.findJsonBoolean(FeatureFlagConstants.HAS_DATASET_KEY) ?: false
+
         currentFolder.walkTopDown()
             .filter { file -> !file.isHidden && file.isFile && currentFolder.absolutePath.contains(file.parent) && file.name != DS_STORE }
             .forEach { currentFile ->
+//                if (!hasDataSet || !currentFile.path.contains("__PKG_JOINED__.android.build") ) {
+//                    processFile(currentFile)
+//                }
                 processFile(currentFile)
             }
     }
+
+    private val filesPathToSkip = listOf<String>(
+        "buildscript" + File.separator + "prepopulation.gradle",
+        "buildSrc" + File.separator + "build.gradle",
+        "__PKG_JOINED__.android.build",
+
+    )
 
     private fun processFile(currentFile: File) {
         Log.d("Processed file", "$currentFile")
@@ -1102,8 +1113,8 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
     }
 
     fun makeActionsList() {
-        val hasActions = projectEditor.findJsonBoolean(HAS_ACTIONS_KEY) ?: false
-        if (hasActions) {
+        val hasActionsFeatureFlag = projectEditor.findJsonBoolean(FeatureFlagConstants.HAS_ACTIONS_KEY) ?: false
+        if (hasActionsFeatureFlag) {
             projectEditor.actions.forEach {
                 makeJsonFile(it.key.fileName, it.value)
                 Log.i("${it.key.fileName} file successfully generated.")

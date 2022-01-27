@@ -55,6 +55,41 @@ class FileHelper(val pathHelper: PathHelper) {
     }
 }
 
+fun getDumpedInfoFile(assetsPath: String): File {
+    val projectDataSetAndroidPath = getProjectDataSetAndroidPath(assetsPath)
+    val dumpInfoFile = File(projectDataSetAndroidPath + File.separator + "dump_info.json")
+
+    if (dumpInfoFile.exists()) {
+        dumpInfoFile.delete()
+    }
+    dumpInfoFile.parentFile.mkdirs()
+    if (!dumpInfoFile.createNewFile()) {
+        throw Exception("An error occurred while creating new file : $dumpInfoFile")
+    }
+    return dumpInfoFile
+}
+
+fun getProjectDataSetAndroidPath(assetsPath: String): String {
+    val projectDataSetDirPath = File(assetsPath).parentFile.parent
+    return projectDataSetDirPath + File.separator + "android"
+}
+
+fun getCatalogPath(assetsPath: String, tableName: String): String = assetsPath +
+        File.separator + CATALOG_PATH_KEY + File.separator +
+        "$tableName.${CATALOG_DATASET_SUFFIX}" + File.separator +
+        "$tableName.${CATALOG_JSON_SUFFIX}"
+
+fun getDataPath(assetsPath: String, tableName: String, index: Int? = null): String {
+    val path = assetsPath + File.separator + DATA_PATH_KEY + File.separator +
+            "$tableName.$DATA_DATASET_SUFFIX" + File.separator +
+            "$tableName."
+    return if (index == null) {
+        path + DATA_JSON_SUFFIX
+    } else {
+        "$path$index.$DATA_JSON_SUFFIX"
+    }
+}
+
 fun File.isWithTemplateName() = this.name.contains(TEMPLATE_PLACEHOLDER)
 
 fun File.isWithRelationDaoTemplateName() = this.name.contains(TEMPLATE_RELATION_DAO_PLACEHOLDER)
