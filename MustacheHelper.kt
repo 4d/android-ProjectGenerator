@@ -36,6 +36,7 @@ import MustacheConstants.HAS_ANY_RELATIONS_MANY_TO_ONE_FOR_LIST
 import MustacheConstants.HAS_ANY_RELATIONS_ONE_TO_MANY_FOR_DETAIL
 import MustacheConstants.HAS_ANY_RELATIONS_ONE_TO_MANY_FOR_LIST
 import MustacheConstants.HAS_CUSTOM_FORMATTER_IMAGES
+import MustacheConstants.HAS_DATASET
 import MustacheConstants.HAS_RELATION
 import MustacheConstants.TABLE_HAS_ANY_MANY_TO_ONE_RELATION
 import MustacheConstants.HAS_REMOTE_ADDRESS
@@ -116,6 +117,8 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
     private lateinit var customFormattersImagesMap: Map<String, Map<String, Pair<String, String>>>
     // <tableName, <fieldName, fieldMapping>>
     private val customFormattersFields: Map<String, Map<String, FieldMapping>> = getCustomFormatterFields()
+
+    val hasDataSet = projectEditor.findJsonBoolean(FeatureFlagConstants.HAS_DATASET_KEY) ?: false
 
     init {
         Log.plantTree(this::class.java.canonicalName)
@@ -236,7 +239,6 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         }
 
         Log.i("data[THEME_COLOR_ON_PRIMARY] = ${data[THEME_COLOR_ON_PRIMARY]}")
-
 
         var entityClassesString = ""
 
@@ -360,6 +362,8 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         }
 
         data[TABLENAMES_WITH_MANY_TO_ONE_RELATIONS] = tableNamesWithManyToOneRelation
+
+        data[HAS_DATASET] = hasDataSet
     }
 
     /**
@@ -376,24 +380,30 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
         compiler = generateCompilerFolder(currentFolder.absolutePath)
 
-        val hasDataSet = projectEditor.findJsonBoolean(FeatureFlagConstants.HAS_DATASET_KEY) ?: false
-
         currentFolder.walkTopDown()
             .filter { file -> !file.isHidden && file.isFile && currentFolder.absolutePath.contains(file.parent) && file.name != DS_STORE }
             .forEach { currentFile ->
-//                if (!hasDataSet || !currentFile.path.contains("__PKG_JOINED__.android.build") ) {
-//                    processFile(currentFile)
-//                }
-                processFile(currentFile)
+                if (!hasDataSet || !shouldSkipIfDataSet(currentFile)) {
+                    processFile(currentFile)
+                }
             }
     }
 
     private val filesPathToSkip = listOf<String>(
-        "buildscript" + File.separator + "prepopulation.gradle",
+        "buildscripts" + File.separator + "prepopulation.gradle",
         "buildSrc" + File.separator + "build.gradle",
-        "__PKG_JOINED__.android.build",
-
+        "__PKG_JOINED__.android.build"
     )
+
+    private fun shouldSkipIfDataSet(currentFile: File): Boolean {
+        filesPathToSkip.forEach {
+            if (currentFile.path.contains(it)) {
+                println("Skipping : $currentFile")
+                return true
+            }
+        }
+        return false
+    }
 
     private fun processFile(currentFile: File) {
         Log.d("Processed file", "$currentFile")
