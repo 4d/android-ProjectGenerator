@@ -17,9 +17,12 @@ import ProjectEditorConstants.STRING_KEY
 import ProjectEditorConstants.VALIDATED_KEY
 import org.json.JSONObject
 
-fun JSONObject.getDataModelList(): List<DataModel> {
+fun JSONObject.getDataModelList(isCreateDatabaseCommand: Boolean = false): List<DataModel> {
     val dataModelList = mutableListOf<DataModel>()
-    val dataModels = this.getSafeObject(PROJECT_KEY)?.getSafeObject(DATAMODEL_KEY)
+    val dataModels = if (isCreateDatabaseCommand)
+        this.getSafeObject(DATAMODEL_KEY)
+    else
+        this.getSafeObject(PROJECT_KEY)?.getSafeObject(DATAMODEL_KEY)
 
     val fieldToAddList = mutableListOf<FieldToAdd>()
 

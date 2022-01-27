@@ -4,4 +4,7 @@ object Clikt {
     const val templateFilesText = "Template files path"
     const val templateFormsText = "Template forms path"
     const val hostDbText = "Host database path"
+
+    const val assetsText = "Assets path"
+    const val dbText = "Db file path"
 }

@@ -3,7 +3,6 @@ object ProjectEditorConstants {
     /**
      * PROJECT EDITOR JSON KEYS
      */
-
     const val PROJECT_KEY = "project"
     const val DATAMODEL_KEY = "dataModel"
     const val NAME_KEY = "name"
@@ -47,13 +46,12 @@ object ProjectEditorConstants {
     const val AUTHENTICATION_KEY = "authentication"
     const val EMAIL_KEY = "email"
     const val SCOPE_KEY = "scope"
-    const val HAS_RELATIONS_KEY = "hasRelations"
-    const val HAS_ACTIONS_KEY = "hasActions"
+    const val DUMPED_STAMP_KEY = "dumpedStamp"
+    const val DUMPED_TABLES_KEY = "dumpedTables"
 
     /**
      * TYPE STRING PARSING
      */
-
     const val STRING_TYPE = "String"
     const val FLOAT_TYPE = "Float"
     const val TEXT_TYPE = "Text"
