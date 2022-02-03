@@ -5,5 +5,7 @@ data class FieldMapping(
     val name: String?,
     val imageWidth: Int?,
     val imageHeight: Int?,
-    val tintable: Boolean?
+    val tintable: Boolean?,
+    val target: Any?,
+    val capabilities : List<String>
 )

@@ -41,6 +41,7 @@ import MustacheConstants.HAS_RELATION
 import MustacheConstants.TABLE_HAS_ANY_MANY_TO_ONE_RELATION
 import MustacheConstants.HAS_REMOTE_ADDRESS
 import MustacheConstants.PACKAGE
+import MustacheConstants.PERMISSIONS
 import MustacheConstants.RELATIONS_MANY_TO_ONE
 import MustacheConstants.RELATIONS_IMPORT
 import MustacheConstants.RELATIONS_MANY_TO_ONE_FOR_DETAIL
@@ -113,12 +114,14 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
     private val oneToManyRelationFillerForEachDetailLayout = mutableListOf<TemplateRelationFillerForEachLayout>()
     private val manyToOneRelationFillerForEachDetailLayout = mutableListOf<TemplateRelationFillerForEachLayout>()
 
+    private val permissionFillerList = mutableListOf<TemplatePermissionFiller>()
+
     // <formatName, <imageName, <resourceName, darkModeResourceName>>
     private lateinit var customFormattersImagesMap: Map<String, Map<String, Pair<String, String>>>
     // <tableName, <fieldName, fieldMapping>>
     private val customFormattersFields: Map<String, Map<String, FieldMapping>> = getCustomFormatterFields()
 
-    val hasDataSet = projectEditor.findJsonBoolean(FeatureFlagConstants.HAS_DATASET_KEY) ?: false
+    private val hasDataSet = projectEditor.findJsonBoolean(FeatureFlagConstants.HAS_DATASET_KEY) ?: false
 
     init {
         Log.plantTree(this::class.java.canonicalName)
@@ -364,6 +367,8 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         data[TABLENAMES_WITH_MANY_TO_ONE_RELATIONS] = tableNamesWithManyToOneRelation
 
         data[HAS_DATASET] = hasDataSet
+
+        data[PERMISSIONS] = permissionFillerList.distinct()
     }
 
     /**
@@ -1045,7 +1050,6 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         } else if (fileHelper.pathHelper.isValidKotlinCustomFormatter(format)) {
             data["field_${i}_is_kotlin_custom_formatted"] = true
             data["field_${i}_kotlin_custom_format_binding"] = fileHelper.pathHelper.getKotlinCustomFormatterBinding(format)
-
         }
     }
 
@@ -1191,6 +1195,11 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                     val fieldMapping = getFieldMapping(it, format)
                     Log.d("extractFormatter : relationName = $relationName")
                     Log.d("fieldMapping = $fieldMapping")
+                    // Saving any permission for kotlin custom formatters
+                    fieldMapping.capabilities.forEach { permissionName ->
+                        permissionFillerList.add(getTemplatePermissionFiller(permissionName))
+                    }
+
                     if (fieldMapping.isValidFormatter()) {
                         extractFormatter(fieldMapping, field, relationName, formatPath, format, map, customFormattersImagesMap)
                         customFormatMap.put(dataModel.name.tableNameAdjustment(), map)

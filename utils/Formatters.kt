@@ -11,7 +11,10 @@ fun getFieldMapping(manifestContent: JSONObject, format: String): FieldMapping =
         name = format,
         imageWidth = getSize(manifestContent, "width"),
         imageHeight = getSize(manifestContent, "height"),
-        tintable = manifestContent.getSafeObject("assets")?.getSafeBoolean("tintable")
+        tintable = manifestContent.getSafeObject("assets")?.getSafeBoolean("tintable"),
+        target = manifestContent.getSafeString("target") ?: manifestContent.getSafeArray("target")
+            .getStringList(), // target can be a String or a JSONArray,
+        capabilities = manifestContent.getSafeObject("capabilities")?.getSafeArray("android").getStringList()
     )
 
 fun getSize(manifestContent: JSONObject, type: String): Int? =
@@ -22,5 +25,11 @@ fun FieldMapping.isValidFormatter(): Boolean =
     (this.binding == "localizedText" || this.binding == "imageNamed")
             && this.choiceList != null && this.name != null
 
-fun FieldMapping.isValidKotlinCustomDataFormatter(): Boolean =
-    this.name != null && !this.binding.isNullOrEmpty()
+fun FieldMapping.isValidKotlinCustomDataFormatter(): Boolean {
+    val isTargetOk = when (target) {
+        is String -> target == "android"
+        is List<*> -> target.contains("android")
+        else -> false
+    }
+    return this.name != null && !this.binding.isNullOrEmpty() && isTargetOk
+}
