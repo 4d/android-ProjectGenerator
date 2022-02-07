@@ -42,12 +42,15 @@ fun JSONObject.getSafeArray(key: String): JSONArray? {
     }
 }
 
-fun JSONObject.toStringMap(): Map<String, String> {
-    val map: MutableMap<String, String> = mutableMapOf()
+fun JSONObject.toStringMap(): Map<String, Any> {
+    val map: MutableMap<String, Any> = mutableMapOf()
 
     this.keys().forEach { key ->
         if (key !is String) return@forEach
         this.getSafeString(key)?.let { value ->
+            map[key] = value
+        }
+        this.getSafeInt(key)?.let { value ->
             map[key] = value
         }
     }

@@ -48,6 +48,7 @@ object ProjectEditorConstants {
     const val SCOPE_KEY = "scope"
     const val DUMPED_STAMP_KEY = "dumpedStamp"
     const val DUMPED_TABLES_KEY = "dumpedTables"
+    const val ACTIONS_KEY = "actions"
 
     /**
      * TYPE STRING PARSING

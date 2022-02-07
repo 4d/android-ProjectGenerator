@@ -2,6 +2,7 @@ import DefaultValues.DEFAULT_ADDRESS
 import DefaultValues.DEFAULT_AUTHOR
 import DefaultValues.DEFAULT_REMOTE_URL
 import DefaultValues.LAYOUT_FILE
+import FileHelperConstants.ACTIONS_FILENAME
 import FileHelperConstants.APP_INFO_FILENAME
 import FileHelperConstants.CUSTOM_FORMATTERS_FILENAME
 import FileHelperConstants.DS_STORE
@@ -1098,20 +1099,9 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
     }
 
     fun makeQueries() {
-        val queryList = mutableListOf<Query>()
-        projectEditor.dataModelList.forEach { dataModel ->
-            dataModel.query?.let { query ->
-                queryList.add(Query(dataModel.name.tableNameAdjustment(), query))
-            }
-        }
-        val queries = Queries(queryList)
-
         val queriesFile = File(fileHelper.pathHelper.assetsPath(), QUERIES_FILENAME)
-        queriesFile.parentFile.mkdirs()
-        if (!queriesFile.createNewFile()) {
-            throw Exception("An error occurred while creating new file : $queriesFile")
-        }
-        queriesFile.writeText(gson.toJson(queries))
+        val queryMap = projectEditor.getQueries(queriesFile)
+        queriesFile.writeText(gson.toJson(queryMap))
     }
 
     fun makeAppInfo() {
@@ -1126,13 +1116,10 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         makeJsonFile(SEARCHABLE_FIELDS_FILENAME, projectEditor.searchableFields)
     }
 
-    fun makeActionsList() {
+    fun makeActions() {
         val hasActionsFeatureFlag = projectEditor.findJsonBoolean(FeatureFlagConstants.HAS_ACTIONS_KEY) ?: false
         if (hasActionsFeatureFlag) {
-            projectEditor.actions.forEach {
-                makeJsonFile(it.key.fileName, it.value)
-                Log.i("${it.key.fileName} file successfully generated.")
-            }
+            makeJsonFile(ACTIONS_FILENAME, projectEditor.getActions())
         }
     }
 

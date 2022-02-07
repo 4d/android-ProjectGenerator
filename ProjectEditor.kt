@@ -1,5 +1,6 @@
 import DefaultValues.DEFAULT_LOG_LEVEL
 import DefaultValues.DEFAULT_REMOTE_URL
+import ProjectEditorConstants.ACTIONS_KEY
 import ProjectEditorConstants.AUTHENTICATION_KEY
 import ProjectEditorConstants.BOOLEAN_TYPE
 import ProjectEditorConstants.CACHE_4D_SDK_KEY
@@ -42,7 +43,6 @@ class ProjectEditor(projectEditorFile: File, isCreateDatabaseCommand: Boolean = 
     lateinit var detailFormList: List<Form>
     lateinit var navigationTableList: List<String>
     lateinit var searchableFields: HashMap<String, List<String>>
-    var actions: HashMap<ActionScope, JSONObject> = hashMapOf()
 
     lateinit var jsonObj: JSONObject
 
@@ -78,14 +78,6 @@ class ProjectEditor(projectEditorFile: File, isCreateDatabaseCommand: Boolean = 
 
                 detailFormList = jsonObj.getFormList(dataModelList, FormType.DETAIL, navigationTableList)
                 Log.d("> Detail forms list successfully read.")
-
-                val hasActionsFeatureFlag = findJsonBoolean(FeatureFlagConstants.HAS_ACTIONS_KEY) ?: false
-                if (hasActionsFeatureFlag) {
-                    ActionScope.values().forEach { scope ->
-                        actions[scope] = jsonObj.getActionsList(dataModelList, scope.nameInJson)
-                    }
-                }
-                Log.d("> Actions list successfully read.")
             }
 
         } ?: kotlin.run {
@@ -157,6 +149,87 @@ class ProjectEditor(projectEditorFile: File, isCreateDatabaseCommand: Boolean = 
                 logLevel = DEFAULT_LOG_LEVEL,
                 relations = findJsonBoolean(FeatureFlagConstants.HAS_RELATIONS_KEY) ?: true
         )
+    }
+
+    fun getQueries(queriesFile: File): Map<String, String> {
+        val queryMap = mutableMapOf<String, String>()
+        dataModelList.forEach { dataModel ->
+            dataModel.query?.let { query ->
+                queryMap[dataModel.name.tableNameAdjustment()] = query
+            }
+        }
+        queriesFile.parentFile.mkdirs()
+        if (!queriesFile.createNewFile()) {
+            throw Exception("An error occurred while creating new file : $queriesFile")
+        }
+        return queryMap
+    }
+
+    fun getActions(): Actions {
+        val actionList = mutableListOf<Action>()
+        println("jsonObj = $jsonObj")
+        jsonObj.getSafeObject(PROJECT_KEY)?.getSafeArray(ACTIONS_KEY)?.let { actionsArray ->
+            for (i in 0 until actionsArray.length()) {
+                actionsArray.getSafeObject(i)?.let { actionObject ->
+                    actionObject.getSafeString("name")?.let { actionName ->
+                        val newAction = Action(actionName)
+                        actionObject.getSafeString("shortLabel")?.let { newAction.shortLabel = it }
+                        actionObject.getSafeString("label")?.let { newAction.label = it }
+                        actionObject.getSafeString("scope")?.let { newAction.scope = it }
+                        actionObject.getSafeInt("tableNumber")?.let { newAction.tableNumber = it }
+                        actionObject.getSafeString("icon")?.let { newAction.icon = it }
+                        actionObject.getSafeString("preset")?.let { newAction.preset = it }
+                        actionObject.getSafeString("style")?.let { newAction.style = it }
+                        actionObject.getSafeArray("parameters")?.let { parametersArray ->
+                            val parameterList = mutableListOf<ActionParameter>()
+                            for (j in 0 until parametersArray.length()) {
+                                parametersArray.getSafeObject(j)?.let { parameter ->
+                                    parameter.getSafeString("name")?.let { parameterName ->
+                                        val newParameter = ActionParameter(parameterName)
+                                        parameter.getSafeString("label")?.let { newParameter.label = it }
+                                        parameter.getSafeString("shortLabel")?.let { newParameter.shortLabel = it }
+                                        parameter.getSafeString("type")?.let { newParameter.type = it }
+                                        parameter.getSafeString("default")?.let { newParameter.default = it }
+                                        parameter.getSafeString("placeholder")?.let { newParameter.placeholder = it }
+                                        parameter.getSafeString("format")?.let { newParameter.format = it }
+                                        actionObject.getSafeInt("fieldNumber")?.let { newParameter.fieldNumber = it }
+                                        actionObject.getSafeString("defaultField")?.let { newParameter.defaultField = it }
+                                        parameter.getSafeArray("rules")?.let { rulesArray ->
+                                            val rulesList = mutableListOf<Any>()
+                                            for (k in 0 until rulesArray.length()) {
+                                                // can be a string or an object
+                                                rulesArray.getSafeString(k)?.let { rulesList.add(it) }
+                                                rulesArray.getSafeObject(k)?.let { rulesList.add(it.toStringMap()) }
+                                            }
+                                            newParameter.rules = rulesList
+                                        }
+                                        parameterList.add(newParameter)
+                                    }
+                                }
+                            }
+                            newAction.parameters = parameterList
+                        }
+                        actionList.add(newAction)
+                    }
+                }
+            }
+        }
+        val scopedActions: Map<String?, List<Action>> = actionList.groupBy { it.scope }
+        val currentRecordActions = formatMap(scopedActions, "currentRecord")
+        val tableActions = formatMap(scopedActions, "table")
+        return Actions(table = tableActions, currentRecord = currentRecordActions)
+    }
+
+    private fun formatMap(scopedActions:  Map<String?, List<Action>>, scope: String):  Map<String, List<Action>> {
+        val newMap = mutableMapOf<String, List<Action>>()
+        scopedActions[scope]?.groupBy { it.tableNumber }?.let { actionsWithTableNumber :  Map<Int?, List<Action>> ->
+            for ((tableNumber, actions) in actionsWithTableNumber) {
+                dataModelList.find { it.id == tableNumber.toString() }?.name?.let { tableName ->
+                    newMap[tableName.tableNameAdjustment()] = actions
+                }
+            }
+        }
+        return newMap
     }
 }
 

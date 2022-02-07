@@ -147,7 +147,9 @@ class GenerateCommand : CliktCommand(name = "generate") {
 
         Log.i("\"searchable_fields.json\" file successfully generated.")
 
-        mustacheHelper.makeActionsList()
+        mustacheHelper.makeActions()
+
+        Log.i("\"actions.json\" file successfully generated.")
 
         Log.d("Output: ${projectEditor.findJsonString("targetDirPath")}")
     }
