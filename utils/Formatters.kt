@@ -28,7 +28,7 @@ fun FieldMapping.isValidFormatter(): Boolean =
 fun FieldMapping.isValidKotlinCustomDataFormatter(): Boolean {
     val isTargetOk = when (target) {
         is String -> target == "android"
-        is List<*> -> target.contains("android")
+        is List<*> -> target.contains("android") || target.isEmpty()
         else -> false
     }
     return this.name != null && !this.binding.isNullOrEmpty() && isTargetOk

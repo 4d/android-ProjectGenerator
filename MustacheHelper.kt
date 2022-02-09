@@ -1032,6 +1032,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         data["field_${i}_format_type"] = format
 
         if (fileHelper.pathHelper.isValidFormatter(format)) {
+            Log.d("isValidFormatter true")
             data["field_${i}_custom_formatted"] = true
             data["field_${i}_format_field_name"] = field.name
             data["field_${i}_field_table_name"] = form.dataModel.name
@@ -1048,8 +1049,11 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
             }
 
         } else if (fileHelper.pathHelper.isValidKotlinCustomFormatter(format)) {
+            Log.d("isValidKotlinCustomFormatter true")
             data["field_${i}_is_kotlin_custom_formatted"] = true
             data["field_${i}_kotlin_custom_format_binding"] = fileHelper.pathHelper.getKotlinCustomFormatterBinding(format)
+        } else {
+            Log.d("Both kotlin and basic custom formatters false")
         }
     }
 
