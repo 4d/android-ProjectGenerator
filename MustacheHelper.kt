@@ -369,6 +369,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
         data[HAS_DATASET] = hasDataSet
 
+        getAllActionPermissions()
         data[PERMISSIONS] = permissionFillerList.distinct()
     }
 
@@ -1143,6 +1144,23 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
     private fun generateCompilerFolder(templateFileFolder: String): Mustache.Compiler {
         return Mustache.compiler().escapeHTML(false).withLoader { name ->
             FileReader(File(templateFileFolder, name))
+        }
+    }
+
+    private fun getAllActionPermissions() {
+        getActionPermissions(projectEditor.getActions().table.values)
+        getActionPermissions(projectEditor.getActions().currentRecord.values)
+    }
+
+    private fun getActionPermissions(actionListPerTable: Collection<List<Action>>) {
+        actionListPerTable.forEach { actionList ->
+            actionList.forEach { action ->
+                action.parameters?.forEach { actionParameter ->
+                    if (actionParameter.type == "string" && actionParameter.format == "barcode") {
+                        permissionFillerList.add(getTemplatePermissionFiller(Permissions.CAMERA))
+                    }
+                }
+            }
         }
     }
 
