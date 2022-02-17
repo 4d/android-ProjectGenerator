@@ -82,6 +82,7 @@ fun JSONObject.getDataModelList(isCreateDatabaseCommand: Boolean = false): List<
                         fieldList.add(it)
                         val subFields: List<Field> = newFieldJSONObject.getSubFields()
                         getRelation(it, dataModelName, subFields)?.let { relation ->
+                            Log.d("getRelation, relation is $relation")
                             relationList.add(relation)
 
                             if (relation.relationType == RelationType.MANY_TO_ONE) {
@@ -94,6 +95,7 @@ fun JSONObject.getDataModelList(isCreateDatabaseCommand: Boolean = false): List<
                                 fieldList.add(relationKeyField)
                             } else {
                                 // One to many relation, need to add the inverse many to one relation to its Entity definition
+                                Log.d("One to many relation, need to add the inverse many to one relation to its Entity definition")
                                 it.inverseName?.let { inverseName ->
                                     val newField = Field(
                                         name = inverseName,
@@ -104,7 +106,9 @@ fun JSONObject.getDataModelList(isCreateDatabaseCommand: Boolean = false): List<
                                         relatedEntities = null,
                                         variableType = VariableType.VAR.string
                                     )
+                                    Log.d("newField = $newField")
                                     getRelation(newField, relation.target, listOf())?.let { newRelation ->
+                                        Log.d("newRelation = $newRelation")
                                         val newKeyField =
                                             Field(name = "__${newRelation.name.validateWordDecapitalized()}Key")
                                         newKeyField.fieldType = 0
@@ -118,6 +122,7 @@ fun JSONObject.getDataModelList(isCreateDatabaseCommand: Boolean = false): List<
                                 }
                             }
                         }
+                        Log.d("Check if there is a slave table to add")
 
                         // Check if there is a slave table to add
                         newFieldJSONObject.getSafeString(RELATEDDATACLASS_KEY)?.let { relatedDataClass ->
@@ -141,6 +146,7 @@ fun JSONObject.getDataModelList(isCreateDatabaseCommand: Boolean = false): List<
                                         slaveFieldList.add(field)
                                         val slaveSubFields: List<Field> = newSlaveFieldJSONObject.getSubFields()
                                         getRelation(field, relatedDataClass, slaveSubFields)?.let { relation ->
+                                            Log.d("getRelation, slave relation is $relation")
                                             slaveRelationList.add(relation)
 
                                             if (relation.relationType == RelationType.MANY_TO_ONE) {
@@ -153,22 +159,21 @@ fun JSONObject.getDataModelList(isCreateDatabaseCommand: Boolean = false): List<
                                                 relationKeyField.variableType = VariableType.VAR.string
                                                 slaveFieldList.add(relationKeyField)
                                             } else {
+                                                Log.d("One to many relation, need to add the inverse many to one relation to its Entity definition")
                                                 // One to many relation, need to add the inverse many to one relation to its Entity definition
-                                                it.inverseName?.let { inverseName ->
+                                                it.inverseName?.let {
                                                     val newField = Field(
-                                                        name = inverseName,
-                                                        inverseName = it.name,
+                                                        name = relation.inverseName,
+                                                        inverseName = relation.name,
                                                         relatedDataClass = relatedDataClass,
                                                         fieldTypeString = relatedDataClass,
                                                         relatedTableNumber = relatedTableNumber,
                                                         relatedEntities = null,
                                                         variableType = VariableType.VAR.string
                                                     )
-                                                    getRelation(
-                                                        newField,
-                                                        relation.target,
-                                                        listOf()
-                                                    )?.let { newRelation ->
+                                                    Log.d("slave newField = $newField")
+                                                    getRelation(newField, relation.target, listOf())?.let { newRelation ->
+                                                        Log.d("slave newRelation = $newRelation")
                                                         val newKeyField =
                                                             Field(name = "__${newRelation.name.validateWordDecapitalized()}Key")
                                                         newKeyField.fieldType = 0
@@ -182,7 +187,7 @@ fun JSONObject.getDataModelList(isCreateDatabaseCommand: Boolean = false): List<
                                                             newKeyField,
                                                             newRelation
                                                         )
-                                                        Log.d("ZZZ", "fieldToAdd $fieldToAdd")
+                                                        Log.d("ZZZ", " slave fieldToAdd $fieldToAdd")
                                                         fieldToAddList.add(fieldToAdd)
                                                     }
                                                 }
@@ -237,7 +242,9 @@ fun JSONObject.getDataModelList(isCreateDatabaseCommand: Boolean = false): List<
             }
 
             newDataModel.fields = fieldList
+            Log.d("fieldList Final = $fieldList")
             newDataModel.relationList = relationList
+            Log.d("relationList Final = $relationList")
             dataModelList.add(newDataModel)
         }
     }
@@ -288,6 +295,7 @@ fun JSONObject.getDataModelList(isCreateDatabaseCommand: Boolean = false): List<
     }
 
     fieldToAddList.forEach { fieldToAdd ->
+        Log.d("ending, field to add: $fieldToAdd")
         dataModelList.find { it.name == fieldToAdd.targetTable }?.let { dm ->
             dm.fields?.let { dmFields ->
                 if (!dmFields.map { it.name }.contains(fieldToAdd.field.name)) {

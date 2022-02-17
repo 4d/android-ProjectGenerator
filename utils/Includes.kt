@@ -30,6 +30,7 @@
 //INCLUDE models/fillers/TemplateLayoutFiller.kt
 //INCLUDE models/fillers/TemplateLayoutTypeFiller.kt
 //INCLUDE models/fillers/TemplatePermissionFiller.kt
+//INCLUDE models/fillers/TemplateRelationDefFiller.kt
 //INCLUDE models/fillers/TemplateRelationFiller.kt
 //INCLUDE models/fillers/TemplateRelationFillerForEachLayout.kt
 //INCLUDE models/fillers/TemplateTableFiller.kt

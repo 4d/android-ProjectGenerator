@@ -228,7 +228,7 @@ class CreateDatabaseTask(
                 val entities = jsonObj.getSafeArray("__ENTITIES")
 
                 jsonObj.getSafeInt("__GlobalStamp")?.let { globalStamp ->
-                    dumpedTables.add(tableName)
+                    if (!dumpedTables.contains(tableName)) dumpedTables.add(tableName)
                     if (globalStamp > initialGlobalStamp) initialGlobalStamp = globalStamp
                 }
 

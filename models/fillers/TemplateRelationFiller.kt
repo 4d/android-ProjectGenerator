@@ -41,13 +41,13 @@ fun getSubTemplateRelationFiller(source: String, target: String, name: String, i
 fun Relation.checkSubRelations(dataModelList: List<DataModel>): List<TemplateRelationFiller> {
     val subTemplateRelationFillerList = mutableListOf<TemplateRelationFiller>()
     this.subFields.filter { it.relatedEntities != null }.forEach { oneToManySubRelation ->
-        val source = dataModelList.find { it.id == "${oneToManySubRelation.relatedTableNumber}" }?.name?.tableNameAdjustment()
+//        val source = dataModelList.find { it.id == "${oneToManySubRelation.relatedTableNumber}" }?.name?.tableNameAdjustment()
         val target = oneToManySubRelation.relatedEntities?.tableNameAdjustment()
         val relationName = "${this.name.fieldAdjustment()}_${oneToManySubRelation.name.fieldAdjustment()}"
         val originalSubRelationName = "${this.name.fieldAdjustment()}.${oneToManySubRelation.name.fieldAdjustment()}"
         val inverseName = oneToManySubRelation.inverseName?.fieldAdjustment()
-        if (source != null && target != null && inverseName != null) {
-            val subTemplateRelationFiller = getSubTemplateRelationFiller(source, target, relationName, inverseName, originalSubRelationName)
+        if (target != null && inverseName != null) {
+            val subTemplateRelationFiller = getSubTemplateRelationFiller(this.source, target, relationName, inverseName, originalSubRelationName)
             subTemplateRelationFillerList.add(subTemplateRelationFiller)
             Log.d("Adding subTemplateRelationFiller = $subTemplateRelationFiller")
         }
