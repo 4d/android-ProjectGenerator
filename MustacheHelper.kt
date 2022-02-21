@@ -256,7 +256,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                 if (relation.relationType == RelationType.MANY_TO_ONE) {
                     relationsManyToOne.add(filler)
                     // Check for sub 1-N relations
-                    val subTemplateRelationFillerList = relation.checkSubRelations(projectEditor.dataModelList)
+                    val subTemplateRelationFillerList = relation.checkSubRelations()
                     relationsOneToMany.addAll(subTemplateRelationFillerList)
                 } else {
                     relationsOneToMany.add(filler)
@@ -333,7 +333,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                 layoutRelationList.add(relation.getTemplateRelationFiller())
                 // Check for sub 1-N relations
                 if (relation.relationType == RelationType.MANY_TO_ONE) {
-                    val subTemplateRelationFillerList = relation.checkSubRelations(projectEditor.dataModelList)
+                    val subTemplateRelationFillerList = relation.checkSubRelations()
                     layoutRelationList.addAll(subTemplateRelationFillerList)
                 }
             }
@@ -441,7 +441,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                 if (relation.relationType == RelationType.MANY_TO_ONE) {
                     relationsManyToOne.add(filler)
                     // Check for sub 1-N relations
-                    val subTemplateRelationFillerList = relation.checkSubRelations(projectEditor.dataModelList)
+                    val subTemplateRelationFillerList = relation.checkSubRelations()
                     relationsOneToMany.addAll(subTemplateRelationFillerList)
                 } else {
                     relationsOneToMany.add(filler)
@@ -586,7 +586,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
             if (relation.relationType == RelationType.MANY_TO_ONE) {
                 relationsManyToOne.add(filler)
                 // Check for sub 1-N relations
-                val subTemplateRelationFillerList = relation.checkSubRelations(projectEditor.dataModelList)
+                val subTemplateRelationFillerList = relation.checkSubRelations()
                 relationsOneToMany.addAll(subTemplateRelationFillerList)
             } else {
                 relationsOneToMany.add(filler)
@@ -645,7 +645,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                     if (relation.relationType == RelationType.MANY_TO_ONE) {
                                         relationsManyToOne.add(filler)
                                         // Check for sub 1-N relations
-                                        val subTemplateRelationFillerList = relation.checkSubRelations(projectEditor.dataModelList)
+                                        val subTemplateRelationFillerList = relation.checkSubRelations()
                                         relationsOneToMany.addAll(subTemplateRelationFillerList)
                                     } else {
                                         relationsOneToMany.add(filler)
