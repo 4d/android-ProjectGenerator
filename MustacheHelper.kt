@@ -125,7 +125,10 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
     private val hasDataSet = projectEditor.findJsonBoolean(FeatureFlagConstants.HAS_DATASET_KEY) ?: false
 
     init {
-        Log.plantTree(this::class.java.canonicalName)
+        Log.d("==================================\n" +
+                "MustacheHelper init\n" +
+                "==================================\n")
+
         data[COMPANY_HEADER] = fileHelper.pathHelper.companyWithCaps
         data[AUTHOR] = projectEditor.findJsonString("author") ?: DEFAULT_AUTHOR
         data[DATE_DAY] = Calendar.getInstance().get(Calendar.DAY_OF_MONTH).toString()
@@ -137,7 +140,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         // for network_security_config.xml
         // whitelist production host address if defined, else, server host address, else localhost
         var remoteAddress = projectEditor.findJsonString("productionUrl")
-        Log.d("remoteAddress = $remoteAddress")
+        Log.d("remoteAddress : $remoteAddress")
         if (remoteAddress.isNullOrEmpty())
             remoteAddress = projectEditor.findJsonString("remoteUrl")
         if (remoteAddress.isNullOrEmpty())
@@ -146,7 +149,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         if (cleanRemoteAddress != DEFAULT_ADDRESS) {
             data[HAS_REMOTE_ADDRESS] = true
             data[REMOTE_ADDRESS] = cleanRemoteAddress
-            Log.d("data[REMOTE_ADDRESS] = ${data[REMOTE_ADDRESS]}")
+            Log.d("cleanRemoteAddress = $cleanRemoteAddress")
         } else {
             data[HAS_REMOTE_ADDRESS] = false
             data[REMOTE_ADDRESS] = ""
@@ -251,7 +254,6 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         projectEditor.dataModelList.forEach { dataModel ->
 
             dataModel.relationList?.forEach { relation ->
-                Log.d("datamodel ${dataModel.name} relation is $relation")
                 val filler = relation.getTemplateRelationFiller()
                 if (relation.relationType == RelationType.MANY_TO_ONE) {
                     relationsManyToOne.add(filler)
@@ -268,14 +270,12 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
             tableNamesLowercase.add(dataModel.getTemplateLayoutFiller())
 
             entityClassesString += "${dataModel.name.tableNameAdjustment()}::class, "
-            Log.d("ProjectDataModelList  ${entityClassesString}:: ${dataModel.name.tableNameAdjustment()}")
         }
 
         tableNames.forEach { tableName ->
             if (!relationsManyToOne.map { it.relation_source.tableNameAdjustment() }.contains(tableName.name))
                 tableNamesWithoutManyToOneRelation.add(tableName)
         }
-
 
         data[TABLENAMES] = tableNames
         data[TABLENAMES_LOWERCASE] = tableNamesLowercase
@@ -353,7 +353,6 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         }
 
         data[TABLENAMES_LAYOUT] = tableNamesForLayoutType
-        Log.d("TABLENAMES", "${data[TABLENAMES]}")
 
         customFormatterImages = mutableListOf()
 
@@ -370,7 +369,6 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         }
         data[CUSTOM_FORMATTER_IMAGES] = customFormatterImages
         data[HAS_CUSTOM_FORMATTER_IMAGES] = customFormatterImages.isNotEmpty()
-
 
         projectEditor.dataModelList.forEach { dataModel ->
             if (dataModel.relationList?.firstOrNull { it.relationType == RelationType.MANY_TO_ONE } != null) {
@@ -390,6 +388,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
      * TEMPLATING
      */
     fun processTemplates() {
+        Log.d("processTemplates")
         File(fileHelper.pathHelper.templateFilesPath).walkTopDown()
             .filter { folder -> !folder.isHidden && folder.isDirectory }.forEach { currentFolder ->
                 processFolder(currentFolder)
@@ -418,7 +417,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
     private fun shouldSkipIfDataSet(currentFile: File): Boolean {
         filesPathToSkip.forEach {
             if (currentFile.path.contains(it)) {
-                println("Skipping : $currentFile")
+                Log.d("Skipping because DataSet : $currentFile")
                 return true
             }
         }
@@ -426,7 +425,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
     }
 
     private fun processFile(currentFile: File) {
-        Log.d("Processed file", "$currentFile")
+        Log.d("processFile : $currentFile")
 
         template = compiler.compile("{{>${currentFile.name}}}")
 
@@ -463,6 +462,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         data[HAS_ANY_RELATIONS_MANY_TO_ONE] = manyToOneRelationFillerForEachListLayout.isNotEmpty() || manyToOneRelationFillerForEachDetailLayout.isNotEmpty()
 
         if (currentFile.isWithTemplateName()) {
+            Log.d("currentFile isWithTemplateName")
 
             for (tableName in tableNames) { // file will be duplicated
 
@@ -492,11 +492,9 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
             }
 
         } else if (currentFile.isWithRelationDaoTemplateName()) {
+            Log.d("currentFile isWithRelationDaoTemplateName")
 
-            Log.d("xXX", "relationsManyToOne= ${relationsManyToOne}")
-            Log.d("xXX", "relationsOneToMany= ${relationsOneToMany}")
             val manyToOneRelations = relationsManyToOne.plus(inverseRelationsOneToMany).distinctBy { it.relation_source to it.relation_target to it.relation_name }
-            Log.d("xXX", "manyToOneRelations= ${manyToOneRelations}")
             manyToOneRelations.forEach { manyToOneRelation ->
                 data[RELATION_SOURCE] = manyToOneRelation.relation_source.tableNameAdjustment()
                 data[RELATION_TARGET] = manyToOneRelation.relation_target.tableNameAdjustment()
@@ -514,6 +512,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
             }
 
         } else if (currentFile.isWithRelationEntityTemplateName()) {
+            Log.d("currentFile isWithRelationEntityTemplateName")
 
             val manyToOneRelations = relationsManyToOne.plus(inverseRelationsOneToMany).distinctBy { it.relation_source to it.relation_target to it.relation_name }
             manyToOneRelations.forEach { manyToOneRelation ->
@@ -537,11 +536,13 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
             }
 
         } else {
+            Log.d("currentFile applying default templating")
             applyTemplate(newFilePath)
         }
     }
 
     private fun fillFileWithTemplateName(tableName: TemplateTableFiller) {
+        Log.d("currentFile fillFileWithTemplateName")
 
         data[TABLENAME] = tableName.name.tableNameAdjustment()
 
@@ -553,7 +554,6 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
         data[TABLENAME_LOWERCASE] = tableName.name.toLowerCase().fieldAdjustment()
         data[TABLENAME_CAMELCASE] = tableName.name.dataBindingAdjustment()
-        Log.d("YYY", "${projectEditor.dataModelList.find { it.name.tableNameAdjustment() == tableName.name.tableNameAdjustment() }?.fields?.map { it.getFieldName() }}")
         projectEditor.dataModelList.find { it.name.tableNameAdjustment() == tableName.name.tableNameAdjustment() }?.fields?.let { fields ->
 
             val fieldList = mutableListOf<TemplateFieldFiller>()
@@ -570,7 +570,6 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
             data[TABLE_HAS_DATE_FIELD] = fieldList.map { it.fieldTypeString }.contains("Date")
             data[TABLE_HAS_TIME_FIELD] = fieldList.map { it.fieldTypeString }.contains("Time")
             data[TABLE_HAS_ONE_TO_MANY_FIELD] = fieldList.map { it.fieldTypeString }.firstOrNull { it.startsWith("Entities<") } != null
-            Log.d("FIELDS", "${data[FIELDS]}")
             val firstField: String = fieldList.firstOrNull()?.name ?: ""
             data[FIRST_FIELD] = firstField
         }
@@ -607,10 +606,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
     fun applyListFormTemplate() {
         projectEditor.listFormList.forEach { listForm ->
 
-            Log.d("MustacheHelper : listform.name = ${listForm.name}")
-            Log.d("MustacheHelper : listform.datamodel.name = ${listForm.dataModel.name}")
-            Log.d("MustacheHelper : listform.datamodel.name.tableNameAdjustment() = ${listForm.dataModel.name.tableNameAdjustment()}")
-            Log.d("MustacheHelper : listform.fields size = ${listForm.fields?.size}")
+            Log.d("applyListFormTemplate : listForm.name = ${listForm.name} for table ${listForm.dataModel.name}. FieldSize : ${listForm.fields?.size}")
 
             var formPath = fileHelper.pathHelper.getFormPath(listForm.name, FormType.LIST)
             formPath = fileHelper.pathHelper.verifyFormPath(formPath, FormType.LIST)
@@ -640,7 +636,6 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                 relationsManyToOne.clear()
                                 relationsOneToMany.clear()
                                 projectEditor.dataModelList.find { it.name.tableNameAdjustment() == listForm.dataModel.name.tableNameAdjustment() }?.relationList?.forEach { relation ->
-                                    Log.d("RRR relation = $relation")
                                     val filler = relation.getTemplateRelationFiller()
                                     if (relation.relationType == RelationType.MANY_TO_ONE) {
                                         relationsManyToOne.add(filler)
@@ -658,19 +653,17 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                 var wholeFormHasIcons = false
 
                                 projectEditor.dataModelList.find { it.id == listForm.dataModel.id }?.fields?.forEach {
-                                    Log.d("LIST ${listForm.name} / field = $it")
                                     if (!it.icon.isNullOrEmpty())
                                         wholeFormHasIcons = true
                                 }
                                 projectEditor.dataModelList.find { it.id  == listForm.dataModel.id }?.relationList?.forEach { relation ->
                                     relation.subFields.forEach {
-                                        Log.d("LIST ${listForm.name} / related field = $it")
                                         if (!it.icon.isNullOrEmpty())
                                             wholeFormHasIcons = true
                                     }
                                 }
 
-                                Log.d("ListForm - ${listForm.dataModel.name} - wholeFormHasIcons = $wholeFormHasIcons")
+                                Log.d("wholeFormHasIcons = $wholeFormHasIcons")
 
                                 var i = 0
                                 listForm.fields?.forEach { field -> // Could also iterate over specificFieldsCount as Detail form
@@ -681,9 +674,6 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                     } else { // not a relation
                                         fillIndexedFormData(i, field, FormType.LIST, listForm, wholeFormHasIcons)
                                         if (isRelationWithFixes(projectEditor.dataModelList, listForm, field)) {
-
-                                            Log.d("XXX : field = $field")
-                                            Log.d("XXX : form = $listForm")
                                             fillRelationFillerForEachLayout(field, listForm, FormType.LIST, i)
                                         }
                                     }
@@ -709,8 +699,9 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
     }
 
     fun applyDetailFormTemplate() {
-
         projectEditor.detailFormList.forEach { detailForm ->
+
+            Log.d("applyDetailFormTemplate : detailForm.name = ${detailForm.name} for table ${detailForm.dataModel.name}. FieldSize : ${detailForm.fields?.size}")
 
             var formPath = fileHelper.pathHelper.getFormPath(detailForm.name, FormType.DETAIL)
             formPath = fileHelper.pathHelper.verifyFormPath(formPath, FormType.DETAIL)
@@ -755,19 +746,17 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                     var wholeFormHasIcons = false
 
                                     projectEditor.dataModelList.find { it.id == detailForm.dataModel.id }?.fields?.forEach {
-                                        Log.d("DETAIL ${detailForm.name} / field = $it")
                                         if (!it.icon.isNullOrEmpty())
                                             wholeFormHasIcons = true
                                     }
                                     projectEditor.dataModelList.find { it.id  == detailForm.dataModel.id }?.relationList?.forEach { relation ->
                                         relation.subFields.forEach {
-                                            Log.d("DETAIL ${detailForm.name} / related field = $it")
                                             if (!it.icon.isNullOrEmpty())
                                                 wholeFormHasIcons = true
                                         }
                                     }
 
-                                    Log.d("DetailForm - ${detailForm.dataModel.name} - wholeFormHasIcons = $wholeFormHasIcons")
+                                    Log.d("wholeFormHasIcons = $wholeFormHasIcons")
 
                                     if (fieldList.isNotEmpty()) {
 
@@ -804,16 +793,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
                                                 if (i < fieldList.size) {
                                                     val field = fieldList[i]
-
-                                                    Log.d("Adding specific Field $field")
-                                                    Log.d("fieldList[i].getLayoutVariableAccessor() = ${
-                                                        field.getLayoutVariableAccessor(FormType.DETAIL)
-                                                    }")
-
                                                     fillIndexedFormData(i + 1, field, FormType.DETAIL, detailForm, wholeFormHasIcons)
-
-                                                    Log.i("applyDetailFormTemplate fieldName :: ${field.name.fieldAdjustment()}")
-
                                                     fillRelationFillerForEachLayout(field, detailForm, FormType.DETAIL, i + 1)
 
                                                 } else {
@@ -822,23 +802,18 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                                 }
                                             }
 
-                                            Log.i("fieldList.size = ${fieldList.size}")
-                                            Log.i("specificFieldsCount = $specificFieldsCount")
-                                            Log.d("fieldList = $fieldList")
-                                            Log.d("maxFields = $maxFields")
                                             if (fieldList.size > specificFieldsCount && specificFieldsCount < maxFields) {
-                                                var k = specificFieldsCount // another counter to avoid null field
-                                                for (i in specificFieldsCount until maxFields) {
-                                                    Log.d("in for loop, i = $i")
-                                                    Log.d("in for loop, k = $k")
-                                                    val field = fieldList[i]
-                                                    Log.d("fieldList[i] = $field")
-                                                    if (field.name.isNotEmpty()) {
-                                                        Log.d("Adding free Field in specific template $field")
 
-                                                        Log.d("field.name = ${field.name}")
-                                                        Log.d("field.name fieldAdjusted = ${field.name.fieldAdjustment()}")
-                                                        Log.d("form's dataModel = ${projectEditor.dataModelList.find { it.id == detailForm.dataModel.id }?.name}")
+                                                var k = specificFieldsCount // another counter to avoid null field
+
+                                                for (i in specificFieldsCount until maxFields) {
+
+                                                    val field = fieldList[i]
+
+                                                    if (field.name.isNotEmpty()) {
+
+                                                        Log.d("Adding free Field in specific template ${field.name}")
+
                                                         val format = getFormatWithFixes(projectEditor.dataModelList, detailForm, field, fileHelper.pathHelper)
                                                         val formField = field.getTemplateFormFieldFiller(
                                                             i = k + 1,
@@ -854,8 +829,6 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
                                                         fillRelationFillerForEachLayout(field, detailForm, FormType.DETAIL, k + 1)
 
-                                                        Log.v("format :: $format")
-
                                                         formFieldList.add(formField)
                                                         k++
                                                     } else {
@@ -867,7 +840,6 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                             }
                                         }
                                     }
-
                                     data[FORM_FIELDS] = formFieldList
                                 }
 
@@ -897,29 +869,22 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
         if (inverseName != null && target != null) {
 
-            Log.d(">>>> field : $field")
             projectEditor.dataModelList.find { it.id  == form.dataModel.id }?.relationList?.find { it.name == field.name }?.let { relation ->
-                Log.d(">>>> relation : $relation")
 
                 val navbarTitle = getNavbarTitleWithFixes(projectEditor.dataModelList, form, field, source)
                 fillRelationFillerForEachRelation(source, target, field.name, inverseName, index, formType, relation, navbarTitle)
 
             } ?: kotlin.run {
-                Log.d(">>>> no relation found with this name, here is relation list :")
-                Log.d(">>>> ${projectEditor.dataModelList.find { it.id  == form.dataModel.id }?.relationList}")
                 val relationSplit = field.name.split(".")
                 if (relationSplit.size > 1) {
                     val relationBaseName: String = relationSplit[0]
                     val relationEndName: String = relationSplit[1]
 
                     projectEditor.dataModelList.find { it.id  == form.dataModel.id }?.fields?.find { it.name == relationBaseName }?.relatedTableNumber?.let { relationBaseTableNumber ->
-                        Log.d(">>>> relationBaseTableNumber = $relationBaseTableNumber")
                         projectEditor.dataModelList.find { it.id  == relationBaseTableNumber.toString() }?.relationList?.find { it.name == relationEndName }?.let { subRelation ->
-                            Log.d(">>>> subRelation = $subRelation")
 
                             val navbarTitle = getNavbarTitleWithFixes(projectEditor.dataModelList, form, field, source)
                             fillRelationFillerForEachRelation(source, subRelation.target, field.name, inverseName, index, formType, subRelation, navbarTitle)
-
                         }
                     }
                 }
@@ -929,10 +894,6 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
     private fun fillRelationFillerForEachRelation(source: String, target: String, relationName: String, inverseName: String, index: Int, formType: FormType, relation: Relation, navbarTitle: String) {
         val filler = getTemplateRelationFillerForLayout(source, target, relationName, inverseName, index, navbarTitle)
-        Log.d("source = ${source.tableNameAdjustment()}")
-        Log.d("target = ${target.tableNameAdjustment()}")
-        if (filler.isSubRelation)
-            Log.d("filler = $filler")
         when {
             formType == FormType.LIST && relation.relationType == RelationType.ONE_TO_MANY ->
                 oneToManyRelationFillerForEachListLayout.add(filler)
@@ -943,7 +904,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
             formType == FormType.DETAIL && relation.relationType == RelationType.MANY_TO_ONE ->
                 manyToOneRelationFillerForEachDetailLayout.add(filler)
         }
-        Log.d("Adding filler : $filler")
+        Log.d("Adding fillRelationFillerForEachRelation : $filler")
     }
 
     private fun removeIndexedEntries(i: Int) {
@@ -1097,11 +1058,10 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
     private fun applyTemplate(newPath: String, overwrite: Boolean = false) {
         var newFile = File(newPath.replaceXmlTxtSuffix())
         val fileName = newFile.nameWithoutExtension
-        println("fileName= $fileName")
+
         if (reservedKeywords.contains(fileName)) {
             newFile = File(newFile.parent.removeSuffix("/")
                 .removeSuffix("\\") + File.separator + fileName.validateWord() + "." + newFile.extension)
-            println("===== newFile = ${newFile.absolutePath}")
         }
         if (newFile.exists() && overwrite) {
             newFile.delete()
@@ -1208,15 +1168,14 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
     ) {
         if (field.format != null) {
             val format = field.format as String
-            Log.d("getCustomFormatterFields()  /  Format = $format")
+            Log.d("getCustomFormatterFields, format : $format, relationName: $relationName")
             if (format.startsWith("/")) {
 
                 val formatPath = fileHelper.pathHelper.getCustomFormatterPath(format)
                 getManifestJSONContent(formatPath)?.let {
 
                     val fieldMapping = getFieldMapping(it, format)
-                    Log.d("extractFormatter : relationName = $relationName")
-                    Log.d("fieldMapping = $fieldMapping")
+                    Log.d("fieldMapping :  $fieldMapping")
                     // Saving any permission for kotlin custom formatters
                     fieldMapping.capabilities.forEach { permissionName ->
                         permissionFillerList.add(getTemplatePermissionFiller(permissionName))
@@ -1251,8 +1210,6 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
             map[field.name.fieldAdjustment()] = fieldMapping
         else
             map[relationName.fieldAdjustment() + "." + field.name.fieldAdjustment()] = fieldMapping
-
-        Log.d("map = $map")
 
         if (fieldMapping.isImageNamed()) {
 
@@ -1290,7 +1247,8 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
             .toLowerCase()
             .replace("[^a-z0-9]+".toRegex(), "_")
 
-        Log.d("correctedFormatName = $correctedFormatName")
+
+        Log.d("getResourceName, correctedFormatName : $correctedFormatName")
 
         val correctedImageName = correctIconPath(imageName)
 
@@ -1317,8 +1275,6 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         }
         return false
     }
-
-    private fun FieldMapping.isImageNamed() = this.binding == "imageNamed"
 
     private fun getHexStringColor(red: Int, green: Int, blue: Int): String {
         var redHexString = toHexString(red)

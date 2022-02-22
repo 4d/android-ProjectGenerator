@@ -48,7 +48,6 @@ fun Relation.checkSubRelations(): List<TemplateRelationFiller> {
         if (target != null && inverseName != null) {
             val subTemplateRelationFiller = getSubTemplateRelationFiller(this.source, target, relationName, inverseName, originalSubRelationName)
             subTemplateRelationFillerList.add(subTemplateRelationFiller)
-            Log.d("Adding subTemplateRelationFiller = $subTemplateRelationFiller")
         }
     }
     return subTemplateRelationFillerList

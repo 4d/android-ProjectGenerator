@@ -11,7 +11,6 @@ fun JSONObject.getFormList(dataModelList: List<DataModel>, formType: FormType, n
     val formTypeKey = if (formType == FormType.LIST) LIST_KEY else DETAIL_KEY
     val forms = this.getSafeObject(PROJECT_KEY)?.getSafeObject(formTypeKey)
 
-    Log.d("dataModelList = ${dataModelList.joinToString { it.id }}")
     Log.d("navigationTableList = ${navigationTableList.joinToString()}")
 
     forms?.keys()?.forEach { keyDataModel ->
@@ -21,9 +20,6 @@ fun JSONObject.getFormList(dataModelList: List<DataModel>, formType: FormType, n
             newFormJSONObject?.getSafeString(FORM_KEY)?.let {
                 form.name = it
             }
-            Log.d("***+ formType : $formType")
-            Log.d("newFormJSONObject = $newFormJSONObject")
-            Log.d("newFormJSONObject?.getSafeArray(FIELDS_KEY) = ${newFormJSONObject?.getSafeArray(FIELDS_KEY)}")
             val fieldList = newFormJSONObject?.getSafeArray(FIELDS_KEY).getObjectListAsString()
             form.fields = getFormFields(fieldList)
             formList.add(form)
@@ -31,19 +27,9 @@ fun JSONObject.getFormList(dataModelList: List<DataModel>, formType: FormType, n
     }
 
     dataModelList.filter { it.isSlave == false }.forEach { dataModel ->
-        Log.d("dataModel.id = ${dataModel.id}")
         if (navigationTableList.contains(dataModel.id) && !formList.map { it.dataModel.id }.contains(dataModel.id)) {
-            Log.d("adding empty form for dataModel : ${dataModel.name}")
             val form = Form(dataModel = dataModel)
             formList.add(form)
-        }
-    }
-
-    for (form in formList) {
-        Log.d("form (before checking missing forms) : ${form.name}")
-        form.fields?.let {
-            for (field in it)
-                Log.d("> field : ${field.name}")
         }
     }
 
@@ -56,24 +42,16 @@ fun JSONObject.getFormList(dataModelList: List<DataModel>, formType: FormType, n
                     // if Simple Table (default list form, avoid photo and relation)
                     if (formType == FormType.LIST && (it.fieldTypeString == PHOTO_TYPE || it.inverseName != null)) {
                         // don't add this field
+                        Log.d("Not adding field to default form = ${it.name}")
                     } else {
-                        Log.d("adding field to default form = $it")
+                        Log.d("Adding field to default form = ${it.name}")
                         fields.add(it)
                     }
                 }
             }
             form.fields = fields
-
         } else {
             // a form was specified
-        }
-    }
-
-    for (form in formList) {
-        Log.d("form (after checking missing forms) : ${form.name}")
-        form.fields?.let {
-            for (field in it)
-                Log.d("> field : ${field.name}")
         }
     }
     return formList
@@ -83,7 +61,6 @@ fun JSONObject.getSearchFields(dataModelList: List<DataModel>): HashMap<String, 
     val searchFields = HashMap<String, List<String>>()
     this.getSafeObject("project")?.let { project ->
         project.getSafeObject("list")?.let { listForms ->
-            Log.i("listForms :: $listForms")
             listForms.keys().forEach eachTableIndex@{ tableIndex ->
                 if (tableIndex !is String) return@eachTableIndex
                 val tableSearchableFields = mutableListOf<String>()
@@ -94,7 +71,7 @@ fun JSONObject.getSearchFields(dataModelList: List<DataModel>): HashMap<String, 
                     if (searchableFieldAsArray != null) {
                         for (ind in 0 until searchableFieldAsArray.length()) {
                             searchableFieldAsArray.getSafeObject(ind)?.getSafeString("name")?.let { fieldName ->
-                                Log.v("$tableName SearchField fieldName.fieldAdjustment() :: ${fieldName.fieldAdjustment()}")
+                                Log.v("Adding searchField ${fieldName.fieldAdjustment()} for table $tableName")
                                 tableSearchableFields.add(fieldName.fieldAdjustment())
                             }
                         }
@@ -102,11 +79,11 @@ fun JSONObject.getSearchFields(dataModelList: List<DataModel>): HashMap<String, 
                         val searchableFieldAsObject = listForm.getSafeObject("searchableField")
                         if (searchableFieldAsObject != null) {
                             searchableFieldAsObject.getSafeString("name")?.let { fieldName ->
-                                Log.v("$tableName  SearchField fieldName.fieldAdjustment() :: ${fieldName.fieldAdjustment()}")
+                                Log.v("Adding searchField ${fieldName.fieldAdjustment()} for table $tableName")
                                 tableSearchableFields.add(fieldName.fieldAdjustment())
                             }
                         } else {
-                            Log.w("$tableName searchableField is not available as object or array in $listForm")
+                            Log.w("searchField definition error for table $tableName")
                         }
                     }
                 }
@@ -118,7 +95,6 @@ fun JSONObject.getSearchFields(dataModelList: List<DataModel>): HashMap<String, 
                     }
                 }
             }
-            Log.i("Computed search fields $searchFields")
         } // else no list form, so no search fields
     }
     return searchFields

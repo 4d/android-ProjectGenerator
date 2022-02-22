@@ -48,7 +48,9 @@ class ProjectEditor(projectEditorFile: File, isCreateDatabaseCommand: Boolean = 
 
     init {
         val jsonString = projectEditorFile.readFile()
-        Log.plantTree(this::class.java.canonicalName)
+        Log.d("==================================\n" +
+                "ProjectEditor init\n" +
+                "==================================\n")
 
         if (jsonString.isEmpty()) {
             throw Exception("Json file ${projectEditorFile.name} is empty")
@@ -167,7 +169,6 @@ class ProjectEditor(projectEditorFile: File, isCreateDatabaseCommand: Boolean = 
 
     fun getActions(): Actions {
         val actionList = mutableListOf<Action>()
-        println("jsonObj = $jsonObj")
         jsonObj.getSafeObject(PROJECT_KEY)?.getSafeArray(ACTIONS_KEY)?.let { actionsArray ->
             for (i in 0 until actionsArray.length()) {
                 actionsArray.getSafeObject(i)?.let { actionObject ->

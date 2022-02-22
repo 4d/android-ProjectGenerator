@@ -6,11 +6,9 @@ import PathHelperConstants.APP_PATH_KEY
 import PathHelperConstants.ASSETS_PATH_KEY
 import PathHelperConstants.DETAIL_FORMS_KEY
 import PathHelperConstants.DETAIL_FORM_PREFIX
-import PathHelperConstants.DRAWABLE_PATH_KEY
 import PathHelperConstants.FORMATTERS_FORMATTER_KEY
 import PathHelperConstants.HOST_FORMATTERS_KEY
 import PathHelperConstants.HOST_FORMS
-import PathHelperConstants.IMAGES_FORMATTER_KEY
 import PathHelperConstants.JAVA_PATH_KEY
 import PathHelperConstants.LAYOUT_PATH_KEY
 import PathHelperConstants.LIST_FORMS_KEY
@@ -70,17 +68,17 @@ class PathHelper(
         return replaceDirectoriesPath(subPath)
     }
 
-    val listFormTemplatesPath = templateFormsPath + File.separator + LIST_FORMS_KEY
+    private val listFormTemplatesPath = templateFormsPath + File.separator + LIST_FORMS_KEY
 
-    val detailFormTemplatesPath = templateFormsPath + File.separator + DETAIL_FORMS_KEY
+    private val detailFormTemplatesPath = templateFormsPath + File.separator + DETAIL_FORMS_KEY
 
-    val hostFormTemplatesPath = hostDb + File.separator + HOST_FORMS
+    private val hostFormTemplatesPath = hostDb + File.separator + HOST_FORMS
 
-    val hostListFormTemplatesPath = hostFormTemplatesPath + File.separator + LIST_FORMS_KEY
+    private val hostListFormTemplatesPath = hostFormTemplatesPath + File.separator + LIST_FORMS_KEY
 
-    val hostDetailFormTemplatesPath = hostFormTemplatesPath + File.separator + DETAIL_FORMS_KEY
+    private val hostDetailFormTemplatesPath = hostFormTemplatesPath + File.separator + DETAIL_FORMS_KEY
 
-    val hostFormattersPath = hostDb + File.separator + HOST_FORMATTERS_KEY
+    private val hostFormattersPath = hostDb + File.separator + HOST_FORMATTERS_KEY
 
     private val srcPath = targetDirPath + File.separator +
             APP_PATH_KEY + File.separator +
@@ -111,8 +109,6 @@ class PathHelper(
                 ASSETS_PATH_KEY
         return assetsPath.replaceIfWindowsPath()
     }
-
-    fun drawablePath(): String = resPath() + File.separator + DRAWABLE_PATH_KEY
 
     fun getRecyclerViewItemPath(tableName: String) =
         layoutPath + File.separator + RECYCLER_VIEW_ITEM_PREFIX + tableName.toLowerCase().addXmlSuffix()
@@ -169,7 +165,7 @@ class PathHelper(
         return formPath
     }
 
-    fun appFolderExistsInTemplate(formPath: String): Boolean = File(getAppFolderInTemplate(formPath)).exists()
+    private fun appFolderExistsInTemplate(formPath: String): Boolean = File(getAppFolderInTemplate(formPath)).exists()
 
     fun getAppFolderInTemplate(formPath: String): String {
         val androidFormPath = formPath + File.separator + ANDROID_PATH_KEY
@@ -179,16 +175,12 @@ class PathHelper(
         return formPath + File.separator + APP_PATH_KEY
     }
 
-
-    fun getImagesFolderInFormatter(formatterPath: String): String =
-        formatterPath + File.separator + IMAGES_FORMATTER_KEY
-
-    fun getDefaultTemplateListFormPath() = listFormTemplatesPath + File.separator + DEFAULT_LIST_FORM
-    fun getDefaultTemplateDetailFormPath() = detailFormTemplatesPath + File.separator + DEFAULT_DETAIL_FORM
+    private fun getDefaultTemplateListFormPath() = listFormTemplatesPath + File.separator + DEFAULT_LIST_FORM
+    private fun getDefaultTemplateDetailFormPath() = detailFormTemplatesPath + File.separator + DEFAULT_DETAIL_FORM
 
     fun isDefaultTemplateListFormPath(formPath: String) = formPath == getDefaultTemplateListFormPath()
 
-    fun getTemplateListFormPath(formName: String): String {
+    private fun getTemplateListFormPath(formName: String): String {
         var templatePath = ""
         var newFormName = formName
         if (formName.startsWith("/")) {
@@ -211,7 +203,7 @@ class PathHelper(
         return templatePath + File.separator + newFormName.removePrefix(File.separator)
     }
 
-    fun getTemplateDetailFormPath(formName: String): String {
+    private fun getTemplateDetailFormPath(formName: String): String {
         var templatePath = ""
         var newFormName = formName
         if (formName.startsWith("/")) {

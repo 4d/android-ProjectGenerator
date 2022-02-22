@@ -34,9 +34,6 @@ class GenerateCommand : CliktCommand(name = "generate") {
     private lateinit var TEMPLATE_FORMS: String
     private lateinit var HOST_DB: String
     private lateinit var projectEditorJson: File
-    init {
-        Log.plantTree(this::class.java.canonicalName)
-    }
 
     val projectEditor: String by option(help = Clikt.projectEditorText).prompt(Clikt.projectEditorText).validate {
         projectEditorJson = File(it)
@@ -58,14 +55,12 @@ class GenerateCommand : CliktCommand(name = "generate") {
         TEMPLATE_FORMS = templateForms.removeSuffix("/")
     }
     val hostDb: String by option(help = Clikt.hostDbText).prompt(Clikt.hostDbText).validate {
-//        val hostDbDir = File(it)
-//        require(hostDbDir.exists() && hostDbDir.isDirectory) { "Can't find host database directory $it" }
         HOST_DB = hostDb.removeSuffix("/")
     }
 
     override fun run() {
-        Log.d("Parameters checked.")
-        Log.d("Version: ${Version.VALUE}")
+        Log.i("Parameters checked.")
+        Log.i("Version: ${Version.VALUE}")
         Log.i("Starting procedure...")
         start()
         Log.i("Procedure complete.")
@@ -73,12 +68,12 @@ class GenerateCommand : CliktCommand(name = "generate") {
 
     private fun start() {
 
-        Log.d("file: ${projectEditorJson.path}...")
+        Log.i("file: ${projectEditorJson.path}...")
 
         val projectEditor = ProjectEditor(projectEditorJson)
 
-        Log.d("Reading project editor json file done.")
-        Log.v("--------------------------------------")
+        Log.i("Reading project editor json file done.")
+        Log.i("--------------------------------------")
 
         var targetDirPath = ""
         projectEditor.findJsonString("targetDirPath")?.let {
@@ -105,16 +100,16 @@ class GenerateCommand : CliktCommand(name = "generate") {
 
         val fileHelper = FileHelper(pathHelper)
 
-        Log.d("Start gathering Mustache templating data...")
+        Log.i("Start gathering Mustache templating data...")
 
         val mustacheHelper = MustacheHelper(fileHelper, projectEditor)
 
-        Log.d("Gathering Mustache templating data done.")
-        Log.v("----------------------------------------")
+        Log.i("Gathering Mustache templating data done.")
+        Log.i("----------------------------------------")
 
         fileHelper.copyFiles()
 
-        Log.d("Files successfully copied.")
+        Log.i("Files successfully copied.")
 
         fileHelper.createPathDirectories()
 
@@ -122,14 +117,19 @@ class GenerateCommand : CliktCommand(name = "generate") {
 
         mustacheHelper.applyListFormTemplate()
 
+        Log.i("Applied List Form Templates")
+
         mustacheHelper.applyDetailFormTemplate()
 
+        Log.i("Applied Detail Form Templates")
+
         pathHelper.deleteTemporaryUnzippedDirectories()
+        Log.i("Deleted Temporary Unzipped Directories")
 
         mustacheHelper.processTemplates()
 
         Log.i("Mustache templating done.")
-        Log.v("-------------------------")
+        Log.i("-------------------------")
 
         mustacheHelper.makeQueries()
 
@@ -151,7 +151,7 @@ class GenerateCommand : CliktCommand(name = "generate") {
 
         Log.i("\"actions.json\" file successfully generated.")
 
-        Log.d("Output: ${projectEditor.findJsonString("targetDirPath")}")
+        Log.i("Output: ${projectEditor.findJsonString("targetDirPath")}")
     }
 }
 
@@ -178,26 +178,25 @@ class CreateDatabaseCommand : CliktCommand(name = "createDatabase") {
     }
 
     override fun run() {
-        println("Parameters checked.")
-        println("Version: ${Version.VALUE}")
-        println("Starting procedure...")
+        Log.i("Parameters checked.")
+        Log.i("Version: ${Version.VALUE}")
+        Log.i("Starting procedure...")
         start()
-        println("Procedure complete.")
+        Log.i("Procedure complete.")
     }
 
     private fun start() {
 
-        println("file: ${projectEditorJson.path}...")
+        Log.i("file: ${projectEditorJson.path}...")
 
         val projectEditor = ProjectEditor(projectEditorJson, true)
 
-        println("Reading project editor json file done.")
-        println("--------------------------------------")
+        Log.i("Reading project editor json file done.")
+        Log.i("--------------------------------------")
 
-        println(projectEditor.dataModelList)
         CreateDatabaseTask(projectEditor.dataModelList, ASSETS, DBFILEPATH)
 
-        println("Output: $DBFILEPATH}")
+        Log.i("Output: $DBFILEPATH}")
     }
 }
 

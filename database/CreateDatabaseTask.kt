@@ -58,7 +58,7 @@ class CreateDatabaseTask(
                 val staticDataInitializer = StaticDataInitializer()
 
                 database.insertAll(getSqlQueries(staticDataInitializer))
-                println("Database updated")
+                Log.i("Database updated")
                 val dumpInfoFile = getDumpedInfoFile(assetsPath)
                 integrateGlobalStamp(dumpInfoFile, initialGlobalStamp)
                 integrateDumpedTables(dumpInfoFile, dumpedTables)
@@ -67,9 +67,6 @@ class CreateDatabaseTask(
 
     private fun getSqlQueries(staticDataInitializer: StaticDataInitializer): List<SqlQuery> {
         val queryList = mutableListOf<SqlQuery>()
-        println("originalTableNamesMap = $originalTableNamesMap")
-        println("concatFieldsMap = $concatFieldsMap")
-        println("tableNameAndFieldsMap = $tableNameAndFieldsMap")
         for ((tableName, tableNameOriginal) in originalTableNamesMap) {
             concatFieldsMap[tableName]?.let { concatFields ->
                 getCatalog(assetsPath, tableNameOriginal, concatFields)?.let { dataClass ->
@@ -174,7 +171,7 @@ class CreateDatabaseTask(
         val filePath = getDataPath(assetsPath, tableNameOriginal)
         val entitySqlQueriesFile = File(filePath)
 
-        println("[$tableName] Reading data at path $filePath")
+        Log.d("[$tableName] Reading data at path $filePath")
 
         if (entitySqlQueriesFile.exists()) {
             getSqlQueriesForTableFromFile(
@@ -186,7 +183,7 @@ class CreateDatabaseTask(
                 sqlQueryList.add(it)
             }
         } else {
-            println("[$tableName] No data file found")
+            Log.d("[$tableName] No data file found")
         }
 
         var i = 0
@@ -194,7 +191,7 @@ class CreateDatabaseTask(
             val pageFilePath = getDataPath(assetsPath, tableNameOriginal, ++i)
             val pageEntitySqlQueriesFile = File(pageFilePath)
 
-            println("[$tableName] Reading data at path $pageFilePath")
+            Log.d("[$tableName] Reading data at path $pageFilePath")
 
             if (pageEntitySqlQueriesFile.exists()) {
                 getSqlQueriesForTableFromFile(
@@ -206,7 +203,7 @@ class CreateDatabaseTask(
                     sqlQueryList.add(it)
                 }
             } else {
-                println("[$tableName] No data file found")
+                Log.i("[$tableName] No data file found")
             }
         } while (pageEntitySqlQueriesFile.exists())
 
@@ -245,10 +242,10 @@ class CreateDatabaseTask(
                 }
             }
 
-            println("[$tableName] Couldn't find entities to extract")
+            Log.i("[$tableName] Couldn't find entities to extract")
 
         } else {
-            println("[$tableName] Empty data file")
+            Log.i("[$tableName] Empty data file")
         }
 
         return null
@@ -263,7 +260,7 @@ class CreateDatabaseTask(
         val propertyList = sqlQueryBuilder.hashMap.toSortedMap().keys.toList()
         propertyListMap[tableName] = propertyList
 
-        println("[$tableName] ${sqlQueryBuilder.outputEntities.size} entities extracted")
+        Log.d("[$tableName] ${sqlQueryBuilder.outputEntities.size} entities extracted")
 
         return staticDataInitializer.getQuery(
             tableName,

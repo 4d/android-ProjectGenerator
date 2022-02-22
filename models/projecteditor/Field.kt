@@ -108,8 +108,6 @@ fun correctIconPath(iconPath: String): String {
         .removePrefix(File.separator)
         .toLowerCase()
         .replace("[^a-z0-9]+".toRegex(), "_")
-
-    Log.d("correctedIconPath = $correctedIconPath")
     return correctedIconPath
 }
 
@@ -139,8 +137,6 @@ fun Field.getFormatNameForType(pathHelper: PathHelper): String {
             getManifestJSONContent(formatPath)?.let {
 
                 val fieldMapping = getFieldMapping(it, format)
-                Log.d("getFormatNameForType - fieldMapping = $fieldMapping")
-                Log.d("getFormatNameForType - format = $format")
                 return if (fieldMapping.isValidFormatter() || fieldMapping.isValidKotlinCustomDataFormatter()) {
                     format
                 } else {
@@ -162,11 +158,9 @@ fun getDataModelField(dataModelList: List<DataModel>, form: Form, field: Field):
         val fieldInRelationList = relationList?.find { it.name == field.name.split(".")[0] }
         val subFields = fieldInRelationList?.subFields
         val subField = subFields?.find { it.name == field.name.split(".")[1] }
-        Log.d("getDataModelField - subField = $subField")
         return subField
     } else {
         val dataModelField = dataModelList.find { it.id == form.dataModel.id }?.fields?.find { it.name == field.name }
-        Log.d("getDataModelField - dataModelField = $dataModelField")
         return dataModelField
     }
 }
@@ -187,9 +181,7 @@ fun hasShortLabelPercentPlaceholder(dataModelList: List<DataModel>, form: Form, 
 
 fun hasPercentPlaceholder(label: String, dataModelList: List<DataModel>, form: Form, field: Field): Boolean {
     val hasLengthPlaceholder = hasLengthPlaceholder(label, dataModelList, form, field)
-    Log.d("HasPercentPlaceholder, hasLengthPlaceholder = $hasLengthPlaceholder")
     val hasFieldPlaceholder = hasFieldPlaceholder(label, dataModelList, form, field)
-    Log.d("HasPercentPlaceholder, hasFieldPlaceholder = $hasFieldPlaceholder")
     return hasLengthPlaceholder || hasFieldPlaceholder
 }
 
@@ -231,46 +223,32 @@ fun cleanPrefixSuffix(label: String): String {
 fun replaceLengthPlaceholder(label: String, field: Field, formType: FormType): String {
     var labelWithLength = ""
     val relationName = field.name.fieldAdjustment().replace(".", "_")
-    Log.d("replaceLengthPlaceholder, label = $label")
-    Log.d("replaceLengthPlaceholder, relationName = $relationName")
     val lengthPlaceholder = "%length%"
     val sizeReplacement = if (formType == FormType.LIST)
         "$relationName.size"
     else
         "viewModel.$relationName.size"
     labelWithLength = label.replace(lengthPlaceholder, "\" + $sizeReplacement + \"")
-    Log.d("replaceLengthPlaceholder, labelWithLength = $labelWithLength")
     return labelWithLength
 }
 
 fun hasFieldPlaceholder(label: String, dataModelList: List<DataModel>, form: Form, field: Field): Boolean {
-    Log.d("hasFieldPlaceholder, label: $label")
-    Log.d("hasFieldPlaceholder, field: $field")
     if (!isRelationWithFixes(dataModelList, form, field)) return false
     if (!isManyToOneRelationWithFixes(dataModelList, form, field)) return false
-    Log.d("hasFieldPlaceholder, is relation, and is many to one")
     val dataModel = form.dataModel
     val regex = ("((?:%[\\w|\\s|\\.]+%)+)").toRegex()
     regex.findAll(label).forEach { matchResult ->
         val fieldName = matchResult.destructured.component1().removePrefix("%").removeSuffix("%")
         // Verify that fieldName exists in source dataModel
         if (fieldName.contains(".")) {
-            Log.d("Contains '.'")
             val baseFieldName = fieldName.split(".")[0]
             val relatedFieldName = fieldName.split(".")[1]
             val baseField = dataModel.fields?.find { it.name.fieldAdjustment() == baseFieldName.fieldAdjustment() }
-            Log.d("baseField = $baseField")
             val relatedDataModel = dataModelList.find { it.id == "${baseField?.relatedTableNumber}" }
             if (relatedDataModel?.fields?.find { it.name.fieldAdjustment() == relatedFieldName.fieldAdjustment() } != null)
                 return true
         } else {
-            Log.d("Doesn't contains '.'")
             val relatedDataModel = dataModelList.find { it.id == field.relatedTableNumber.toString() }
-            Log.d("fieldName.fieldAdjustment() = ${fieldName.fieldAdjustment()}")
-            Log.d("relatedDataModel.name = ${relatedDataModel?.name}}")
-            Log.d("relatedDataModel.fields = ${relatedDataModel?.fields?.map { it.name.fieldAdjustment() }}")
-
-//            if (dataModel.fields?.find { it.name.fieldAdjustment() == fieldName.fieldAdjustment() } != null)
             if (relatedDataModel?.fields?.find { it.name.fieldAdjustment() == fieldName.fieldAdjustment() } != null)
                 return true
         }
@@ -279,24 +257,16 @@ fun hasFieldPlaceholder(label: String, dataModelList: List<DataModel>, form: For
 }
 
 fun replaceFieldPlaceholder(label: String, field: Field, formType: FormType): String {
-    Log.d("TTT getFieldPlaceholder : label = $label")
-    Log.d("TTT getFieldPlaceholder : field = $field")
-    Log.d("label = $label")
     val labelWithoutRemainingLength = label.replace("%length%", "")
-    Log.d("labelWithoutRemainingLength = $labelWithoutRemainingLength")
     val regex = ("((?:%[\\w|\\s|\\.]+%)+)").toRegex()
     val newLabel = regex.replace(labelWithoutRemainingLength) { matchResult ->
         val fieldName = matchResult.destructured.component1().removePrefix("%").removeSuffix("%")
-        Log.d("TTT : fieldName = $fieldName")
-
         if (formType == FormType.LIST)
             "\" + ${field.name.fieldAdjustment()}.${fieldName.fieldAdjustment()}.toString() + \""
         else
             "\" + viewModel.${field.name.fieldAdjustment()}.${fieldName.fieldAdjustment()}.toString() + \""
     }
-    Log.d("newLabel = $newLabel")
     val labelWithField = "\"" + newLabel.removePrefix(" ").removeSuffix(" ") + "\""
-    Log.d("labelWithField = $labelWithField")
     return cleanPrefixSuffix(labelWithField)
 }
 
@@ -306,7 +276,6 @@ fun Field.getNavbarTitle(dataModelList: List<DataModel>, source: String): String
 
     val regex = ("((?:%[\\w|\\s|\\.]+%)+)").toRegex()
     val formatWithoutRemainingLength = format.replace("%length%", "")
-    Log.d("formatWithoutRemainingLength = $formatWithoutRemainingLength")
     val navbarTitle = regex.replace(formatWithoutRemainingLength) { matchResult ->
         val fieldName = matchResult.destructured.component1().removePrefix("%").removeSuffix("%")
         // Verify that fieldName exists in source dataModel
@@ -314,7 +283,6 @@ fun Field.getNavbarTitle(dataModelList: List<DataModel>, source: String): String
             val baseFieldName = fieldName.split(".")[0]
             val relatedFieldName = fieldName.split(".")[1]
             val baseField = dataModel?.fields?.find { it.name.fieldAdjustment() == baseFieldName.fieldAdjustment() }
-            Log.d("baseField = $baseField")
             val relatedDataModel = dataModelList.find { it.id == "${baseField?.relatedTableNumber}" }
             val relatedField = relatedDataModel?.fields?.find { it.name.fieldAdjustment() == relatedFieldName.fieldAdjustment() }
             if (relatedField != null) {
