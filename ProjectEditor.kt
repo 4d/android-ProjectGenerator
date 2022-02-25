@@ -36,7 +36,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
 
-class ProjectEditor(projectEditorFile: File, isCreateDatabaseCommand: Boolean = false) {
+class ProjectEditor(projectEditorFile: File, catalogDef: CatalogDef? = null, isCreateDatabaseCommand: Boolean = false) {
 
     lateinit var dataModelList: List<DataModel>
     lateinit var listFormList: List<Form>
@@ -69,7 +69,7 @@ class ProjectEditor(projectEditorFile: File, isCreateDatabaseCommand: Boolean = 
                 navigationTableList = jsonObj.getNavigationTableList()
                 Log.d("> Navigation tables list successfully read.")
 
-                dataModelList = jsonObj.getDataModelList()
+                dataModelList = jsonObj.getDataModelList(catalogDef)
                 Log.d("> DataModels list successfully read.")
 
                 searchableFields = jsonObj.getSearchFields(dataModelList)

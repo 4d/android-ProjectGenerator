@@ -34,6 +34,7 @@ class GenerateCommand : CliktCommand(name = "generate") {
     private lateinit var TEMPLATE_FORMS: String
     private lateinit var HOST_DB: String
     private lateinit var projectEditorJson: File
+    private lateinit var catalogJson: File
 
     val projectEditor: String by option(help = Clikt.projectEditorText).prompt(Clikt.projectEditorText).validate {
         projectEditorJson = File(it)
@@ -57,6 +58,10 @@ class GenerateCommand : CliktCommand(name = "generate") {
     val hostDb: String by option(help = Clikt.hostDbText).prompt(Clikt.hostDbText).validate {
         HOST_DB = hostDb.removeSuffix("/")
     }
+    val catalog: String by option(help = Clikt.catalogText).prompt(Clikt.catalogText).validate {
+        catalogJson = File(it)
+        require(catalogJson.exists()) { "Can't find catalog json file ${catalogJson.name}" }
+    }
 
     override fun run() {
         Log.i("Parameters checked.")
@@ -70,7 +75,12 @@ class GenerateCommand : CliktCommand(name = "generate") {
 
         Log.i("file: ${projectEditorJson.path}...")
 
-        val projectEditor = ProjectEditor(projectEditorJson)
+        val catalogDef = CatalogDef(catalogJson)
+
+        Log.i("Reading catalog json file done.")
+        Log.i("--------------------------------------")
+
+        val projectEditor = ProjectEditor(projectEditorFile = projectEditorJson, catalogDef = catalogDef)
 
         Log.i("Reading project editor json file done.")
         Log.i("--------------------------------------")
@@ -189,7 +199,7 @@ class CreateDatabaseCommand : CliktCommand(name = "createDatabase") {
 
         Log.i("file: ${projectEditorJson.path}...")
 
-        val projectEditor = ProjectEditor(projectEditorJson, true)
+        val projectEditor = ProjectEditor(projectEditorFile = projectEditorJson, isCreateDatabaseCommand = true)
 
         Log.i("Reading project editor json file done.")
         Log.i("--------------------------------------")
