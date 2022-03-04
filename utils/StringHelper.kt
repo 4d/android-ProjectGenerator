@@ -44,10 +44,11 @@ private fun String.lowerCustomProperties() =
     if (this in arrayOf("__KEY", "__STAMP", "__GlobalStamp", "__TIMESTAMP"))
         this
     else
-        if (this.startsWith("__") && this.endsWith("Key"))
-            this.removeSuffix("Key").toLowerCase(Locale.getDefault()) + "Key"
-        else
-            this.toLowerCase(Locale.getDefault())
+        when {
+            this.startsWith("__") && this.endsWith("Key") -> this.removeSuffix("Key").toLowerCase(Locale.getDefault()) + "Key"
+            this.startsWith("__") && this.endsWith("Size") -> this.removeSuffix("Size").toLowerCase(Locale.getDefault()) + "Size"
+            else -> this.toLowerCase(Locale.getDefault())
+        }
 
 private fun String.decapitalizeExceptID() =
     if (this == "ID") this.toLowerCase(Locale.getDefault()) else this.decapitalize(Locale.getDefault())

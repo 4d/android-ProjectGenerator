@@ -12,7 +12,7 @@ fun TemplateRelationFiller.getTemplateRelationDefFiller(relationType: RelationTy
         relation_target = this.relation_target,
         relation_name = if (relationType == RelationType.ONE_TO_MANY && this.isSubRelation) this.originalSubRelationName else this.relation_name,
         inverse_name = this.inverse_name,
-        relationType = if (relationType == RelationType.ONE_TO_MANY) "RelationTypeEnum.ONE_TO_MANY" else "RelationTypeEnum.MANY_TO_ONE"
+        relationType = if (relationType == RelationType.ONE_TO_MANY) "Relation.Type.ONE_TO_MANY" else "Relation.Type.MANY_TO_ONE"
     )
 
 fun TemplateRelationFiller.getTemplateRelationDefFillerForRelationId(): TemplateRelationDefFiller =

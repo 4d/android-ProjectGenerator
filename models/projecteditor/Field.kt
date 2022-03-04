@@ -22,10 +22,12 @@ data class Field(
         var isSlave: Boolean? = null,
         var format: String? = null,
         var icon: String? = null,
-        var kind: String? = null
+        var kind: String? = null,
+        var dataModelId: String? = null,
+        var path: String? = null
 )
 
-fun isPrivateRelationField(fieldName: String): Boolean = fieldName.startsWith("__") && fieldName.endsWith("Key")
+fun isPrivateRelationField(fieldName: String): Boolean = fieldName.startsWith("__") && (fieldName.endsWith("Key") || fieldName.endsWith("Size"))
 
 fun Field.isImage() = this.fieldType == 3
 
@@ -155,7 +157,7 @@ fun Field.getFormatNameForType(pathHelper: PathHelper): String {
 fun getDataModelField(dataModelList: List<DataModel>, form: Form, field: Field): Field? {
     if (field.name.contains(".")) {
         val dataModel = dataModelList.find { it.id == form.dataModel.id }
-        val relationList = dataModel?.relationList
+        val relationList = dataModel?.relations
         val fieldInRelationList = relationList?.find { it.name == field.name.split(".")[0] }
         val subFields = fieldInRelationList?.subFields
         val subField = subFields?.find { it.name == field.name.split(".")[1] }

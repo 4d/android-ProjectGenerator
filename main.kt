@@ -170,6 +170,7 @@ class CreateDatabaseCommand : CliktCommand(name = "createDatabase") {
     private lateinit var ASSETS: String
     private lateinit var DBFILEPATH: String
     private lateinit var projectEditorJson: File
+    private lateinit var catalogJson: File
 
     val projectEditor: String by option(help = Clikt.projectEditorText).prompt(Clikt.projectEditorText).validate {
         projectEditorJson = File(it)
@@ -186,6 +187,10 @@ class CreateDatabaseCommand : CliktCommand(name = "createDatabase") {
         require(dbParentDir.exists() && dbParentDir.isDirectory) { "Can't find db's parent directory directory $dbParentDir" }
         DBFILEPATH = dbFile.removeSuffix("/")
     }
+    val catalog: String by option(help = Clikt.catalogText).prompt(Clikt.catalogText).validate {
+        catalogJson = File(it)
+        require(catalogJson.exists()) { "Can't find catalog json file ${catalogJson.name}" }
+    }
 
     override fun run() {
         Log.i("Parameters checked.")
@@ -199,7 +204,12 @@ class CreateDatabaseCommand : CliktCommand(name = "createDatabase") {
 
         Log.i("file: ${projectEditorJson.path}...")
 
-        val projectEditor = ProjectEditor(projectEditorFile = projectEditorJson, isCreateDatabaseCommand = true)
+        val catalogDef = CatalogDef(catalogJson)
+
+        Log.i("Reading catalog json file done.")
+        Log.i("--------------------------------------")
+
+        val projectEditor = ProjectEditor(projectEditorFile = projectEditorJson, catalogDef = catalogDef, isCreateDatabaseCommand = true)
 
         Log.i("Reading project editor json file done.")
         Log.i("--------------------------------------")

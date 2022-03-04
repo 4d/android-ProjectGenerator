@@ -31,12 +31,12 @@ fun DataModel.getTemplateTableFiller(dataModelList: List<DataModel>): TemplateTa
     val oneToManyRelationList = mutableListOf<String>()
 
     // Will add many-to-one's relations
-    this.relationList?.filter { it.relationType == RelationType.MANY_TO_ONE }?.forEach { relation ->
+    this.relations?.filter { it.type == RelationType.MANY_TO_ONE }?.forEach { relation ->
         manyToOneRelationList.add(relation.name)
         relation.subFields.forEach { subField ->
             if (subField.isRelation()) {
-                dataModelList.find { it.name == relation.target }?.relationList?.find { it.name == subField.name }?.let { subRelation ->
-                    if (subRelation.relationType == RelationType.MANY_TO_ONE) {
+                dataModelList.find { it.name == relation.target }?.relations?.find { it.name == subField.name }?.let { subRelation ->
+                    if (subRelation.type == RelationType.MANY_TO_ONE) {
                         manyToOneRelationList.add("${relation.name}.${subField.name}")
                     } else {
                         oneToManyRelationList.add("${relation.name}.${subField.name}")
@@ -46,7 +46,7 @@ fun DataModel.getTemplateTableFiller(dataModelList: List<DataModel>): TemplateTa
         }
     }
 
-    this.relationList?.filter { it.relationType == RelationType.ONE_TO_MANY }?.forEach { relation ->
+    this.relations?.filter { it.type == RelationType.ONE_TO_MANY }?.forEach { relation ->
         oneToManyRelationList.add(relation.name)
     }
 
