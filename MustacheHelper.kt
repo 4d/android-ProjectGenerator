@@ -324,7 +324,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
             }
         }
 
-        projectEditor.dataModelList.forEach { dataModel ->
+        projectEditor.dataModelList.filter { it.isSlave == false }.forEach { dataModel ->
             Log.w("Adding [${dataModel.name}] in navigation table list")
 
             tableNamesForNavigation.add(dataModel.getTemplateLayoutFillerForNavigation())
@@ -463,8 +463,12 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
         if (currentFile.isWithTemplateName()) {
             Log.d("currentFile isWithTemplateName")
+            Log.d("currentFile isWithTemplateName, tableNames: $tableNames")
 
             for (tableName in tableNames) { // file will be duplicated
+
+                Log.d("currentFile isWithTemplateName, tableName: $tableName")
+
 
                 if (newFilePath.contains(fileHelper.pathHelper.navigationPath()) ||
                     newFilePath.contains(fileHelper.pathHelper.formPath("list")) ||
@@ -557,6 +561,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
             val fieldList = mutableListOf<TemplateFieldFiller>()
             for (field in fields) {
+                Log.d("> Field [${field.name}] : $field")
                 field.fieldTypeString?.let { fieldTypeString ->
                     fieldList.add(field.getTemplateFieldFiller(fieldTypeString))
 

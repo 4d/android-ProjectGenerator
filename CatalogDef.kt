@@ -6,12 +6,7 @@ import java.io.File
 class CatalogDef(catalogFile: File) {
 
     lateinit var dataModelAliases: List<DataModelAlias>
-
-    companion object {
-        lateinit var baseCatalogDef: List<DataModelAlias>
-//        val relations = mutableListOf<Relation>()
-    }
-
+    lateinit var baseCatalogDef: List<DataModelAlias>
     private lateinit var jsonObj: JSONObject
 
     init {
@@ -29,8 +24,8 @@ class CatalogDef(catalogFile: File) {
         retrieveJSONObject(jsonString)?.let {
             jsonObj = it
 
+            baseCatalogDef = getCatalogDef(isBaseDef = true)
             dataModelAliases = getCatalogDef()
-            baseCatalogDef = dataModelAliases.toList()
             Log.d("> DataModels list successfully read.")
 
         } ?: kotlin.run {
@@ -38,19 +33,21 @@ class CatalogDef(catalogFile: File) {
         }
     }
 
-    private fun getCatalogDef(): List<DataModelAlias> {
+    // If baseDef, we don't want to simplify relations with __fieldKey and __fieldSize
+    private fun getCatalogDef(isBaseDef: Boolean = false): List<DataModelAlias> {
         val dataModelAliases = mutableListOf<DataModelAlias>()
         val dataModels = jsonObj.getSafeObject("structure")?.getSafeArray("definition").getObjectListAsString()
 
         dataModels.forEach { dataModelString ->
-            retrieveJSONObject(dataModelString)?.getDataModelCatalog()?.let { dataModelCatalog ->
+            retrieveJSONObject(dataModelString)?.getDataModelCatalog(isBaseDef)?.let { dataModelCatalog ->
                 dataModelAliases.add(dataModelCatalog)
             }
         }
         return dataModelAliases
     }
 
-    private fun JSONObject.getDataModelCatalog(): DataModelAlias? {
+    // If baseDef, we don't want to simplify relations with __fieldKey and __fieldSize
+    private fun JSONObject.getDataModelCatalog(isBaseDef: Boolean): DataModelAlias? {
         val name = this.getSafeString("name")
         val tableNumber = this.getSafeInt("tableNumber")
         if (name == null || tableNumber == null)
@@ -66,21 +63,30 @@ class CatalogDef(catalogFile: File) {
                 fields.add(field)
             }
         }
-        fields.forEach { field ->
-            if (field.isRelation()) {
-                val subFields = baseCatalogDef.find { it.name == field.relatedDataClass }?.fields?.convertToField()
-                field.createRelation(name, subFields)?.let { relation ->
-                    relations.add(relation)
-                    fields.remove(field)
-                    if (relation.type == RelationType.MANY_TO_ONE){
-                        val relationKeyField = buildNewKeyFieldCatalog(relation.name, tableNumber.toString())
-                        fields.add(relationKeyField)
-                    } else {
-                        val relationSizeField = buildNewSizeFieldCatalog(relation.name, tableNumber.toString())
-                        fields.add(relationSizeField)
+
+        val fieldsToRemove = mutableListOf<FieldCatalog>()
+        val fieldsToAdd = mutableListOf<FieldCatalog>()
+
+        if (!isBaseDef) {
+            fields.forEach { field ->
+                if (field.isRelation()) {
+                    val subFields = baseCatalogDef.find { it.name == field.relatedDataClass }?.fields?.convertToField()
+                    field.createRelation(name, subFields)?.let { relation ->
+                        relations.add(relation)
+                        fieldsToRemove.add(field)
+                        if (relation.type == RelationType.MANY_TO_ONE){
+                            val relationKeyField = buildNewKeyFieldCatalog(relation.name, tableNumber.toString())
+                            fieldsToAdd.add(relationKeyField)
+                        } else {
+                            val relationSizeField = buildNewSizeFieldCatalog(relation.name, tableNumber.toString())
+                            fieldsToAdd.add(relationSizeField)
+                        }
                     }
                 }
             }
+
+            fields.removeAll(fieldsToRemove)
+            fields.addAll(fieldsToAdd)
         }
 
         dataModel.fields = fields
@@ -125,13 +131,13 @@ data class DataModelAlias(
     var tableNumber: Int,
     var name: String,
     var fields: MutableList<FieldCatalog> = mutableListOf(),
-    var relations: MutableList<Relation> = mutableListOf(),
-    var id: String? = null,
-    var label: String? = null,
-    var shortLabel: String? = null,
-    var query: String? = null,
-    var iconPath: String? = null,
-    var isSlave: Boolean? = null
+    var relations: MutableList<Relation> = mutableListOf()
+//    var id: String? = null,
+//    var label: String? = null,
+//    var shortLabel: String? = null,
+//    var query: String? = null,
+//    var iconPath: String? = null,
+//    var isSlave: Boolean? = null
 ) {
 
 //    fun completeDataModel(keyDataModel: String, newDataModelJSONObject: JSONObject?) {
