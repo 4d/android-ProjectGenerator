@@ -1,5 +1,6 @@
 import ProjectEditorConstants.DATAMODEL_KEY
 import ProjectEditorConstants.EMPTY_KEY
+import ProjectEditorConstants.EMPTY_TYPE
 import ProjectEditorConstants.FIELDTYPE_KEY
 import ProjectEditorConstants.FILTER_KEY
 import ProjectEditorConstants.FORMAT_KEY
@@ -285,47 +286,52 @@ fun JSONObject.getDataModelList(catalogDef: CatalogDef, isCreateDatabaseCommand:
 
         Log.d("aliasField: $aliasField")
 
-        aliasField.dataModelId?.let { dataModelId ->
+//        if (aliasField.fieldTypeString != EMPTY_TYPE) {
+//            , alors faire une relation n1 dont le type est String)
 
-            Log.d("dataModelId: $dataModelId")
+//            dataModelList.handleAliasRelation(aliasField)
 
-            catalogDef.dataModelAliases.find { it.tableNumber.toString() == dataModelId }?.name?.let { currentTableName ->
+//        } else {
 
-                Log.d("currentTableName: $currentTableName")
+            aliasField.dataModelId?.let { dataModelId ->
+                Log.d("dataModelId: $dataModelId")
 
-                catalogDef.dataModelAliases.find { it.tableNumber.toString() == dataModelId }?.fields?.find { it.name == aliasField.name }?.let { catalogField ->
+                catalogDef.dataModelAliases.find { it.tableNumber.toString() == dataModelId }?.let { dataModelAlias ->
 
-                    Log.d("catalogField: $catalogField")
+                    dataModelAlias.fields.find { it.name == aliasField.name }?.let { catalogField ->
+                        Log.d("catalogField: $catalogField")
 
-                    catalogField.relatedDataClass?.let { relatedDataClass ->
-
-                        Log.d("relatedDataClass: $relatedDataClass")
-
-                        var nextTableName: String? = currentTableName
+                        var nextTableName: String? = dataModelAlias.name
 
                         aliasField.path?.split(".")?.forEach { relationName ->
                             Log.d("nextTableName: $nextTableName")
                             Log.d("relationName: $relationName")
-                            nextTableName = dataModelList.handleAlias(nextTableName, relationName, catalogDef)
+                            nextTableName = dataModelList.handleAlias(nextTableName, relationName, catalogDef) { fieldToAdd ->
+                                fieldToAddList.add(fieldToAdd)
+                            }
                         }
 
-                        val newRelationList = dataModelList.find { it.name == currentTableName }?.relations ?: mutableListOf()
-                        val aliasRelation = Relation(
-                            source = currentTableName,
-                            target = relatedDataClass,
-                            name = aliasField.name,
-                            type = if (catalogField.isToMany == true) RelationType.ONE_TO_MANY else RelationType.MANY_TO_ONE,
-                            subFields = listOf(),
-                            inverseName = "",
-                            path = catalogField.path ?: ""
-                        )
+                        catalogField.relatedDataClass?.let { relatedDataClass ->
+                            Log.d("relatedDataClass: $relatedDataClass")
 
-                        newRelationList.add(aliasRelation)
-                        dataModelList.find { it.name == currentTableName }?.relations = newRelationList
+                            val newRelationList = dataModelList.find { it.name == dataModelAlias.name }?.relations ?: mutableListOf()
+                            val aliasRelation = Relation(
+                                source = dataModelAlias.name,
+                                target = relatedDataClass,
+                                name = aliasField.name,
+                                type = if (catalogField.isToMany == true) RelationType.ONE_TO_MANY else RelationType.MANY_TO_ONE,
+                                subFields = listOf(),
+                                inverseName = "",
+                                path = catalogField.path ?: ""
+                            )
+
+                            newRelationList.add(aliasRelation)
+                            dataModelList.find { it.name == dataModelAlias.name }?.relations = newRelationList
+                        }
                     }
                 }
             }
-        }
+//        }
     }
 
     Log.d("Sanity check for missing DataModel definition")
@@ -427,56 +433,97 @@ fun DataModel.reOrderFields() {
     this.fields?.sortWith(nullsLast(compareBy { it.inverseName }))
 }
 
-fun MutableList<DataModel>.handleAlias(nextTableName: String?, relationName: String, catalogDef: CatalogDef): String? {
+//fun MutableList<DataModel>.handleAliasRelation(aliasField: Field) {
+//// only N-1 relation, like service.Name
+//    aliasField.dataModelId?.let { dataModelId ->
+//
+//        val sourceDM: DataModel? = this.find { it.id == dataModelId }
+//        if (sourceDM == null) {
+//
+//        } else {
+//
+//            aliasField.relatedDataClass?.let { source ->
+//                Relation(
+//                    source = source,
+//                    target = field.relatedDataClass,
+//                    name = field.name,
+//                    type = RelationType.MANY_TO_ONE,
+//                    subFields = listOf(),
+//                    inverseName = "",
+//                    path = aliasField.path ?: ""
+//                )
+//
+//            }
+//
+//
+//
+//            if (sourceDM.relations?.find { it.name == relation.name && it.source == relation.source } == null) {
+//                if (sourceDM.relations == null) {
+//                    sourceDM.relations = mutableListOf(relation)
+//                } else {
+//                    sourceDM.relations?.add(relation)
+//                }
+//            }
+//
+//        }
+//    }
+//}
+
+fun MutableList<DataModel>.handleAlias(nextTableName: String?, relationName: String, catalogDef: CatalogDef, fieldToAddCallback: (fieldToAdd: FieldToAdd) -> Unit): String? {
 
     var returnNextTableName: String? = null
     val sourceDM: DataModel? = this.find { it.name == nextTableName }
     if (sourceDM == null) {
+        Log.d("sourceDM $nextTableName doesn't exist")
 
         // dataModel does not exists, create one from catalog def
         catalogDef.baseCatalogDef.find { it.name == nextTableName }?.let { dmAlias ->
             Log.d("dmAlias: $dmAlias")
-            dmAlias.fields.find { it.name == relationName }?.let { fieldCatalog ->
+            dmAlias.fields.find { it.name == relationName }?.let { fieldCatalog -> // Name
                 Log.d("fieldCatalog: $fieldCatalog")
                 val newDM = DataModel(id = dmAlias.tableNumber.toString(), name = dmAlias.name, isSlave = true)
                 val field = fieldCatalog.convertToField()
                 val fieldList = mutableListOf<Field>()
 
-                getRelation(field, dmAlias.name, listOf())?.let { relation ->
-                    returnNextTableName = relation.target
-                    Log.d("relation.name : ${relation.name}")
-                    if (newDM.relations?.find { it.name == relation.name && it.source == relation.source } == null)
-                        newDM.relations = mutableListOf(relation)
-                    if (relation.type == RelationType.MANY_TO_ONE) {
+                if (fieldCatalog.kind == null) {
+                    fieldList.add(field)
+                } else {
+                    getRelation(field, dmAlias.name, listOf())?.let { relation ->
+                        returnNextTableName = relation.target
+                        Log.d("relation.name : ${relation.name}")
+                        if (newDM.relations?.find { it.name == relation.name && it.source == relation.source } == null)
+                            newDM.relations = mutableListOf(relation)
+                        if (relation.type == RelationType.MANY_TO_ONE) {
 
-                        val relationKeyField = buildNewKeyField(relation.name)
-                        fieldList.add(relationKeyField)
-                    } else {
+                            val relationKeyField = buildNewKeyField(relation.name)
+                            fieldList.add(relationKeyField)
+                        } else {
 
-                        val relationSizeField = buildNewSizeField(relation.name)
-                        fieldList.add(relationSizeField)
+                            val relationSizeField = buildNewSizeField(relation.name)
+                            fieldList.add(relationSizeField)
 
-//                                    Log.d("One to many relation, need to add the inverse many to one relation to its Entity definition")
-//                                    field.inverseName?.let { inverseName ->
-//                                        val newField = Field(
-//                                            name = inverseName,
-//                                            inverseName = field.name,
-//                                            relatedDataClass = dataModelName,
-//                                            fieldTypeString = dataModelName,
-//                                            relatedTableNumber = keyDataModel.toString().toIntOrNull(),
-//                                            relatedEntities = null,
-//                                            variableType = VariableType.VAR.string
-//                                        )
-//                                        Log.d("newField.name: ${newField.name}")
-//                                        getRelation(newField, relation.target, listOf())?.let { newRelation ->
-//                                            Log.d("newRelation.name : ${newRelation.name}")
-//                                            val newKeyField = buildNewKeyField(newRelation.name)
-//
-//                                            val fieldToAdd =
-//                                                FieldToAdd(relation.target, newField, newKeyField, newRelation)
-//                                            fieldToAddList.add(fieldToAdd)
-//                                        }
-//                                    }
+                            Log.d("One to many relation, need to add the inverse many to one relation to its Entity definition")
+                            field.inverseName?.let { inverseName ->
+                                val newField = Field(
+                                    name = inverseName,
+                                    inverseName = field.name,
+                                    relatedDataClass = dmAlias.name,
+                                    fieldTypeString = dmAlias.name,
+                                    relatedTableNumber = dmAlias.tableNumber,
+                                    relatedEntities = null,
+                                    variableType = VariableType.VAR.string
+                                )
+                                Log.d("newField.name: ${newField.name}")
+                                getRelation(newField, relation.target, listOf())?.let { newRelation ->
+                                    Log.d("newRelation.name : ${newRelation.name}")
+                                    val newKeyField = buildNewKeyField(newRelation.name)
+
+                                    val fieldToAdd =
+                                        FieldToAdd(relation.target, newField, newKeyField, newRelation)
+                                    fieldToAddCallback(fieldToAdd)
+                                }
+                            }
+                        }
                     }
                 }
                 newDM.fields = fieldList
@@ -484,6 +531,7 @@ fun MutableList<DataModel>.handleAlias(nextTableName: String?, relationName: Str
             }
         }
     } else {
+        Log.d("sourceDM $nextTableName already exists")
         // dataModel exists
         catalogDef.baseCatalogDef.find { it.name == nextTableName }?.let { dmAlias ->
             Log.d("dmAlias: $dmAlias")
@@ -492,41 +540,53 @@ fun MutableList<DataModel>.handleAlias(nextTableName: String?, relationName: Str
                 val newList = sourceDM.fields?.toMutableList() ?: mutableListOf()
                 val field = fieldCatalog.convertToField()
 
-                getRelation(field, dmAlias.name, listOf())?.let { relation ->
-                    returnNextTableName = relation.target
-                    Log.d("relation.name : ${relation.name}")
-                    if (sourceDM.relations?.find { it.name == relation.name && it.source == relation.source } == null)
-                        sourceDM.relations = mutableListOf(relation)
-                    if (relation.type == RelationType.MANY_TO_ONE) {
-                        val relationKeyField = buildNewKeyField(relation.name)
-                        if (newList.find { it.name == relationKeyField.name } == null)
-                            newList.add(relationKeyField)
-                    } else {
-                        val relationSizeField = buildNewSizeField(relation.name)
-                        if (newList.find { it.name == relationSizeField.name } == null)
-                            newList.add(relationSizeField)
+                if (fieldCatalog.kind == null) {
+                    newList.add(field)
+                } else {
+                    if (field.kind == "alias") {
+                     // .... ?
+                    }
+                    getRelation(field, dmAlias.name, listOf())?.let { relation ->
+                        returnNextTableName = relation.target
+                        Log.d("relation.name : ${relation.name}")
+                        if (sourceDM.relations?.find { it.name == relation.name && it.source == relation.source } == null) {
+                            if (sourceDM.relations == null) {
+                                sourceDM.relations = mutableListOf(relation)
+                            } else {
+                                sourceDM.relations?.add(relation)
+                            }
+                        }
+                        if (relation.type == RelationType.MANY_TO_ONE) {
+                            val relationKeyField = buildNewKeyField(relation.name)
+                            newList.takeIf { newList.find { it.name == relationKeyField.name } == null }
+                                ?.add(relationKeyField)
+                        } else {
+                            val relationSizeField = buildNewSizeField(relation.name)
+                            newList.takeIf { newList.find { it.name == relationSizeField.name } == null }
+                                ?.add(relationSizeField)
 
-//                                    Log.d("One to many relation, need to add the inverse many to one relation to its Entity definition")
-//                                    field.inverseName?.let { inverseName ->
-//                                        val newField = Field(
-//                                            name = inverseName,
-//                                            inverseName = field.name,
-//                                            relatedDataClass = dataModelName,
-//                                            fieldTypeString = dataModelName,
-//                                            relatedTableNumber = keyDataModel.toString().toIntOrNull(),
-//                                            relatedEntities = null,
-//                                            variableType = VariableType.VAR.string
-//                                        )
-//                                        Log.d("newField.name: ${newField.name}")
-//                                        getRelation(newField, relation.target, listOf())?.let { newRelation ->
-//                                            Log.d("newRelation.name : ${newRelation.name}")
-//                                            val newKeyField = buildNewKeyField(newRelation.name)
-//
-//                                            val fieldToAdd =
-//                                                FieldToAdd(relation.target, newField, newKeyField, newRelation)
-//                                            fieldToAddList.add(fieldToAdd)
-//                                        }
-//                                    }
+                            Log.d("One to many relation, need to add the inverse many to one relation to its Entity definition")
+                            field.inverseName?.let { inverseName ->
+                                val newField = Field(
+                                    name = inverseName,
+                                    inverseName = field.name,
+                                    relatedDataClass = dmAlias.name,
+                                    fieldTypeString = dmAlias.name,
+                                    relatedTableNumber = dmAlias.tableNumber,
+                                    relatedEntities = null,
+                                    variableType = VariableType.VAR.string
+                                )
+                                Log.d("newField.name: ${newField.name}")
+                                getRelation(newField, relation.target, listOf())?.let { newRelation ->
+                                    Log.d("newRelation.name : ${newRelation.name}")
+                                    val newKeyField = buildNewKeyField(newRelation.name)
+
+                                    val fieldToAdd =
+                                        FieldToAdd(relation.target, newField, newKeyField, newRelation)
+                                    fieldToAddCallback(fieldToAdd)
+                                }
+                            }
+                        }
                     }
                 }
                 sourceDM.fields = newList
@@ -552,7 +612,7 @@ fun JSONObject?.getDataModelField(keyField: String, dataModelId: String? = null)
         field.kind = it
         if (field.kind == "alias") {
             field.name = keyField
-
+            field.fieldTypeString = typeStringFromTypeInt(field.fieldType)
         }
     }
     this?.getSafeString(FORMAT_KEY)?.let {

@@ -60,7 +60,6 @@ class ProjectEditor(projectEditorFile: File, catalogDef: CatalogDef, isCreateDat
             jsonObj = it
 
             if (isCreateDatabaseCommand) {
-//                jsonObj.getDataModelList2(catalogDef, isCreateDatabaseCommand = true)
                 dataModelList = jsonObj.getDataModelList(catalogDef, isCreateDatabaseCommand = true)
                 Log.d("> DataModels list successfully read.")
 
@@ -69,7 +68,6 @@ class ProjectEditor(projectEditorFile: File, catalogDef: CatalogDef, isCreateDat
                 navigationTableList = jsonObj.getNavigationTableList()
                 Log.d("> Navigation tables list successfully read.")
 
-//                jsonObj.getDataModelList2(catalogDef)
                 dataModelList = jsonObj.getDataModelList(catalogDef)
                 Log.d("> DataModels list successfully read.")
 

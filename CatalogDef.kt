@@ -132,72 +132,7 @@ data class DataModelAlias(
     var name: String,
     var fields: MutableList<FieldCatalog> = mutableListOf(),
     var relations: MutableList<Relation> = mutableListOf()
-//    var id: String? = null,
-//    var label: String? = null,
-//    var shortLabel: String? = null,
-//    var query: String? = null,
-//    var iconPath: String? = null,
-//    var isSlave: Boolean? = null
-) {
-
-//    fun completeDataModel(keyDataModel: String, newDataModelJSONObject: JSONObject?) {
-//        id = keyDataModel
-//        isSlave = false
-//
-//        var missingIcon = true
-//
-//        newDataModelJSONObject?.getSafeObject("")?.let { dmJson ->
-//            dmJson.getSafeString("label")?.let { label = it }
-//            dmJson.getSafeString("shortLabel")?.let { shortLabel = it }
-//            dmJson.getSafeObject("filter")?.let {
-//                if (it.getSafeBoolean("validated") == true)
-//                    query = it.getSafeString("string")?.replace("\"", "'")
-//            }
-//            dmJson.getSafeString("icon")?.let { path ->
-//                if (path.contains(".")) {
-//                    iconPath = correctIconPath(path)
-//                    missingIcon = false
-//                }
-//            }
-//        }
-//        if (missingIcon) {
-//            iconPath = "nav_icon_${id}"
-//        }
-//
-//        completeFields(newDataModelJSONObject)
-//        reOrderFields()
-//    }
-//
-//    private fun completeFields(newDataModelJSONObject: JSONObject?) {
-//        newDataModelJSONObject?.keys()?.forEach eachKeyField@{ keyField ->
-//            if (keyField !is String) return@eachKeyField
-//            if (keyField != "") {
-//
-//                val newFieldJSONObject = newDataModelJSONObject.getSafeObject(keyField.toString())
-//
-//                val fieldCatalog = fields.find { it.id == keyField }
-//                fieldCatalog?.let {
-//                    fieldCatalog.completeField(newFieldJSONObject)
-//
-//                    if (fieldCatalog.isRelation()) {
-//                        val subFields = fieldCatalog.getSubFields(newFieldJSONObject)
-//                        fieldCatalog.createRelation(name, subFields)?.let { relation ->
-//                            relations.add(relation)
-//                            CatalogDef.relations.add(relation)
-//                            if (relation.isToOne){
-//                                val relationKeyField = buildNewKeyFieldCatalog(relation.name, tableNumber.toString())
-//                                fields.add(relationKeyField)
-//                            } else {
-//                                val relationSizeField = buildNewSizeFieldCatalog(relation.name, tableNumber.toString())
-//                                fields.add(relationSizeField)
-//                            }
-//                        }
-//                    }
-//                }
-//            }
-//        }
-//    }
-}
+)
 
 data class FieldCatalog(
     var name: String,
@@ -213,43 +148,10 @@ data class FieldCatalog(
     var path: String? = null,
     var id: String? = null,
     var variableType: String = VariableType.VAL.string
-//    var label: String? = null,
-//    var shortLabel: String? = null,
-//    var format: String? = null,
-//    var icon: String? = null,
-//    var relatedEntities: String? = null,
-//    var isSlave: Boolean? = null
 ) {
-//    fun completeField(newFieldJSONObject: JSONObject?) {
-//
-//        newFieldJSONObject?.getSafeString("label")?.let { label = it }
-//        newFieldJSONObject?.getSafeString("shortLabel")?.let { shortLabel = it }
-//        newFieldJSONObject?.getSafeString("format")?.let { format = it }
-//        newFieldJSONObject?.getSafeString("icon")?.let { path -> // useful when copied to an empty list / detail form
-//            if (path.contains(".")) {
-//                icon = correctIconPath(path)
-//            }
-//        }
-//        if (label.isNullOrEmpty())
-//            label = name
-//        if (shortLabel.isNullOrEmpty())
-//            shortLabel = name
-//    }
-//
-//    fun getSubFields(newFieldJSONObject: JSONObject?): List<FieldCatalog> {
-//        val subList = mutableListOf<FieldCatalog>()
-//        newFieldJSONObject?.keys()?.forEach { key ->
-//            CatalogDef.baseCatalogDef.find { it.id == dataModelId }?.fields?.find { it.id == key }?.let { baseFieldCatalog ->
-//                val newField = baseFieldCatalog.copy()
-//                newField.completeField(newFieldJSONObject)
-//                subList.add(newField)
-//            }
-//        }
-//        return subList
-//    }
-//
+
     fun isRelation() = kind == "relatedEntity" || kind == "relatedEntities"
-//
+
     fun createRelation(currentTable: String, subFields: List<Field>?): Relation? {
         relatedDataClass?.let { dest ->
             inverseName?.let { inv ->
