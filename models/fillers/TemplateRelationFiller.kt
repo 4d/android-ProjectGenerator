@@ -52,23 +52,3 @@ fun Relation.checkSubRelations(): List<TemplateRelationFiller> {
     }
     return subTemplateRelationFillerList
 }
-
-fun List<TemplateRelationFiller>.getInverseRelationsOneToMany(): List<TemplateRelationFiller> {
-    val inverseRelationsOneToMany = mutableListOf<TemplateRelationFiller>()
-    this.forEach {
-        inverseRelationsOneToMany.add(
-            TemplateRelationFiller(
-                relation_source = it.relation_target,
-                relation_target = it.relation_source,
-                relation_name = it.inverse_name,
-                inverse_name = it.inverse_name,
-                isSubRelation = it.isSubRelation,
-                originalSubRelationName = it.originalSubRelationName,
-                relation_source_camelCase = it.relation_source_camelCase,
-                relation_target_camelCase = it.relation_target_camelCase,
-                relation_name_original = it.inverse_name
-            )
-        )
-    }
-    return inverseRelationsOneToMany
-}

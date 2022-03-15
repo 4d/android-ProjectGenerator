@@ -1,7 +1,5 @@
 import FileHelperConstants.kotlinProjectDirs
 import PathHelperConstants.TEMPLATE_PLACEHOLDER
-import PathHelperConstants.TEMPLATE_RELATION_DAO_PLACEHOLDER
-import PathHelperConstants.TEMPLATE_RELATION_ENTITY_PLACEHOLDER
 import PathHelperConstants.XML_TXT_EXT
 import org.json.JSONObject
 import java.io.File
@@ -91,10 +89,6 @@ fun getDataPath(assetsPath: String, tableName: String, index: Int? = null): Stri
 }
 
 fun File.isWithTemplateName() = this.name.contains(TEMPLATE_PLACEHOLDER)
-
-fun File.isWithRelationDaoTemplateName() = this.name.contains(TEMPLATE_RELATION_DAO_PLACEHOLDER)
-
-fun File.isWithRelationEntityTemplateName() = this.name.contains(TEMPLATE_RELATION_ENTITY_PLACEHOLDER)
 
 fun File.readFile(): String {
     return this.bufferedReader().use {

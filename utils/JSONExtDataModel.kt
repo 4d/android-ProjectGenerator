@@ -21,25 +21,6 @@ import ProjectEditorConstants.STRING_TYPE
 import ProjectEditorConstants.VALIDATED_KEY
 import org.json.JSONObject
 
-//fun JSONObject.getDataModelList2(catalogDef: CatalogDef, isCreateDatabaseCommand: Boolean = false) {
-//    val dataModelsJson = if (isCreateDatabaseCommand)
-//        this.getSafeObject(DATAMODEL_KEY)
-//    else
-//        this.getSafeObject(PROJECT_KEY)?.getSafeObject(DATAMODEL_KEY)
-//
-//    dataModelsJson?.keys()?.forEach { keyDataModel ->
-//
-//        val newDataModelJSONObject = dataModelsJson.getSafeObject(keyDataModel.toString())
-//
-//        newDataModelJSONObject?.getSafeObject(EMPTY_KEY)?.getSafeString(NAME_KEY)?.let { dataModelName ->
-//
-//            catalogDef.dataModelAliases.find { it.name == dataModelName }
-//                ?.completeDataModel(keyDataModel, newDataModelJSONObject)
-//        }
-//    }
-//}
-
-
 fun JSONObject.getDataModelList(catalogDef: CatalogDef, isCreateDatabaseCommand: Boolean = false): List<DataModel> {
     val dataModelList = mutableListOf<DataModel>()
     val dataModels = if (isCreateDatabaseCommand)

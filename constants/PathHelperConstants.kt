@@ -7,8 +7,6 @@ object PathHelperConstants {
     const val PACKAGE_PH = "__PKG__"
     const val PACKAGE_JOINED_PH = "__PKG_JOINED__"
     const val TEMPLATE_PLACEHOLDER = "__TEMPLATE__"
-    const val TEMPLATE_RELATION_DAO_PLACEHOLDER = "__TEMPLATE_RELATION_DAO__"
-    const val TEMPLATE_RELATION_ENTITY_PLACEHOLDER = "__TEMPLATE_RELATION_ENTITY__"
 
     /**
      * PATH NAMES
