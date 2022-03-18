@@ -51,12 +51,12 @@ fun Field.getFieldKeyAccessor(formType: FormType) =
 
 fun Field.getLayoutVariableAccessor(formType: FormType) =
     if (formType == FormType.LIST)
-        if (this.name.fieldAdjustment().contains("."))
+        if (this.name.fieldAdjustment().contains(".") || this.kind == "alias")
             ""
         else
             "entityData."
     else
-        if (this.name.fieldAdjustment().contains("."))
+        if (this.name.fieldAdjustment().contains(".") || this.kind == "alias")
             "viewModel."
         else
             "viewModel.entity."
@@ -352,4 +352,9 @@ fun isOneToManyRelationWithFixes(dataModelList: List<DataModel>, form: Form, fie
 fun isManyToOneRelationWithFixes(dataModelList: List<DataModel>, form: Form, field: Field): Boolean {
     val fieldFromDataModel: Field? = getDataModelField(dataModelList, form, field)
     return fieldFromDataModel?.isManyToOneRelation() ?: field.isManyToOneRelation()
+}
+
+fun isAliasFromCatalog(dataModelList: List<DataModel>, form: Form, field: Field): Boolean {
+    val fieldFromDataModel: Field? = getDataModelField(dataModelList, form, field)
+    return fieldFromDataModel?.isRelation() ?: field.isRelation()
 }

@@ -9,7 +9,9 @@ data class TemplateRelationFiller(
     val originalSubRelationName: String,
     val relation_source_camelCase: String,
     val relation_target_camelCase: String,
-    val relation_name_original: String
+    val relation_name_original: String,
+    val isAlias: Boolean,
+    val path: String
 )
 
 fun Relation.getTemplateRelationFiller(): TemplateRelationFiller =
@@ -22,7 +24,9 @@ fun Relation.getTemplateRelationFiller(): TemplateRelationFiller =
         originalSubRelationName = "",
         relation_source_camelCase = this.source.dataBindingAdjustment(),
         relation_target_camelCase = this.target.dataBindingAdjustment(),
-        relation_name_original = this.name
+        relation_name_original = this.name,
+        isAlias = this.path.isNotEmpty(),
+        path = this.path
     )
 
 fun getSubTemplateRelationFiller(source: String, target: String, name: String, inverseName: String, originalSubRelationName: String): TemplateRelationFiller =
@@ -35,7 +39,9 @@ fun getSubTemplateRelationFiller(source: String, target: String, name: String, i
         originalSubRelationName = originalSubRelationName,
         relation_source_camelCase = source.dataBindingAdjustment(),
         relation_target_camelCase = target.dataBindingAdjustment(),
-        relation_name_original = name
+        relation_name_original = name,
+        isAlias = false,
+        path = ""
     )
 
 fun Relation.checkSubRelations(): List<TemplateRelationFiller> {

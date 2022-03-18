@@ -22,11 +22,14 @@ class SqlQueryBuilder(entry: Any, private val fields: List<FieldData>) {
                     hashMap["__TIMESTAMP"] = null
                     hashMap["__STAMP"] = null
                     fields.forEach { field ->
-                        when {
-                            field.isManyToOneRelation -> hashMap["__${field.name.fieldAdjustment()}Key"] = null
-                            field.isOneToManyRelation -> hashMap["__${field.name.fieldAdjustment()}Size"] = null
-                            else -> hashMap[field.name.fieldAdjustment()] = null
-                        }
+                        hashMap[field.name.fieldAdjustment()] = null
+                        if (field.isManyToOneRelation)
+                            hashMap["__${field.name.fieldAdjustment()}Key"] = null
+//                        when {
+//                            field.isManyToOneRelation -> hashMap["__${field.name.fieldAdjustment()}Key"] = null
+//                            field.isOneToManyRelation -> hashMap["__${field.name.fieldAdjustment()}Size"] = null
+//                            else -> hashMap[field.name.fieldAdjustment()] = null
+//                        }
                     }
 
                     val inputEntity = entry.getJSONObject(i)
@@ -39,11 +42,14 @@ class SqlQueryBuilder(entry: Any, private val fields: List<FieldData>) {
                 hashMap["__TIMESTAMP"] = null
                 hashMap["__STAMP"] = null
                 fields.forEach { field ->
-                    when {
-                        field.isManyToOneRelation -> hashMap["__${field.name.fieldAdjustment()}Key"] = null
-                        field.isOneToManyRelation -> hashMap["__${field.name.fieldAdjustment()}Size"] = null
-                        else -> hashMap[field.name.fieldAdjustment()] = null
-                    }
+                    hashMap[field.name.fieldAdjustment()] = null
+                    if (field.isManyToOneRelation)
+                        hashMap["__${field.name.fieldAdjustment()}Key"] = null
+//                    when {
+//                        field.isManyToOneRelation -> hashMap["__${field.name.fieldAdjustment()}Key"] = null
+//                        field.isOneToManyRelation -> hashMap["__${field.name.fieldAdjustment()}Size"] = null
+//                        else -> hashMap[field.name.fieldAdjustment()] = null
+//                    }
                 }
 
                 val outputEntity = extractEntity(entry)
@@ -59,13 +65,23 @@ class SqlQueryBuilder(entry: Any, private val fields: List<FieldData>) {
         inputEntity.keys().forEach {
             val key: String = it.toString()
             if (hashMap.containsKey(key.fieldAdjustment())) {
+                hashMap[key.fieldAdjustment()] = inputEntity[key]
 
-                fields.find { f -> f.name.fieldAdjustment() == key.fieldAdjustment() }?.let { field ->
+                fields.find { it.name.fieldAdjustment() == key.fieldAdjustment() }?.let { field ->
+//                fields.find { f -> f.name.fieldAdjustment() == key.fieldAdjustment() }?.let { field ->
                     when {
+                        field.isImage -> {
+                            // Nothing to do
+                        }
                         field.isManyToOneRelation -> {
-                            val neededObject = inputEntity[key]
+                            val neededObject = hashMap[key.fieldAdjustment()]
+//                            val neededObject = inputEntity[key]
                             if (neededObject is JSONObject) {
-                                hashMap["__${key.fieldAdjustment()}Key"] = neededObject.getSafeString("__KEY")
+                                hashMap["__${key.fieldAdjustment()}Key"] =
+                                    neededObject.getSafeString("__KEY")
+                                hashMap[key.fieldAdjustment()] = null
+
+//                                hashMap["__${key.fieldAdjustment()}Key"] = neededObject.getSafeString("__KEY")
 
                                 // add the relation in a new SqlQuery
                                 field.relatedOriginalTableName?.let { originalTableName ->
@@ -79,7 +95,7 @@ class SqlQueryBuilder(entry: Any, private val fields: List<FieldData>) {
                         field.isOneToManyRelation -> {
                             // TODO
                         }
-                        else -> hashMap[key.fieldAdjustment()] = inputEntity[key]
+//                        else -> hashMap[key.fieldAdjustment()] = inputEntity[key]
                     }
                 }
             }

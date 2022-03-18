@@ -74,10 +74,14 @@ class ProjectEditor(projectEditorFile: File, catalogDef: CatalogDef, isCreateDat
                 searchableFields = jsonObj.getSearchFields(dataModelList)
                 Log.d("> Searchable fields successfully read.")
 
-                listFormList = jsonObj.getFormList(dataModelList, FormType.LIST, navigationTableList)
+                listFormList = jsonObj.getFormList(dataModelList, FormType.LIST, navigationTableList, catalogDef) { aliasToAdd ->
+                    addAliasToDataModel(dataModelList, aliasToAdd)
+                }
                 Log.d("> List forms list successfully read.")
 
-                detailFormList = jsonObj.getFormList(dataModelList, FormType.DETAIL, navigationTableList)
+                detailFormList = jsonObj.getFormList(dataModelList, FormType.DETAIL, navigationTableList, catalogDef) { aliasToAdd ->
+                    addAliasToDataModel(dataModelList, aliasToAdd)
+                }
                 Log.d("> Detail forms list successfully read.")
             }
 

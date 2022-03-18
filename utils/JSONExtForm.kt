@@ -1,4 +1,5 @@
 import ProjectEditorConstants.DETAIL_KEY
+import ProjectEditorConstants.EMPTY_TYPE
 import ProjectEditorConstants.FIELDS_KEY
 import ProjectEditorConstants.FORM_KEY
 import ProjectEditorConstants.LIST_KEY
@@ -6,7 +7,7 @@ import ProjectEditorConstants.PHOTO_TYPE
 import ProjectEditorConstants.PROJECT_KEY
 import org.json.JSONObject
 
-fun JSONObject.getFormList(dataModelList: List<DataModel>, formType: FormType, navigationTableList: List<String>): List<Form> {
+fun JSONObject.getFormList(dataModelList: List<DataModel>, formType: FormType, navigationTableList: List<String>, catalogDef: CatalogDef, aliasToAddCallback: (aliasToAdd: Relation) -> Unit): List<Form> {
     val formList = mutableListOf<Form>()
     val formTypeKey = if (formType == FormType.LIST) LIST_KEY else DETAIL_KEY
     val forms = this.getSafeObject(PROJECT_KEY)?.getSafeObject(formTypeKey)
@@ -21,7 +22,7 @@ fun JSONObject.getFormList(dataModelList: List<DataModel>, formType: FormType, n
                 form.name = it
             }
             val fieldList = newFormJSONObject?.getSafeArray(FIELDS_KEY).getObjectListAsString()
-            form.fields = getFormFields(fieldList)
+            form.fields = getFormFields(fieldList, dataModel.name, catalogDef)
             formList.add(form)
         }
     }
@@ -54,6 +55,26 @@ fun JSONObject.getFormList(dataModelList: List<DataModel>, formType: FormType, n
             // a form was specified
         }
     }
+
+    // Add any relation for unaliased path
+    formList.forEach { form ->
+        form.fields?.filter { it.path?.contains(".") == true && typeStringFromTypeInt(it.fieldType) != EMPTY_TYPE}?.forEach { field ->
+            field.path?.let { path ->
+                val aliasRelation = Relation(
+                    source = form.dataModel.name,
+                    target = destBeforeField(catalogDef, form.dataModel.name, path),
+                    name = path.substringBeforeLast(".").replace(".", "_").fieldAdjustment(),
+                    type = RelationType.MANY_TO_ONE,
+                    subFields = listOf(),
+                    inverseName = "",
+                    path = path.substringBeforeLast(".")
+                )
+                Log.d("new Alias to be added : $aliasRelation")
+                aliasToAddCallback(aliasRelation)
+            }
+        }
+    }
+
     return formList
 }
 

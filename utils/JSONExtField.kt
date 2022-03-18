@@ -3,6 +3,7 @@ import ProjectEditorConstants.FORMAT_KEY
 import ProjectEditorConstants.ICON_KEY
 import ProjectEditorConstants.ID_KEY
 import ProjectEditorConstants.INVERSENAME_KEY
+import ProjectEditorConstants.KIND_KEY
 import ProjectEditorConstants.LABEL_KEY
 import ProjectEditorConstants.NAME_KEY
 import ProjectEditorConstants.RELATEDDATACLASS_KEY
@@ -11,15 +12,15 @@ import ProjectEditorConstants.RELATEDTABLENUMBER_KEY
 import ProjectEditorConstants.SHORTLABEL_KEY
 import org.json.JSONObject
 
-fun getFormFields(fieldList: List<String>): List<Field> {
+fun getFormFields(fieldList: List<String>, dataModelName: String, catalogDef: CatalogDef): List<Field> {
     val fields = mutableListOf<Field>()
     fieldList.forEach { fieldString ->
-        fields.add(retrieveJSONObject(fieldString).getFormField())
+        fields.add(retrieveJSONObject(fieldString).getFormField(dataModelName, catalogDef))
     }
     return fields
 }
 
-fun JSONObject?.getFormField(): Field {
+fun JSONObject?.getFormField(dataModelName: String, catalogDef: CatalogDef): Field {
     val field = Field(name = "")
     this?.getSafeString(LABEL_KEY)?.let { field.label = it }
     this?.getSafeString(SHORTLABEL_KEY)?.let { field.shortLabel = it }
@@ -31,9 +32,8 @@ fun JSONObject?.getFormField(): Field {
         field.name = it
         field.fieldTypeString = typeStringFromTypeInt(field.fieldType)
     }
-    this?.getSafeString(FORMAT_KEY)?.let {
-        field.format = it
-    }
+    this?.getSafeString(KIND_KEY)?.let { field.kind = it }
+    this?.getSafeString(FORMAT_KEY)?.let { field.format = it }
     this?.getSafeString(ICON_KEY)?.let { iconPath ->
         if (iconPath.contains(".")) {
             field.icon = correctIconPath(iconPath)
@@ -47,5 +47,24 @@ fun JSONObject?.getFormField(): Field {
         field.relatedEntities = it
         field.fieldTypeString = "Entities<${it?.tableNameAdjustment()}>"
     }
+    this?.getSafeString("path")?.let { path ->
+        field.path = unAliasPath(path, dataModelName, catalogDef)
+        Log.d("Form field creation, path : $path, unaliased path : ${field.path}")
+    }
+    Log.d("form field extracted: $field")
     return field
+}
+
+fun unAliasPath(path: String?, source: String, catalogDef: CatalogDef): String {
+    var nextTableName = source
+    var newPath = ""
+    path?.split(".")?.forEach {
+        val pair = it.checkPath(nextTableName, catalogDef)
+        nextTableName = pair.first ?: ""
+        newPath = if (newPath.isEmpty())
+            pair.second
+        else
+            newPath + "." + pair.second
+    }
+    return newPath.removeSuffix(".")
 }

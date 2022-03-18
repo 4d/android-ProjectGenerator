@@ -7,6 +7,7 @@ class CatalogDef(catalogFile: File) {
 
     lateinit var dataModelAliases: List<DataModelAlias>
     lateinit var baseCatalogDef: List<DataModelAlias>
+    lateinit var relations: List<Relation>
     private lateinit var jsonObj: JSONObject
 
     init {
@@ -26,6 +27,7 @@ class CatalogDef(catalogFile: File) {
 
             baseCatalogDef = getCatalogDef(isBaseDef = true)
             dataModelAliases = getCatalogDef()
+            relations = getCatalogRelations()
             Log.d("> DataModels list successfully read.")
 
         } ?: kotlin.run {
@@ -44,6 +46,20 @@ class CatalogDef(catalogFile: File) {
             }
         }
         return dataModelAliases
+    }
+
+    private fun getCatalogRelations(): List<Relation> {
+        Log.d(" ===== RELATIONS =====")
+        dataModelAliases.forEach { dm ->
+            dm.relations.forEach { relation ->
+                Log.d("[${dm.name}] ${relation.name}")
+            }
+            Log.d("--------")
+            dm.fields.forEach { field ->
+                Log.d("[${dm.name}] ${field.name}")
+            }
+        }
+        return dataModelAliases.flatMap { it.relations }
     }
 
     // If baseDef, we don't want to simplify relations with __fieldKey and __fieldSize
@@ -70,16 +86,16 @@ class CatalogDef(catalogFile: File) {
         if (!isBaseDef) {
             fields.forEach { field ->
                 if (field.isRelation()) {
-                    val subFields = baseCatalogDef.find { it.name == field.relatedDataClass }?.fields?.convertToField()
+                    val subFields = baseCatalogDef.find { it.name == field.relatedDataClass }?.fields?.convertToFields()
                     field.createRelation(name, subFields)?.let { relation ->
                         relations.add(relation)
-                        fieldsToRemove.add(field)
+//                        fieldsToRemove.add(field)
                         if (relation.type == RelationType.MANY_TO_ONE){
                             val relationKeyField = buildNewKeyFieldCatalog(relation.name, tableNumber.toString())
                             fieldsToAdd.add(relationKeyField)
                         } else {
-                            val relationSizeField = buildNewSizeFieldCatalog(relation.name, tableNumber.toString())
-                            fieldsToAdd.add(relationSizeField)
+//                            val relationSizeField = buildNewSizeFieldCatalog(relation.name, tableNumber.toString())
+//                            fieldsToAdd.add(relationSizeField)
                         }
                     }
                 }
@@ -192,7 +208,7 @@ data class FieldCatalog(
     }
 }
 
-fun List<FieldCatalog>.convertToField(): List<Field> {
+fun List<FieldCatalog>.convertToFields(): List<Field> {
     val fields = mutableListOf<Field>()
     this.forEach { fieldCatalog ->
         fields.add(fieldCatalog.convertToField())

@@ -244,17 +244,20 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
             dataModel.relations?.forEach { relation ->
                 val filler = relation.getTemplateRelationFiller()
-                if (relation.type == RelationType.MANY_TO_ONE) {
-                    relationsManyToOne.add(filler)
-                    // Check for sub 1-N relations
-                    val subTemplateRelationFillerList = relation.checkSubRelations()
-                    relationsOneToMany.addAll(subTemplateRelationFillerList)
-                } else {
-                    relationsOneToMany.add(filler)
+                val isTargetNativeType = projectEditor.dataModelList.map { it.name }.contains(relation.target).not()
+                if (!isTargetNativeType) {
+                    if (relation.type == RelationType.MANY_TO_ONE) {
+                        relationsManyToOne.add(filler)
+                        // Check for sub 1-N relations
+                        val subTemplateRelationFillerList = relation.checkSubRelations()
+                        relationsOneToMany.addAll(subTemplateRelationFillerList)
+                    } else {
+                        relationsOneToMany.add(filler)
+                    }
                 }
             }
 
-            tableNames.add(dataModel.getTemplateTableFiller(projectEditor.dataModelList))
+            tableNames.add(dataModel.getTemplateTableFiller())
 
             tableNamesLowercase.add(dataModel.getTemplateLayoutFiller())
 
@@ -269,19 +272,20 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         data[TABLENAMES] = tableNames
         data[TABLENAMES_LOWERCASE] = tableNamesLowercase
 
-        data[RELATIONS_MANY_TO_ONE] = relationsManyToOne
-        data[RELATIONS_ONE_TO_MANY] = relationsOneToMany
+        data[RELATIONS_MANY_TO_ONE] = relationsManyToOne.distinctBy { it.relation_source to it.relation_target to it.relation_name }
+        data[RELATIONS_ONE_TO_MANY] = relationsOneToMany.distinctBy { it.relation_source to it.relation_target to it.relation_name }
         val relations = mutableListOf<TemplateRelationDefFiller>()
         val relationsId = mutableListOf<TemplateRelationDefFiller>()
         relationsManyToOne.forEach {
             relations.add(it.getTemplateRelationDefFiller(RelationType.MANY_TO_ONE))
-            relationsId.add(it.getTemplateRelationDefFillerForRelationId())
+            if (!it.isAlias)
+                relationsId.add(it.getTemplateRelationDefFillerForRelationId())
         }
         relationsOneToMany.forEach {
             relations.add(it.getTemplateRelationDefFiller(RelationType.ONE_TO_MANY))
         }
-        data[RELATIONS] = relations.distinct()
-        data[RELATIONS_ID] = relationsId.distinct()
+        data[RELATIONS] = relations.distinctBy { it.relation_source to it.relation_target to it.relation_name }
+        data[RELATIONS_ID] = relationsId.distinctBy { it.relation_source to it.relation_target to it.relation_name }
 
         data[HAS_ANY_MANY_TO_ONE_RELATION] = relationsManyToOne.isNotEmpty()
         data[HAS_ANY_ONE_TO_MANY_RELATION] = relationsOneToMany.isNotEmpty()
@@ -317,17 +321,20 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
             tableNamesForNavigation.add(dataModel.getTemplateLayoutFillerForNavigation())
 
             dataModel.relations?.forEach { relation ->
-                layoutRelationList.add(relation.getTemplateRelationFiller())
-                // Check for sub 1-N relations
-                if (relation.type == RelationType.MANY_TO_ONE) {
-                    val subTemplateRelationFillerList = relation.checkSubRelations()
-                    layoutRelationList.addAll(subTemplateRelationFillerList)
+                val isTargetNativeType = projectEditor.dataModelList.map { it.name }.contains(relation.target).not()
+                if (!isTargetNativeType) {
+                    layoutRelationList.add(relation.getTemplateRelationFiller())
+                    // Check for sub 1-N relations
+                    if (relation.type == RelationType.MANY_TO_ONE) {
+                        val subTemplateRelationFillerList = relation.checkSubRelations()
+                        layoutRelationList.addAll(subTemplateRelationFillerList)
+                    }
                 }
             }
         }
         data[TABLENAMES_NAVIGATION] = tableNamesForNavigation
         data[TABLENAMES_NAVIGATION_FOR_NAVBAR] = tableNamesForNavigationForNavBar
-        data[TABLENAMES_LAYOUT_RELATIONS] = layoutRelationList
+        data[TABLENAMES_LAYOUT_RELATIONS] = layoutRelationList.distinctBy { it.relation_source to it.relation_target to it.relation_name }
         data[HAS_RELATION] = layoutRelationList.isNotEmpty()
 
         // Specifying if list layout is table or collection (LinearLayout or GridLayout)
@@ -417,7 +424,8 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
             dataModel.relations?.forEach { relation ->
                 val filler = relation.getTemplateRelationFiller()
                 if (relation.type == RelationType.MANY_TO_ONE) {
-                    relationsManyToOne.add(filler)
+                    if (relation.path.isEmpty())
+                        relationsManyToOne.add(filler)
                     // Check for sub 1-N relations
                     val subTemplateRelationFillerList = relation.checkSubRelations()
                     relationsOneToMany.addAll(subTemplateRelationFillerList)
@@ -427,8 +435,8 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
             }
         }
 
-        data[RELATIONS_MANY_TO_ONE] = relationsManyToOne
-        data[RELATIONS_ONE_TO_MANY] = relationsOneToMany
+        data[RELATIONS_MANY_TO_ONE] = relationsManyToOne.distinctBy { it.relation_source to it.relation_target to it.relation_name }
+        data[RELATIONS_ONE_TO_MANY] = relationsOneToMany.distinctBy { it.relation_source to it.relation_target to it.relation_name }
 
         data[RELATIONS_ONE_TO_MANY_FOR_LIST] = oneToManyRelationFillerForEachListLayout
         data[RELATIONS_MANY_TO_ONE_FOR_LIST] = manyToOneRelationFillerForEachListLayout
@@ -492,7 +500,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         projectEditor.dataModelList.find { it.name.tableNameAdjustment() == tableName.name.tableNameAdjustment() }?.fields?.let { fields ->
 
             val fieldList = mutableListOf<TemplateFieldFiller>()
-            for (field in fields) {
+            fields.filter { it.kind != "alias" }.forEach { field ->
                 Log.d("> Field [${field.name}] : $field")
                 field.fieldTypeString?.let { fieldTypeString ->
                     fieldList.add(field.getTemplateFieldFiller(fieldTypeString))
@@ -516,18 +524,21 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
         projectEditor.dataModelList.find { it.name.tableNameAdjustment() == tableName.name.tableNameAdjustment() }?.relations?.forEach { relation ->
             val filler = relation.getTemplateRelationFiller()
-            if (relation.type == RelationType.MANY_TO_ONE) {
-                relationsManyToOne.add(filler)
-                // Check for sub 1-N relations
-                val subTemplateRelationFillerList = relation.checkSubRelations()
-                relationsOneToMany.addAll(subTemplateRelationFillerList)
-            } else {
-                relationsOneToMany.add(filler)
+            val isTargetNativeType = projectEditor.dataModelList.map { it.name }.contains(relation.target).not()
+            if (!isTargetNativeType) {
+                if (relation.type == RelationType.MANY_TO_ONE) {
+                    relationsManyToOne.add(filler)
+                    // Check for sub 1-N relations
+                    val subTemplateRelationFillerList = relation.checkSubRelations()
+                    relationsOneToMany.addAll(subTemplateRelationFillerList)
+                } else {
+                    relationsOneToMany.add(filler)
+                }
             }
         }
 
-        data[RELATIONS_MANY_TO_ONE] = relationsManyToOne
-        data[RELATIONS_ONE_TO_MANY] = relationsOneToMany
+        data[RELATIONS_MANY_TO_ONE] = relationsManyToOne.distinctBy { it.relation_source to it.relation_target to it.relation_name }
+        data[RELATIONS_ONE_TO_MANY] = relationsOneToMany.distinctBy { it.relation_source to it.relation_target to it.relation_name }
         if (relationsManyToOne.size > 0 || relationsOneToMany.size >0)
             data[TABLE_HAS_ANY_RELATION] = true
     }
@@ -566,17 +577,20 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                 relationsOneToMany.clear()
                                 projectEditor.dataModelList.find { it.name.tableNameAdjustment() == listForm.dataModel.name.tableNameAdjustment() }?.relations?.forEach { relation ->
                                     val filler = relation.getTemplateRelationFiller()
-                                    if (relation.type == RelationType.MANY_TO_ONE) {
-                                        relationsManyToOne.add(filler)
-                                        // Check for sub 1-N relations
-                                        val subTemplateRelationFillerList = relation.checkSubRelations()
-                                        relationsOneToMany.addAll(subTemplateRelationFillerList)
-                                    } else {
-                                        relationsOneToMany.add(filler)
+                                    val isTargetNativeType = projectEditor.dataModelList.map { it.name }.contains(relation.target).not()
+                                    if (!isTargetNativeType) {
+                                        if (relation.type == RelationType.MANY_TO_ONE) {
+                                            relationsManyToOne.add(filler)
+                                            // Check for sub 1-N relations
+                                            val subTemplateRelationFillerList = relation.checkSubRelations()
+                                            relationsOneToMany.addAll(subTemplateRelationFillerList)
+                                        } else {
+                                            relationsOneToMany.add(filler)
+                                        }
                                     }
                                 }
-                                data[RELATIONS_MANY_TO_ONE] = relationsManyToOne
-                                data[RELATIONS_ONE_TO_MANY] = relationsOneToMany
+                                data[RELATIONS_MANY_TO_ONE] = relationsManyToOne.distinctBy { it.relation_source to it.relation_target to it.relation_name }
+                                data[RELATIONS_ONE_TO_MANY] = relationsOneToMany.distinctBy { it.relation_source to it.relation_target to it.relation_name }
                                 data[HAS_ANY_ONE_TO_MANY_RELATION_FOR_LAYOUT] = relationsOneToMany.isNotEmpty()
 
                                 var wholeFormHasIcons = false
@@ -907,6 +921,9 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         data["field_${i}_accessor"] = field.getLayoutVariableAccessor(formType)
         data["field_${i}_field_name"] = field.getFieldName()
         data["field_${i}_source_table_name"] = field.getSourceTableName(projectEditor.dataModelList, form)
+
+        data["field_${i}_name"] = field.getFieldAliasName()
+
         val isRelation = isRelationWithFixes(projectEditor.dataModelList, form, field)
         Log.d("field ${field.name}, isRelation ? : $isRelation")
         if (isRelation) {

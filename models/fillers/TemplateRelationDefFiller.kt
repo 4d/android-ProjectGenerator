@@ -3,7 +3,8 @@ data class TemplateRelationDefFiller(
     val relation_target: String,
     val relation_name: String,
     val inverse_name: String,
-    val relationType: String
+    val relationType: String,
+    val path: String
 )
 
 fun TemplateRelationFiller.getTemplateRelationDefFiller(relationType: RelationType): TemplateRelationDefFiller =
@@ -12,7 +13,8 @@ fun TemplateRelationFiller.getTemplateRelationDefFiller(relationType: RelationTy
         relation_target = this.relation_target,
         relation_name = if (relationType == RelationType.ONE_TO_MANY && this.isSubRelation) this.originalSubRelationName else this.relation_name,
         inverse_name = this.inverse_name,
-        relationType = if (relationType == RelationType.ONE_TO_MANY) "Relation.Type.ONE_TO_MANY" else "Relation.Type.MANY_TO_ONE"
+        relationType = if (relationType == RelationType.ONE_TO_MANY) "Relation.Type.ONE_TO_MANY" else "Relation.Type.MANY_TO_ONE",
+        path = this.path.fieldAdjustment()
     )
 
 fun TemplateRelationFiller.getTemplateRelationDefFillerForRelationId(): TemplateRelationDefFiller =
@@ -21,5 +23,6 @@ fun TemplateRelationFiller.getTemplateRelationDefFillerForRelationId(): Template
         relation_target = "",
         relation_name = this.relation_name,
         inverse_name = "",
-        relationType = ""
+        relationType = "",
+        path = ""
     )
