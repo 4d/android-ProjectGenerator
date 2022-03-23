@@ -13,6 +13,7 @@ class SqlQueryBuilder(entry: Any, private val fields: List<FieldData>) {
     val relatedEntitiesMap = mutableMapOf<String, MutableList<JSONObject>>()
 
     init {
+        Log.d("SqlQueryBuilder : fields = ${fields.joinToString { it.name }}")
 
         when (entry) {
             is JSONArray -> {

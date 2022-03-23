@@ -8,7 +8,6 @@ class CreateDatabaseTask(
 ) {
 
     private val originalTableNamesMap: Map<String, String> = getTableNamesMap()
-    private val concatFieldsMap: Map<String, String> = getConcatFieldsMap()
     private val tableNameAndFieldsMap: Map<String, List<Field>> = getTableNameAndFieldsMap()
 
     // PARAMS
@@ -33,15 +32,8 @@ class CreateDatabaseTask(
     private fun getTableNameAndFieldsMap(): Map<String, List<Field>> {
         val map = mutableMapOf<String, List<Field>>()
         dataModelList.forEach { dataModel ->
-            map[dataModel.name.tableNameAdjustment()] = dataModel.fields ?: mutableListOf()
-        }
-        return map
-    }
-
-    private fun getConcatFieldsMap(): Map<String, String>{
-        val map = mutableMapOf<String, String>()
-        dataModelList.forEach { dataModel ->
-            map[dataModel.name.tableNameAdjustment()] = dataModel.fields?.joinToString { "\"${it.name}\"" } ?: ""
+//            map[dataModel.name.tableNameAdjustment()] = dataModel.fields ?: mutableListOf()
+            map[dataModel.name.tableNameAdjustment()] = dataModel.fields?.filter { it.path.isNullOrEmpty() } ?: mutableListOf()
         }
         return map
     }
@@ -68,9 +60,11 @@ class CreateDatabaseTask(
     private fun getSqlQueries(staticDataInitializer: StaticDataInitializer): List<SqlQuery> {
         val queryList = mutableListOf<SqlQuery>()
         for ((tableName, tableNameOriginal) in originalTableNamesMap) {
-            concatFieldsMap[tableName]?.let { concatFields ->
-                getCatalog(assetsPath, tableNameOriginal, concatFields)?.let { dataClass ->
+            tableNameAndFieldsMap[tableName]?.let { fields ->
+                Log.d("fields name: ${fields.joinToString { it.name }}")
+                getCatalog(assetsPath, tableNameOriginal, fields)?.let { dataClass ->
 
+                    Log.d("ZZZ, dataclassform catalog: ${dataClass.fields.joinToString { it.name }}")
                     queryList.addAll(
                         getSqlQueriesForTable(
                             tableName,
@@ -139,10 +133,10 @@ class CreateDatabaseTask(
                 val tableName =
                     originalTableNamesMap.filter { it.value == originalTableName }.keys.firstOrNull()
                 val relatedTableFields = dataClassList.find { it.name == originalTableName }?.fields
+                Log.d("YYY, relatedTableFields: ${relatedTableFields?.joinToString { it.name }}")
                 if (tableName != null && relatedTableFields != null) {
 
                     jsonEntityList.forEach { jsonEntity ->
-
                         val sqlQueryBuilder = SqlQueryBuilder(jsonEntity, relatedTableFields)
 
                         queryList.add(
@@ -230,6 +224,7 @@ class CreateDatabaseTask(
                 }
 
                 entities?.let {
+
                     val sqlQueryBuilder = SqlQueryBuilder(it, fields)
 
                     relatedEntitiesMapList.add(sqlQueryBuilder.relatedEntitiesMap)

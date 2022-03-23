@@ -50,6 +50,10 @@ fun JSONObject?.getFormField(dataModelName: String, catalogDef: CatalogDef): Fie
     this?.getSafeString("path")?.let { path ->
         field.path = unAliasPath(path, dataModelName, catalogDef)
         Log.d("Form field creation, path : $path, unaliased path : ${field.path}")
+        if (path == field.path) { // path : FirstName, name : First
+            field.name = path
+            field.kind = ""
+        }
     }
     Log.d("form field extracted: $field")
     return field

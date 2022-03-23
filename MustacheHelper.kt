@@ -445,6 +445,9 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         data[HAS_ANY_RELATIONS_ONE_TO_MANY] = oneToManyRelationFillerForEachListLayout.isNotEmpty() || oneToManyRelationFillerForEachDetailLayout.isNotEmpty()
         data[HAS_ANY_RELATIONS_MANY_TO_ONE] = manyToOneRelationFillerForEachListLayout.isNotEmpty() || manyToOneRelationFillerForEachDetailLayout.isNotEmpty()
 
+        Log.d("data[HAS_ANY_RELATIONS_ONE_TO_MANY] = ${data[HAS_ANY_RELATIONS_ONE_TO_MANY]}")
+        Log.d("data[HAS_ANY_RELATIONS_MANY_TO_ONE] = ${data[HAS_ANY_RELATIONS_MANY_TO_ONE]}")
+
         if (currentFile.isWithTemplateName()) {
             Log.d("currentFile isWithTemplateName")
             Log.d("currentFile isWithTemplateName, tableNames: $tableNames")
@@ -805,33 +808,37 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
     }
 
     private fun fillRelationFillerForEachLayout(field: Field, form: Form, formType: FormType, index: Int) {
+        Log.d("XX: fillRelationFillerForEachLayout, $field")
+        if (field.path.isNullOrEmpty()) {
+            val source: String = form.dataModel.name
+            val target: String? = projectEditor.dataModelList.find { it.id == field.relatedTableNumber.toString() }?.name
+            val inverseName: String? = getInverseNameWithFixes(projectEditor.dataModelList, form, field)
+            Log.d("XX: fillRelationFillerForEachLayout, inverseName = $inverseName, target = $target")
+            if (inverseName != null && target != null) {
 
-        val source: String = form.dataModel.name
-        val target: String? = projectEditor.dataModelList.find { it.id == field.relatedTableNumber.toString() }?.name
-        val inverseName: String? = getInverseNameWithFixes(projectEditor.dataModelList, form, field)
+                projectEditor.dataModelList.find { it.id  == form.dataModel.id }?.relations?.find { it.name == field.name }?.let { relation ->
 
-        if (inverseName != null && target != null) {
+                    val navbarTitle = getNavbarTitleWithFixes(projectEditor.dataModelList, form, field, source)
+                    fillRelationFillerForEachRelation(source, target, field.name, inverseName, index, formType, relation, navbarTitle)
 
-            projectEditor.dataModelList.find { it.id  == form.dataModel.id }?.relations?.find { it.name == field.name }?.let { relation ->
+                } ?: kotlin.run {
+                    val relationSplit = field.name.split(".")
+                    if (relationSplit.size > 1) {
+                        val relationBaseName: String = relationSplit[0]
+                        val relationEndName: String = relationSplit[1]
 
-                val navbarTitle = getNavbarTitleWithFixes(projectEditor.dataModelList, form, field, source)
-                fillRelationFillerForEachRelation(source, target, field.name, inverseName, index, formType, relation, navbarTitle)
+                        projectEditor.dataModelList.find { it.id  == form.dataModel.id }?.fields?.find { it.name == relationBaseName }?.relatedTableNumber?.let { relationBaseTableNumber ->
+                            projectEditor.dataModelList.find { it.id  == relationBaseTableNumber.toString() }?.relations?.find { it.name == relationEndName }?.let { subRelation ->
 
-            } ?: kotlin.run {
-                val relationSplit = field.name.split(".")
-                if (relationSplit.size > 1) {
-                    val relationBaseName: String = relationSplit[0]
-                    val relationEndName: String = relationSplit[1]
-
-                    projectEditor.dataModelList.find { it.id  == form.dataModel.id }?.fields?.find { it.name == relationBaseName }?.relatedTableNumber?.let { relationBaseTableNumber ->
-                        projectEditor.dataModelList.find { it.id  == relationBaseTableNumber.toString() }?.relations?.find { it.name == relationEndName }?.let { subRelation ->
-
-                            val navbarTitle = getNavbarTitleWithFixes(projectEditor.dataModelList, form, field, source)
-                            fillRelationFillerForEachRelation(source, subRelation.target, field.name, inverseName, index, formType, subRelation, navbarTitle)
+                                val navbarTitle = getNavbarTitleWithFixes(projectEditor.dataModelList, form, field, source)
+                                fillRelationFillerForEachRelation(source, subRelation.target, field.name, inverseName, index, formType, subRelation, navbarTitle)
+                            }
                         }
                     }
                 }
             }
+        } else {
+
         }
     }
 
@@ -922,6 +929,8 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         data["field_${i}_field_name"] = field.getFieldName()
         data["field_${i}_source_table_name"] = field.getSourceTableName(projectEditor.dataModelList, form)
 
+        if (field.name == "ID")
+            Log.d("XX: ${data["field_${i}_name"]}")
         data["field_${i}_name"] = field.getFieldAliasName()
 
         val isRelation = isRelationWithFixes(projectEditor.dataModelList, form, field)

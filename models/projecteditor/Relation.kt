@@ -55,9 +55,9 @@ fun String.checkPath(source: String, catalogDef: CatalogDef): Pair<String?, Stri
 }
 
 fun Field.getFieldAliasName(): String {
-    var name = this.name // managerServiceName
     val path = this.path // manager.service.Name
-    if (path != null) {
+    if (path?.isNotEmpty() == true) {
+        val name: String // managerServiceName
         var subPath = path.substringBeforeLast(".") // manager.service
         if (subPath.contains(".")) {
             subPath = subPath.replace(".", "_") // manager_service
@@ -65,11 +65,13 @@ fun Field.getFieldAliasName(): String {
         } else {
             name = path.fieldAdjustment()
         }
+        if (this.name != name){
+            Log.d("getFieldAliasName changed a name from ${this.name} to $name where path was $path")
+        }
+        return name
+    } else {
+        return this.name.fieldAdjustment()
     }
-    if (this.name != name){
-        Log.d("getFieldAliasName changed a name from ${this.name} to $name where path was $path")
-    }
-    return name
 }
 
 fun addAliasToDataModel(dataModelList: List<DataModel>, aliasToAdd: Relation) {

@@ -1,6 +1,6 @@
 import java.io.File
 
-fun getCatalog(assetsPath: String, tableName: String, concatFields: String): DataClass? {
+fun getCatalog(assetsPath: String, tableName: String, concatFields: List<Field>): DataClass? {
 
     val filePath = getCatalogPath(assetsPath, tableName)
 
@@ -28,7 +28,10 @@ fun getCatalog(assetsPath: String, tableName: String, concatFields: String): Dat
 
                                 attribute.getSafeString("name")?.let { fieldName ->
 
-                                    if (concatFields.contains(fieldName)) {
+                                    Log.d("catalogExtractor, fieldName: $fieldName")
+                                    Log.d("catalogExtractor, fields name: ${concatFields.joinToString { it.name }}")
+                                    if (concatFields.map { it.name }.contains(fieldName)) {
+                                        Log.d("CONTAINS")
 
                                         val field = FieldData(fieldName.fieldAdjustment())
                                         attribute.getSafeString("type")
