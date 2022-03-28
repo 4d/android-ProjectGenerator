@@ -98,11 +98,18 @@ fun Field.getIcon(dataModelKey: String): String {
     return this.icon ?: ""
 }
 
-fun Field.isRelation(): Boolean = !this.inverseName.isNullOrEmpty()
+fun Field.isRelation(currentTable: String, dataModelList: List<DataModel>): Boolean {
+    if (this.name == "servEmployeesBureau") {
 
-fun Field.isOneToManyRelation(): Boolean = this.relatedEntities != null && this.isRelation()
+        Log.d("this = $this")
+        Log.d("isFieldAlias ?  ${isFieldAlias(currentTable, dataModelList)}")
+    }
+    return !this.inverseName.isNullOrEmpty() || (this.kind == "alias" && !isFieldAlias(currentTable, dataModelList) )
+}
 
-fun Field.isManyToOneRelation(): Boolean = this.relatedEntities == null && this.isRelation()
+fun Field.isOneToManyRelation(currentTable: String, dataModelList: List<DataModel>): Boolean = this.relatedEntities != null && this.isRelation(currentTable, dataModelList)
+
+fun Field.isManyToOneRelation(currentTable: String, dataModelList: List<DataModel>): Boolean = this.relatedEntities == null && this.isRelation(currentTable, dataModelList)
 
 fun correctIconPath(iconPath: String): String {
     val correctedIconPath = iconPath
@@ -115,6 +122,7 @@ fun correctIconPath(iconPath: String): String {
 }
 
 fun Field.getFormatNameForType(pathHelper: PathHelper): String {
+    Log.d("getFormatNameForType, [${this.name}] field: $this")
     val format = this.format
     if (format.equals("integer")) {
         return when (this.fieldType) {
@@ -124,13 +132,15 @@ fun Field.getFormatNameForType(pathHelper: PathHelper): String {
         }
     }
     if (format.isNullOrEmpty()) {
+        if (this.kind == "alias" && this.path?.contains(".") == true)
+            return ""
         return when (typeFromTypeInt(this.fieldType)) {
             BOOLEAN_TYPE -> "falseOrTrue"
             DATE_TYPE -> "mediumDate"
             TIME_TYPE -> "mediumTime"
             INT_TYPE -> "integer"
             FLOAT_TYPE -> "decimal"
-            OBJECT_TYPE -> "yaml"
+            OBJECT_TYPE-> "yaml"
             else -> ""
         }
     } else {
@@ -336,7 +346,7 @@ fun getNavbarTitleWithFixes(dataModelList: List<DataModel>, form: Form, field: F
 
 fun isRelationWithFixes(dataModelList: List<DataModel>, form: Form, field: Field): Boolean {
     val fieldFromDataModel: Field? = getDataModelField(dataModelList, form, field)
-    return fieldFromDataModel?.isRelation() ?: field.isRelation()
+    return fieldFromDataModel?.isRelation(form.dataModel.name, dataModelList) ?: field.isRelation(form.dataModel.name, dataModelList)
 }
 
 fun getInverseNameWithFixes(dataModelList: List<DataModel>, form: Form, field: Field): String? {
@@ -346,15 +356,10 @@ fun getInverseNameWithFixes(dataModelList: List<DataModel>, form: Form, field: F
 
 fun isOneToManyRelationWithFixes(dataModelList: List<DataModel>, form: Form, field: Field): Boolean {
     val fieldFromDataModel: Field? = getDataModelField(dataModelList, form, field)
-    return fieldFromDataModel?.isOneToManyRelation() ?: field.isOneToManyRelation()
+    return fieldFromDataModel?.isOneToManyRelation(form.dataModel.name, dataModelList) ?: field.isOneToManyRelation(form.dataModel.name, dataModelList)
 }
 
 fun isManyToOneRelationWithFixes(dataModelList: List<DataModel>, form: Form, field: Field): Boolean {
     val fieldFromDataModel: Field? = getDataModelField(dataModelList, form, field)
-    return fieldFromDataModel?.isManyToOneRelation() ?: field.isManyToOneRelation()
-}
-
-fun isAliasFromCatalog(dataModelList: List<DataModel>, form: Form, field: Field): Boolean {
-    val fieldFromDataModel: Field? = getDataModelField(dataModelList, form, field)
-    return fieldFromDataModel?.isRelation() ?: field.isRelation()
+    return fieldFromDataModel?.isManyToOneRelation(form.dataModel.name, dataModelList) ?: field.isManyToOneRelation(form.dataModel.name, dataModelList)
 }

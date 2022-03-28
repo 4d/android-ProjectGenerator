@@ -45,6 +45,7 @@
 //INCLUDE models/projecteditor/RelationType.kt
 //INCLUDE models/projecteditor/VariableType.kt
 //INCLUDE utils/Color.kt
+//INCLUDE utils/FeatureChecker.kt
 //INCLUDE utils/Formatters.kt
 //INCLUDE utils/StringHelper.kt
 //INCLUDE utils/JSONExt.kt

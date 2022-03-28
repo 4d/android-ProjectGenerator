@@ -23,4 +23,5 @@ object DefaultValues {
      *  val ASSERT = 7
      */
     const val DEFAULT_LOG_LEVEL = 4
+    const val DEBUG_LOG_LEVEL = 2
 }

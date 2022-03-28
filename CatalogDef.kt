@@ -51,12 +51,13 @@ class CatalogDef(catalogFile: File) {
     private fun getCatalogRelations(): List<Relation> {
         Log.d(" ===== RELATIONS =====")
         dataModelAliases.forEach { dm ->
-            dm.relations.forEach { relation ->
-                Log.d("[${dm.name}] ${relation.name}")
-            }
-            Log.d("--------")
+            Log.d("FIELDS --------")
             dm.fields.forEach { field ->
                 Log.d("[${dm.name}] ${field.name}")
+            }
+            Log.d("RELATIONS --------")
+            dm.relations.forEach { relation ->
+                Log.d("[${dm.name}] ${relation.name} (${relation.path})")
             }
         }
         return dataModelAliases.flatMap { it.relations }

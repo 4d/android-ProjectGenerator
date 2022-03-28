@@ -169,7 +169,6 @@ fun replaceTemplateText(oldFormText: String, formType: FormType): String {
                 "${indent}{{^field_${id}_label_has_percent_placeholder}}\n" +
                 "${indent}android:text=\"{{field_${id}_label}}\"\n" +
                 "${indent}{{/field_${id}_label_has_percent_placeholder}}\n" +
-                "${indent}app:linkColor=\"@{true}\"\n" +
                 "${indent}{{/field_${id}_is_relation}}\n" +
                 "${indent}{{^field_${id}_is_relation}}\n" +
                 "${indent}{{#field_${id}_custom_formatted}}\n" +

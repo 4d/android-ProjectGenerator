@@ -50,6 +50,7 @@ object ProjectEditorConstants {
     const val DUMPED_STAMP_KEY = "dumpedStamp"
     const val DUMPED_TABLES_KEY = "dumpedTables"
     const val ACTIONS_KEY = "actions"
+    const val DEBUG_MODE_KEY = "debugMode"
 
     /**
      * TYPE STRING PARSING

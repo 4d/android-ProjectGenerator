@@ -53,6 +53,7 @@ object MustacheConstants {
     const val HAS_ANY_RELATIONS_MANY_TO_ONE = "has_any_relations_many_to_one"
     const val HAS_DATASET = "hasDataSet"
     const val PERMISSIONS = "permissions"
+    const val DEBUG_MODE = "debug_mode"
 
     const val COLORS_DEFINED = "logo_colors_defined"
     const val COLOR_PRIMARY_NEUTRAL = "color_primary_neutral"

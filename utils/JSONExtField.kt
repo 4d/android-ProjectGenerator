@@ -48,27 +48,36 @@ fun JSONObject?.getFormField(dataModelName: String, catalogDef: CatalogDef): Fie
         field.fieldTypeString = "Entities<${it?.tableNameAdjustment()}>"
     }
     this?.getSafeString("path")?.let { path ->
-        field.path = unAliasPath(path, dataModelName, catalogDef)
-        Log.d("Form field creation, path : $path, unaliased path : ${field.path}")
-        if (path == field.path) { // path : FirstName, name : First
-            field.name = path
-            field.kind = ""
+        if (field.kind == "alias") {
+            val unAliasedPath = unAliasPath(path, dataModelName, catalogDef)
+            field.path = unAliasedPath
+            Log.d("Form field creation, path : $path, unaliased path : $unAliasedPath")
+            if (path == unAliasedPath && !unAliasedPath.contains(".")) { // path : FirstName, name : First
+                field.name = path
+                field.kind = ""
+
+                Log.d("GET FIELD FOR FORM:")
+                Log.d("- path is : ${path}")
+                Log.d("- unaliased path is : ${field.path}")
+                Log.d("- field is : ${field}")
+                // path doesn't contains "." so it can't be relation.object of type 38 Object
+                // so if it's type 38 object, it's a relation
+
+                // if is N-1 relation
+                val catalogRelation: Relation? = catalogDef.dataModelAliases.find { it.name == dataModelName }?.relations?.find { it.name == unAliasedPath }
+                if (catalogRelation?.type == RelationType.MANY_TO_ONE) {
+//                    field.fieldTypeString = destBeforeField(catalogDef, dataModelName, path)
+                    field.fieldTypeString = catalogRelation.target
+                    field.fieldType = null
+                    field.variableType = VariableType.VAR.string
+                    field.isToMany = false
+                    field.relatedDataClass = catalogRelation.target
+                    field.inverseName = catalogRelation.inverseName
+                }
+            }
         }
     }
     Log.d("form field extracted: $field")
     return field
 }
 
-fun unAliasPath(path: String?, source: String, catalogDef: CatalogDef): String {
-    var nextTableName = source
-    var newPath = ""
-    path?.split(".")?.forEach {
-        val pair = it.checkPath(nextTableName, catalogDef)
-        nextTableName = pair.first ?: ""
-        newPath = if (newPath.isEmpty())
-            pair.second
-        else
-            newPath + "." + pair.second
-    }
-    return newPath.removeSuffix(".")
-}

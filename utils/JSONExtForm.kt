@@ -1,5 +1,5 @@
 import ProjectEditorConstants.DETAIL_KEY
-import ProjectEditorConstants.EMPTY_TYPE
+import ProjectEditorConstants.EMPTY_KEY
 import ProjectEditorConstants.FIELDS_KEY
 import ProjectEditorConstants.FORM_KEY
 import ProjectEditorConstants.LIST_KEY
@@ -58,21 +58,29 @@ fun JSONObject.getFormList(dataModelList: List<DataModel>, formType: FormType, n
 
     // Add any relation for unaliased path
     formList.forEach { form ->
-        form.fields?.filter { it.path?.contains(".") == true && typeStringFromTypeInt(it.fieldType) != EMPTY_TYPE}?.forEach { field ->
-            field.path?.let { path ->
-                val aliasRelation = Relation(
-                    source = form.dataModel.name,
-                    target = destBeforeField(catalogDef, form.dataModel.name, path),
-                    name = path.substringBeforeLast(".").replace(".", "_").fieldAdjustment(),
-                    type = RelationType.MANY_TO_ONE,
-                    subFields = listOf(),
-                    inverseName = "",
-                    path = path.substringBeforeLast(".")
-                )
-                Log.d("new Alias to be added : $aliasRelation")
-                aliasToAddCallback(aliasRelation)
+        form.fields?.forEach { field ->
+            if (field.isFieldAlias(form.dataModel.name, dataModelList)) {
+                field.path?.let { path ->
+                    Log.d("Going to add first part of a fieldAlias")
+                    Log.d("field : $field")
+                    val aliasRelation = Relation(
+                        source = form.dataModel.name,
+                        target = destBeforeField(catalogDef, form.dataModel.name, path),
+                        name = path.substringBeforeLast(".").replace(".", "_").fieldAdjustment(),
+                        type = RelationType.MANY_TO_ONE,
+                        subFields = listOf(),
+                        inverseName = "",
+                        path = path.substringBeforeLast(".")
+                    )
+                    Log.d("new Alias to be added : $aliasRelation")
+                    aliasToAddCallback(aliasRelation)
+                }
             }
         }
+    }
+
+    formList.find { it.dataModel.name == "Emp" }?.fields?.forEach {
+        Log.d("XX: Name: ${it.name}, path: ${it.path}")
     }
 
     return formList

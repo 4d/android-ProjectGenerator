@@ -1,3 +1,4 @@
+import DefaultValues.DEBUG_LOG_LEVEL
 import DefaultValues.DEFAULT_LOG_LEVEL
 import DefaultValues.DEFAULT_REMOTE_URL
 import ProjectEditorConstants.ACTIONS_KEY
@@ -6,6 +7,7 @@ import ProjectEditorConstants.BOOLEAN_TYPE
 import ProjectEditorConstants.CACHE_4D_SDK_KEY
 import ProjectEditorConstants.DATASOURCE_KEY
 import ProjectEditorConstants.DATE_TYPE
+import ProjectEditorConstants.DEBUG_MODE_KEY
 import ProjectEditorConstants.DEVELOPER_KEY
 import ProjectEditorConstants.DOMINANT_COLOR_KEY
 import ProjectEditorConstants.DUMPED_STAMP_KEY
@@ -133,6 +135,7 @@ class ProjectEditor(projectEditorFile: File, catalogDef: CatalogDef, isCreateDat
             FeatureFlagConstants.HAS_RELATIONS_KEY -> jsonObj.getSafeBoolean(FeatureFlagConstants.HAS_RELATIONS_KEY)
             FeatureFlagConstants.HAS_ACTIONS_KEY -> jsonObj.getSafeBoolean(FeatureFlagConstants.HAS_ACTIONS_KEY)
             FeatureFlagConstants.HAS_DATASET_KEY -> jsonObj.getSafeBoolean(FeatureFlagConstants.HAS_DATASET_KEY)
+            "debugMode" -> jsonObj.getSafeBoolean(DEBUG_MODE_KEY)
             else -> null
         }
     }
@@ -145,13 +148,14 @@ class ProjectEditor(projectEditorFile: File, catalogDef: CatalogDef, isCreateDat
         if (remoteUrl.isNullOrEmpty())
             remoteUrl = DEFAULT_REMOTE_URL
         val teamId = findJsonString("teamId") ?: ""
+        val debugMode = findJsonBoolean("debugMode") ?: false
         return AppInfo(
                 team = Team(TeamID = teamId, TeamName = ""),
                 guestLogin = mailAuth.not(),
                 remoteUrl = remoteUrl,
                 initialGlobalStamp = findJsonInt("dumpedStamp") ?: 0,
                 dumpedTables = findJsonArray("dumpedTables")?.getStringList() ?: mutableListOf(),
-                logLevel = DEFAULT_LOG_LEVEL,
+                logLevel = if (debugMode) DEBUG_LOG_LEVEL else DEFAULT_LOG_LEVEL,
                 relations = findJsonBoolean(FeatureFlagConstants.HAS_RELATIONS_KEY) ?: true
         )
     }
