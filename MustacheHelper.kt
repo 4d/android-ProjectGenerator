@@ -539,7 +539,97 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
      * Perform list and detail form templating to know which relations and alias will be required
      */
     fun getRequiredRelationsInLayouts() {
-        // TODO
+        projectEditor.listFormList.forEach { listForm ->
+
+            Log.d("applyListFormTemplate : listForm.name = ${listForm.name} for table ${listForm.dataModel.name}. FieldSize : ${listForm.fields?.size}")
+
+            var formPath = fileHelper.pathHelper.getFormPath(listForm.name, FormType.LIST)
+            formPath = fileHelper.pathHelper.verifyFormPath(formPath, FormType.LIST)
+
+            val appFolderInTemplate = fileHelper.pathHelper.getAppFolderInTemplate(formPath)
+
+            File(appFolderInTemplate).walkTopDown().filter { folder -> !folder.isHidden && folder.isDirectory }
+                .forEach { currentFolder ->
+
+                    currentFolder.walkTopDown()
+                        .filter { file -> !file.isHidden && file.isFile && currentFolder.absolutePath.contains(file.parent) && file.name != DS_STORE }
+                        .forEach { currentFile ->
+
+                            Log.i(" > Processed template file : $currentFile")
+
+                            if (currentFile.name == LAYOUT_FILE) {
+                                val oldFormText = readFileDirectlyAsText(currentFile)
+                                val newFormText = replaceTemplateText(oldFormText, FormType.LIST)
+                                template = compiler.compile(newFormText)
+
+                                data[TABLENAME_LOWERCASE] = listForm.dataModel.name.toLowerCase().fieldAdjustment()
+                                data[TABLENAME] = listForm.dataModel.name.tableNameAdjustment()
+                                relationsManyToOne.clear()
+                                relationsOneToMany.clear()
+                                projectEditor.dataModelList.find { it.name.tableNameAdjustment() == listForm.dataModel.name.tableNameAdjustment() }?.relations?.forEach { relation ->
+                                    val filler = relation.getTemplateRelationFiller()
+                                    val isTargetNativeType = projectEditor.dataModelList.map { it.name }.contains(relation.target).not()
+                                    if (!isTargetNativeType) {
+                                        if (relation.type == RelationType.MANY_TO_ONE) {
+                                            relationsManyToOne.add(filler)
+                                            // Check for sub 1-N relations
+                                            val subTemplateRelationFillerList = relation.checkSubRelations()
+                                            relationsOneToMany.addAll(subTemplateRelationFillerList)
+                                        } else {
+                                            relationsOneToMany.add(filler)
+                                        }
+                                    }
+                                }
+                                data[RELATIONS_MANY_TO_ONE] = relationsManyToOne.distinctBy { it.relation_source to it.relation_target to it.relation_name }
+                                data[RELATIONS_ONE_TO_MANY] = relationsOneToMany.distinctBy { it.relation_source to it.relation_target to it.relation_name }
+                                data[HAS_ANY_ONE_TO_MANY_RELATION_FOR_LAYOUT] = relationsOneToMany.isNotEmpty()
+
+                                var wholeFormHasIcons = false
+
+                                projectEditor.dataModelList.find { it.id == listForm.dataModel.id }?.fields?.forEach {
+                                    if (!it.icon.isNullOrEmpty())
+                                        wholeFormHasIcons = true
+                                }
+                                projectEditor.dataModelList.find { it.id  == listForm.dataModel.id }?.relations?.forEach { relation ->
+                                    relation.subFields.forEach {
+                                        if (!it.icon.isNullOrEmpty())
+                                            wholeFormHasIcons = true
+                                    }
+                                }
+
+                                Log.d("wholeFormHasIcons = $wholeFormHasIcons")
+
+                                var i = 0
+                                listForm.fields?.forEach { field -> // Could also iterate over specificFieldsCount as Detail form
+                                    i++
+
+                                    if (fileHelper.pathHelper.isDefaultTemplateListFormPath(formPath) && field.isImage()) { // is image in default template
+                                        resetIndexedEntries(i)
+                                    } else { // not a relation
+                                        fillIndexedFormData(i, field, FormType.LIST, listForm, wholeFormHasIcons)
+                                        if (isRelationWithFixes(projectEditor.dataModelList, listForm, field)) {
+                                            fillRelationFillerForEachLayout(field, listForm, FormType.LIST, i)
+                                        }
+                                    }
+                                }
+
+                                val newFilePath =
+                                    fileHelper.pathHelper.getRecyclerViewItemPath(listForm.dataModel.name.tableNameAdjustment())
+                                applyTemplate(newFilePath)
+
+                                // cleaning data for other templates
+                                for (j in 1 until i + 1) {
+                                    removeIndexedEntries(j)
+                                }
+                                data.remove(RELATIONS_MANY_TO_ONE)
+                                data.remove(RELATIONS_ONE_TO_MANY)
+                            } else { // any file to copy in project
+
+                                copyOtherTemplateFiles(currentFile, formPath, listForm.dataModel.name.tableNameAdjustment())
+                            }
+                        }
+                }
+        }
     }
 
     fun applyListFormTemplate() {

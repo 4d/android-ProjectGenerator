@@ -23,6 +23,7 @@ fun JSONObject.getFormList(dataModelList: List<DataModel>, formType: FormType, n
             }
             val fieldList = newFormJSONObject?.getSafeArray(FIELDS_KEY).getObjectListAsString()
             form.fields = getFormFields(fieldList, dataModel.name, catalogDef)
+//            form.fields = getFormFields(fieldList, dataModel.name, dataModelList)
             formList.add(form)
         }
     }

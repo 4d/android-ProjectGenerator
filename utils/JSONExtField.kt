@@ -20,33 +20,53 @@ fun getFormFields(fieldList: List<String>, dataModelName: String, catalogDef: Ca
     return fields
 }
 
+/*fun getFormFields(fieldList: List<String>, dataModelName: String, dataModelList: List<DataModel>): List<Field> {
+    val fields = mutableListOf<Field>()
+    fieldList.forEach { fieldString ->
+        val name = retrieveJSONObject(fieldString)?.getSafeString("name")
+        val path = retrieveJSONObject(fieldString)?.getSafeString("path")
+        dataModelList.find { it.name == dataModelName }?.fields?.find { it.name == name }?.let { field ->
+            Log.d("Found field named $name in dataModel $dataModelName")
+            fields.add(field)
+        } ?: dataModelList.find { it.name == dataModelName }?.relations?.find { it.path == path }?.let { field ->
+            Log.d("Found field named $name in dataModel $dataModelName")
+            fields.add(field)
+        } ?: run {
+            val field = Field(name = "")
+            fields.add(field)
+            Log.d("Could not find a field named $name in dataModel $dataModelName")
+        }
+    }
+    return fields
+}*/
+
 fun JSONObject?.getFormField(dataModelName: String, catalogDef: CatalogDef): Field {
     val field = Field(name = "")
-    this?.getSafeString(LABEL_KEY)?.let { field.label = it }
-    this?.getSafeString(SHORTLABEL_KEY)?.let { field.shortLabel = it }
+//    this?.getSafeString(LABEL_KEY)?.let { field.label = it }
+//    this?.getSafeString(SHORTLABEL_KEY)?.let { field.shortLabel = it }
     this?.getSafeInt(FIELDTYPE_KEY).let { field.fieldType = it }
-    this?.getSafeInt(ID_KEY).let { field.id = it.toString() }
-    this?.getSafeInt(RELATEDTABLENUMBER_KEY).let { field.relatedTableNumber = it }
-    this?.getSafeString(INVERSENAME_KEY).let { field.inverseName = it }
+//    this?.getSafeInt(ID_KEY).let { field.id = it.toString() }
+//    this?.getSafeInt(RELATEDTABLENUMBER_KEY).let { field.relatedTableNumber = it }
+//    this?.getSafeString(INVERSENAME_KEY).let { field.inverseName = it }
     this?.getSafeString(NAME_KEY)?.let {
         field.name = it
         field.fieldTypeString = typeStringFromTypeInt(field.fieldType)
     }
     this?.getSafeString(KIND_KEY)?.let { field.kind = it }
-    this?.getSafeString(FORMAT_KEY)?.let { field.format = it }
-    this?.getSafeString(ICON_KEY)?.let { iconPath ->
-        if (iconPath.contains(".")) {
-            field.icon = correctIconPath(iconPath)
-        }
-    }
-    this?.getSafeString(RELATEDDATACLASS_KEY).let {
-        field.relatedDataClass = it
-        field.fieldTypeString = it
-    }
-    this?.getSafeString(RELATEDENTITIES_KEY).let {
-        field.relatedEntities = it
-        field.fieldTypeString = "Entities<${it?.tableNameAdjustment()}>"
-    }
+//    this?.getSafeString(FORMAT_KEY)?.let { field.format = it }
+//    this?.getSafeString(ICON_KEY)?.let { iconPath ->
+//        if (iconPath.contains(".")) {
+//            field.icon = correctIconPath(iconPath)
+//        }
+//    }
+//    this?.getSafeString(RELATEDDATACLASS_KEY).let {
+//        field.relatedDataClass = it
+//        field.fieldTypeString = it
+//    }
+//    this?.getSafeString(RELATEDENTITIES_KEY).let {
+//        field.relatedEntities = it
+//        field.fieldTypeString = "Entities<${it?.tableNameAdjustment()}>"
+//    }
     this?.getSafeString("path")?.let { path ->
         if (field.kind == "alias") {
             val unAliasedPath = unAliasPath(path, dataModelName, catalogDef)
