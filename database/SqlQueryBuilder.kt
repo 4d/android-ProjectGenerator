@@ -11,6 +11,7 @@ class SqlQueryBuilder(entry: Any, private val fields: List<FieldData>) {
     val outputEntities = arrayListOf<Array<Any?>>()
     val hashMap = mutableMapOf<String, Any?>()
     val relatedEntitiesMap = mutableMapOf<String, MutableList<JSONObject>>()
+    val updateQueryHolderList = mutableListOf<UpdateQueryHolder>()
 
     init {
 
@@ -79,7 +80,29 @@ class SqlQueryBuilder(entry: Any, private val fields: List<FieldData>) {
                             }
                         }
                         field.isOneToManyRelation -> {
-                            // TODO
+                            val neededObject = hashMap[key.fieldAdjustment()]
+                            if (neededObject is JSONObject) {
+                                neededObject.getSafeArray("__ENTITIES")?.let { entities ->
+
+                                    for (i in 0 until entities.length()) {
+
+                                        entities.getJSONObject(i)?.getSafeString("__KEY")?.let { entityKey ->
+                                            inputEntity.getSafeString("__KEY")?.let { thisKey ->
+                                                neededObject.getSafeString("__DATACLASS")?.let { relatedDataClass ->
+
+                                                    val updateQueryHolder = UpdateQueryHolder(
+                                                        relatedDataClass = relatedDataClass.tableNameAdjustment(),
+                                                        oneToManyRelationName = field.name.fieldAdjustment(),
+                                                        entityKey = entityKey,
+                                                        relationKey = thisKey
+                                                    )
+                                                    updateQueryHolderList.add(updateQueryHolder)
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -95,3 +118,10 @@ class SqlQueryBuilder(entry: Any, private val fields: List<FieldData>) {
         return outputEntity
     }
 }
+
+data class UpdateQueryHolder(
+    val relatedDataClass: String,
+    val oneToManyRelationName: String,
+    val entityKey: String,
+    val relationKey: String
+)

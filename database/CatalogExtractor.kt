@@ -1,6 +1,6 @@
 import java.io.File
 
-fun getCatalog(assetsPath: String, tableName: String, concatFields: String): DataClass? {
+fun getCatalog(assetsPath: String, tableName: String, fields: List<Field>): DataClass? {
 
     val filePath = getCatalogPath(assetsPath, tableName)
 
@@ -21,7 +21,7 @@ fun getCatalog(assetsPath: String, tableName: String, concatFields: String): Dat
 
                         jsonDataClass.getSafeArray("attributes")?.let { attributes ->
 
-                            val fields = mutableListOf<FieldData>()
+                            val fieldDataList = mutableListOf<FieldData>()
 
                             for (i in 0 until attributes.length()) {
 
@@ -29,33 +29,36 @@ fun getCatalog(assetsPath: String, tableName: String, concatFields: String): Dat
 
                                 attribute.getSafeString("name")?.let { fieldName ->
 
-                                    if (concatFields.contains(fieldName)) {
+                                    if (fields.map { it.name }.contains(fieldName)) {
 
                                         val field = FieldData(fieldName.fieldAdjustment())
                                         attribute.getSafeString("type")
                                             ?.let { type -> field.isImage = type == "image" }
                                         attribute.getSafeString("kind")?.let { kind ->
                                             when (kind) {
-                                                "relatedEntity" -> field.isManyToOneRelation = true
-                                                "relatedEntities" -> field.isOneToManyRelation = true
-                                            }
-                                            if (field.isManyToOneRelation) {
-                                                attribute.getSafeString("type")
-                                                    ?.let { relatedOriginalTableName ->
-                                                        field.relatedOriginalTableName =
-                                                            relatedOriginalTableName
-                                                    }
+                                                "relatedEntity" -> {
+                                                    field.isManyToOneRelation = true
+                                                    attribute.getSafeString("type")
+                                                        ?.let { relatedOriginalTableName ->
+                                                            field.relatedOriginalTableName =
+                                                                relatedOriginalTableName
+                                                        }
+                                                }
+                                                "relatedEntities" -> {
+                                                    field.isOneToManyRelation = true
+                                                }
+                                                else -> {}
                                             }
                                         }
-                                        fields.add(field)
+                                        println("Field added: ${field.name}")
+                                        fieldDataList.add(field)
                                     } else {
                                         println("Field is not defined : $fieldName")
                                     }
                                 }
                             }
-
                             println("[$tableName] Catalog successfully read")
-                            return DataClass(name = dataClassName, fields = fields)
+                            return DataClass(name = dataClassName, fields = fieldDataList)
                         }
                     }
                 }

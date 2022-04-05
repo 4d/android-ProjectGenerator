@@ -17,6 +17,17 @@ class StaticDatabase private constructor(
         }
     }
 
+    fun updateAll(queryList: List<String>) {
+        queryList.forEach {
+            update(it)
+        }
+    }
+
+    private fun update(query: String) {
+        println("Executing Update query : $query")
+        sql.executeUpdate(query)
+    }
+
     private fun logTableCount(name: String) {
         val count = sql.firstRow("SELECT count(*) FROM $name", arrayListOf()).toString()
         println("$name: $count")
