@@ -37,29 +37,17 @@ fun Field.getFieldName() =
     else
         this.name
 
-fun Field.getFieldKeyAccessor(formType: FormType) =
-    if (formType == FormType.LIST)
-        if (this.name.fieldAdjustment().contains("."))
-            this.name.fieldAdjustment().split(".")[0] + ".__KEY"
-        else
-            "__KEY"
+fun Field.getFieldKeyAccessor() =
+    if (this.name.fieldAdjustment().contains("."))
+        this.name.fieldAdjustment().split(".")[0] + ".__KEY"
     else
-        if (this.name.fieldAdjustment().contains("."))
-            this.name.fieldAdjustment().split(".")[0] + ".__KEY"
-        else
-            "__KEY"
+        "__KEY"
 
-fun Field.getLayoutVariableAccessor(formType: FormType) =
-    if (formType == FormType.LIST)
-        if (this.name.fieldAdjustment().contains(".") || this.kind == "alias")
-            ""
-        else
-            "entityData."
+fun Field.getLayoutVariableAccessor() =
+    if (this.name.fieldAdjustment().contains(".") || this.kind == "alias")
+        ""
     else
-        if (this.name.fieldAdjustment().contains(".") || this.kind == "alias")
-            "viewModel."
-        else
-            "viewModel.entity."
+        "entityData.__entity."
 
 fun Field.getSourceTableName(dataModelList: List<DataModel>, form: Form): String {
     if (this.name.contains(".")) {

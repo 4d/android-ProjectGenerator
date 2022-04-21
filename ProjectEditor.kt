@@ -38,7 +38,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
 
-class ProjectEditor(projectEditorFile: File, catalogDef: CatalogDef, isCreateDatabaseCommand: Boolean = false) {
+class ProjectEditor(projectEditorFile: File, val catalogDef: CatalogDef, isCreateDatabaseCommand: Boolean = false) {
 
     lateinit var dataModelList: List<DataModel>
     lateinit var listFormList: List<Form>

@@ -71,7 +71,8 @@ fun JSONObject.getFormList(dataModelList: List<DataModel>, formType: FormType, n
                         type = RelationType.MANY_TO_ONE,
                         subFields = listOf(),
                         inverseName = "",
-                        path = path.substringBeforeLast(".")
+                        path = path.substringBeforeLast("."),
+                        relation_embedded_return_type = buildRelationEmbeddedReturnType(catalogDef, form.dataModel.name, path.substringBeforeLast("."))
                     )
                     Log.d("new Alias to be added : $aliasRelation")
                     aliasToAddCallback(aliasRelation)
@@ -81,7 +82,7 @@ fun JSONObject.getFormList(dataModelList: List<DataModel>, formType: FormType, n
     }
 
     formList.find { it.dataModel.name == "Emp" }?.fields?.forEach {
-        Log.d("XX: Name: ${it.name}, path: ${it.path}")
+        Log.d("XX: Name: ${it.name}, path: ${it.path}, field: $it")
     }
 
     return formList

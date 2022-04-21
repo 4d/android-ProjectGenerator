@@ -41,12 +41,14 @@ fun getFormFields(fieldList: List<String>, dataModelName: String, catalogDef: Ca
 }*/
 
 fun JSONObject?.getFormField(dataModelName: String, catalogDef: CatalogDef): Field {
+    if (dataModelName == "Emp")
+        Log.d("getFormField YY : json : $this")
     val field = Field(name = "")
 //    this?.getSafeString(LABEL_KEY)?.let { field.label = it }
 //    this?.getSafeString(SHORTLABEL_KEY)?.let { field.shortLabel = it }
     this?.getSafeInt(FIELDTYPE_KEY).let { field.fieldType = it }
 //    this?.getSafeInt(ID_KEY).let { field.id = it.toString() }
-//    this?.getSafeInt(RELATEDTABLENUMBER_KEY).let { field.relatedTableNumber = it }
+    this?.getSafeInt(RELATEDTABLENUMBER_KEY).let { field.relatedTableNumber = it }
 //    this?.getSafeString(INVERSENAME_KEY).let { field.inverseName = it }
     this?.getSafeString(NAME_KEY)?.let {
         field.name = it

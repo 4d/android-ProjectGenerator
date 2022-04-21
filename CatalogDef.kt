@@ -49,8 +49,9 @@ class CatalogDef(catalogFile: File) {
     }
 
     private fun getCatalogRelations(): List<Relation> {
+        val tabNames = listOf("Emp", "Serv", "Off")
         Log.d(" ===== RELATIONS =====")
-        dataModelAliases.forEach { dm ->
+        dataModelAliases.filter { it.name in tabNames }.forEach { dm ->
             Log.d("FIELDS --------")
             dm.fields.forEach { field ->
                 Log.d("[${dm.name}] ${field.name}")
@@ -179,7 +180,8 @@ data class FieldCatalog(
                     type = if (isToOne == true) RelationType.MANY_TO_ONE else RelationType.ONE_TO_MANY,
                     subFields = subFields ?: listOf(),
                     inverseName = inv,
-                    path = path ?: ""
+                    path = path ?: "",
+                    relation_embedded_return_type = dest
                 )
             }
         }

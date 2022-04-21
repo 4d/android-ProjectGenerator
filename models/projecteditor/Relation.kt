@@ -1,5 +1,3 @@
-import ProjectEditorConstants.EMPTY_KEY
-
 data class Relation(
     val source: String,
     val target: String,
@@ -7,7 +5,8 @@ data class Relation(
     val type: RelationType,
     var subFields: List<Field>,
     val inverseName: String,
-    val path: String
+    val path: String,
+    val relation_embedded_return_type: String
 )
 
 fun destBeforeField(catalogDef: CatalogDef, source: String, path: String?): String {
@@ -19,22 +18,44 @@ fun destBeforeField(catalogDef: CatalogDef, source: String, path: String?): Stri
     return nextTableName
 }
 
+fun buildRelationEmbeddedReturnType(catalogDef: CatalogDef, source: String, path: String?): String {
+    if (path == "service.manager") {
+        Log.d("Hello >")
+    }
+    var nextTableName = source
+    val pathWithoutLast = path?.split(".")?.toMutableList()
+    pathWithoutLast?.removeLast()
+    pathWithoutLast?.forEach eachPathPart@{
+        val pair = checkPath(it, nextTableName, catalogDef)
+        if (path == "service.manager") {
+            Log.d("pair = $pair")
+        }
+        nextTableName = pair.first ?: return@eachPathPart
+    }
+    val embeddedSource = nextTableName
+    val relationName = path?.split(".")?.lastOrNull() ?: ""
+    return if (relationName.isNotEmpty())
+        embeddedSource.tableNameAdjustment() + "Relation" + relationName.dataBindingAdjustment()
+    else
+        ""
+}
+
 /**
  * Replace path alias by their own path
  * Returns a Pair of <nextTableSource, path>
  */
 fun checkPath(pathPart: String, source: String, catalogDef: CatalogDef): Pair<String?, String> {
-    Log.d("checkPath, source: $source, name: $pathPart")
+//    Log.d("checkPath, source: $source, name: $pathPart")
 
     val relation = catalogDef.relations.firstOrNull { it.source == source && it.name == pathPart }
-    Log.d("checkPath, relation: $relation")
+//    Log.d("checkPath, relation: $relation")
 
     return when {
         relation == null -> {
             // check if it's a field alias
             val field = catalogDef.dataModelAliases.find { it.name == source }?.fields?.find { it.name == pathPart && it.kind == "alias" }
             if (field != null) {
-                Log.d("found field is = $field")
+//                Log.d("found field is = $field")
                 val nextTableName = catalogDef.dataModelAliases.find { it.tableNumber == field.relatedTableNumber }?.name
                 Pair(nextTableName, unAliasPath(field.path, source, catalogDef))
             } else {
@@ -120,3 +141,43 @@ fun isFieldCatalogAlias(path: String?, currentTable: String, catalogDef: Catalog
     Log.d("isFieldCatalogAlias: target: $aliasTarget")
     return catalogDef.dataModelAliases.find { it.name == aliasTarget } == null && path?.isNotEmpty() == true
 }*/
+
+fun getRelation(field: Field, tableName: String, subFields: List<Field>): Relation? {
+    Log.d("getRelation, field: $field")
+    when (field.kind) {
+        "relatedEntity" -> {
+            field.relatedDataClass?.let {
+                subFields.forEach { subField ->
+                    subField.relatedTableNumber = field.relatedTableNumber
+                    subField.dataModelId = it
+                }
+                return Relation(
+                    source = tableName,
+                    target = it,
+                    name = field.name,
+                    type = RelationType.MANY_TO_ONE,
+                    subFields = subFields,
+                    inverseName = field.inverseName ?: "",
+                    path = "",
+                    relation_embedded_return_type = it
+                )
+            }
+        }
+        "relatedEntities" -> {
+            field.relatedEntities?.let {
+                subFields.forEach { subField -> subField.dataModelId = it }
+                return Relation(
+                    source = tableName,
+                    target = it,
+                    name = field.name,
+                    type = RelationType.ONE_TO_MANY,
+                    subFields = subFields,
+                    inverseName = field.inverseName ?: "",
+                    path = "",
+                    relation_embedded_return_type = it
+                )
+            }
+        }
+    }
+    return null
+}
