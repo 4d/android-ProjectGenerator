@@ -45,7 +45,7 @@ fun Field.getFieldKeyAccessor() =
 
 fun Field.getLayoutVariableAccessor() =
     if (this.name.fieldAdjustment().contains(".") || this.kind == "alias")
-        ""
+        "entityData."
     else
         "entityData.__entity."
 

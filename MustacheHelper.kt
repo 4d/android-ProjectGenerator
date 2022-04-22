@@ -247,18 +247,15 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
         projectEditor.dataModelList.forEach { dataModel ->
 
-            dataModel.relations?.forEach { relation ->
+            dataModel.relations?.filter { it.isNotNativeType() }?.forEach { relation ->
                 val filler = relation.getTemplateRelationFiller(projectEditor.catalogDef)
-                val isTargetNativeType = projectEditor.dataModelList.map { it.name }.contains(relation.target).not()
-                if (!isTargetNativeType) {
-                    if (relation.type == RelationType.MANY_TO_ONE) {
-                        relationsManyToOne.add(filler)
-                        // Check for sub 1-N relations
-                        val subTemplateRelationFillerList = relation.checkSubRelations()
-                        relationsOneToMany.addAll(subTemplateRelationFillerList)
-                    } else {
-                        relationsOneToMany.add(filler)
-                    }
+                if (relation.type == RelationType.MANY_TO_ONE) {
+                    relationsManyToOne.add(filler)
+                    // Check for sub 1-N relations
+                    val subTemplateRelationFillerList = relation.checkSubRelations()
+                    relationsOneToMany.addAll(subTemplateRelationFillerList)
+                } else {
+                    relationsOneToMany.add(filler)
                 }
             }
 
@@ -282,7 +279,10 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         val relations = mutableListOf<TemplateRelationDefFiller>()
         val relationsId = mutableListOf<TemplateRelationDefFiller>()
 
+        Log.d("Hiya relations many to one")
         relationsManyToOne.forEach {
+            Log.d("filler: $it")
+            Log.d("relation filler : ${it.getTemplateRelationDefFiller(RelationType.MANY_TO_ONE)}")
             relations.add(it.getTemplateRelationDefFiller(RelationType.MANY_TO_ONE))
             if (!it.isAlias)
                 relationsId.add(it.getTemplateRelationDefFillerForRelationId())
@@ -329,15 +329,12 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
             tableNamesForNavigation.add(dataModel.getTemplateLayoutFillerForNavigation())
 
-            dataModel.relations?.forEach { relation ->
-                val isTargetNativeType = projectEditor.dataModelList.map { it.name }.contains(relation.target).not()
-                if (!isTargetNativeType) {
-                    layoutRelationList.add(relation.getTemplateRelationFiller(projectEditor.catalogDef))
-                    // Check for sub 1-N relations
-                    if (relation.type == RelationType.MANY_TO_ONE) {
-                        val subTemplateRelationFillerList = relation.checkSubRelations()
-                        layoutRelationList.addAll(subTemplateRelationFillerList)
-                    }
+            dataModel.relations?.filter { it.isNotNativeType() }?.forEach { relation ->
+                layoutRelationList.add(relation.getTemplateRelationFiller(projectEditor.catalogDef))
+                // Check for sub 1-N relations
+                if (relation.type == RelationType.MANY_TO_ONE) {
+                    val subTemplateRelationFillerList = relation.checkSubRelations()
+                    layoutRelationList.addAll(subTemplateRelationFillerList)
                 }
             }
         }
@@ -443,7 +440,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         }
 
         projectEditor.dataModelList.forEach { dataModel ->
-            dataModel.relations?.forEach { relation ->
+            dataModel.relations?.filter { it.isNotNativeType() }?.forEach { relation ->
                 relation.getTemplateRelationForRoomFiller(projectEditor.catalogDef)?.let { filler ->
                     relationsEmbeddedReturnType.add(filler)
                 }
@@ -542,25 +539,22 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         relationsOneToMany.clear()
         data[TABLE_HAS_ANY_RELATION] = false
 
-        projectEditor.dataModelList.find { it.name.tableNameAdjustment() == tableName.name.tableNameAdjustment() }?.relations?.forEach { relation ->
+        projectEditor.dataModelList.find { it.name.tableNameAdjustment() == tableName.name.tableNameAdjustment() }?.relations?.filter { it.isNotNativeType() }?.forEach { relation ->
             val filler = relation.getTemplateRelationFiller(projectEditor.catalogDef)
-            val isTargetNativeType = projectEditor.dataModelList.map { it.name }.contains(relation.target).not()
-            if (!isTargetNativeType) {
-                if (relation.type == RelationType.MANY_TO_ONE) {
-                    Log.d("XXX Add Many to one filler = $filler")
-                    Log.d("XXX Add Many to one, relation was $relation")
-                    relationsManyToOne.add(filler)
-                    // Check for sub 1-N relations
-                    val subTemplateRelationFillerList = relation.checkSubRelations()
-                    subTemplateRelationFillerList.forEach {
-                        Log.d("XXX Add One to many sub filler = $it")
-                    }
-                    relationsOneToMany.addAll(subTemplateRelationFillerList)
-                } else {
-                    Log.d("XXX Add One to many filler = $filler")
-                    relationsOneToMany.add(filler)
-
+            if (relation.type == RelationType.MANY_TO_ONE) {
+                Log.d("XXX Add Many to one filler = $filler")
+                Log.d("XXX Add Many to one, relation was $relation")
+                relationsManyToOne.add(filler)
+                // Check for sub 1-N relations
+                val subTemplateRelationFillerList = relation.checkSubRelations()
+                subTemplateRelationFillerList.forEach {
+                    Log.d("XXX Add One to many sub filler = $it")
                 }
+                relationsOneToMany.addAll(subTemplateRelationFillerList)
+            } else {
+                Log.d("XXX Add One to many filler = $filler")
+                relationsOneToMany.add(filler)
+
             }
         }
 
@@ -602,18 +596,15 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                 data[TABLENAME] = listForm.dataModel.name.tableNameAdjustment()
                                 relationsManyToOne.clear()
                                 relationsOneToMany.clear()
-                                projectEditor.dataModelList.find { it.name.tableNameAdjustment() == listForm.dataModel.name.tableNameAdjustment() }?.relations?.forEach { relation ->
+                                projectEditor.dataModelList.find { it.name.tableNameAdjustment() == listForm.dataModel.name.tableNameAdjustment() }?.relations?.filter { it.isNotNativeType() }?.forEach { relation ->
                                     val filler = relation.getTemplateRelationFiller(projectEditor.catalogDef)
-                                    val isTargetNativeType = projectEditor.dataModelList.map { it.name }.contains(relation.target).not()
-                                    if (!isTargetNativeType) {
-                                        if (relation.type == RelationType.MANY_TO_ONE) {
-                                            relationsManyToOne.add(filler)
-                                            // Check for sub 1-N relations
-                                            val subTemplateRelationFillerList = relation.checkSubRelations()
-                                            relationsOneToMany.addAll(subTemplateRelationFillerList)
-                                        } else {
-                                            relationsOneToMany.add(filler)
-                                        }
+                                    if (relation.type == RelationType.MANY_TO_ONE) {
+                                        relationsManyToOne.add(filler)
+                                        // Check for sub 1-N relations
+                                        val subTemplateRelationFillerList = relation.checkSubRelations()
+                                        relationsOneToMany.addAll(subTemplateRelationFillerList)
+                                    } else {
+                                        relationsOneToMany.add(filler)
                                     }
                                 }
                                 data[RELATIONS_MANY_TO_ONE] = relationsManyToOne.distinctBy { it.relation_source to it.relation_target to it.relation_name }
@@ -864,7 +855,8 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
             val aliasRelation = projectEditor.dataModelList.find { it.name == source }?.relations?.find { it.name == field.name }
             Log.d("XX: aliasRelation, $aliasRelation")
             aliasRelation?.let {
-                fillRelationFillerForEachRelation(source, aliasRelation.target, aliasRelation.name, "", index, formType, aliasRelation, navbarTitle)
+                if (aliasRelation.isNotNativeType())
+                    fillRelationFillerForEachRelation(source, aliasRelation.target, aliasRelation.name, "", index, formType, aliasRelation, navbarTitle)
             }
         }
     }
@@ -1268,4 +1260,6 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
         return "#$redHexString$greenHexString$blueHexString"
     }
+
+    private fun Relation.isNotNativeType(): Boolean = projectEditor.dataModelList.map { it.name }.contains(this.target)
 }

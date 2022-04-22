@@ -91,8 +91,6 @@ fun JSONObject.getDataModelList(catalogDef: CatalogDef, isCreateDatabaseCommand:
                             Log.d("Adding to aliasToHandleList, keyDataModel = $keyDataModel , $field")
                         } else {
                             Log.d("field.name : ${field.name}")
-                            if (dataModelName == "Serv")
-                                Log.d("field added : $it")
                             it.isSlave = false
                             fieldList.addWithSanity(it, dataModelName, catalogDef)
                             val subFields: List<Field> = newFieldJSONObject.getSubFields(dataModelName, catalogDef)
@@ -124,8 +122,6 @@ fun JSONObject.getDataModelList(catalogDef: CatalogDef, isCreateDatabaseCommand:
 //                                    }
 
                                 } else {
-//                                    val relationSizeField = buildNewSizeField(relation.name)
-//                                    fieldList.add(relationSizeField)
 
                                     Log.d("One to many relation, need to add the inverse many to one relation to its Entity definition")
                                     it.inverseName?.let { inverseName ->
@@ -149,9 +145,7 @@ fun JSONObject.getDataModelList(catalogDef: CatalogDef, isCreateDatabaseCommand:
                                     }
                                 }
                             }
-                            dataModelList.find { it.name == "Serv" }?.fields?.forEach {
-                                Log.d("YY: Name: ${it.name}")
-                            }
+
                             Log.d("Check if there is a slave table to add")
 
                             newFieldJSONObject.getSafeString(RELATEDDATACLASS_KEY)?.let { relatedDataClass ->
@@ -179,11 +173,10 @@ fun JSONObject.getDataModelList(catalogDef: CatalogDef, isCreateDatabaseCommand:
                                         )
 
                                         Log.d("slaveField.name : ${slaveField?.name}")
+                                        Log.d("slaveField : $slaveField")
+                                        Log.d("newSlaveFieldJSONObject : $newSlaveFieldJSONObject")
 
                                         slaveField?.let { field ->
-
-                                            if (relatedDataClass == "Serv")
-                                                Log.d("($dataModelName) Adding to serv: $slaveField")
 
                                             if (field.kind == "alias") {
 //                                                aliasToHandleList.add(field)
@@ -203,8 +196,6 @@ fun JSONObject.getDataModelList(catalogDef: CatalogDef, isCreateDatabaseCommand:
                                                         val relationKeyField = buildNewKeyField(relation.name)
                                                         slaveFieldList.add(relationKeyField)
                                                     } else {
-//                                                        val relationSizeField = buildNewSizeField(relation.name)
-//                                                        fieldList.add(relationSizeField)
 
                                                         Log.d("One to many relation, need to add the inverse many to one relation to its Entity definition")
                                                         it.inverseName?.let {
@@ -253,8 +244,6 @@ fun JSONObject.getDataModelList(catalogDef: CatalogDef, isCreateDatabaseCommand:
                                             slaveFieldList.forEach { slaveField ->
                                                 if (dataModelList[dataModelIndex].fields?.find { field -> field.name == slaveField.name } == null) {
                                                     dataModelList[dataModelIndex].fields?.add(slaveField)
-                                                    if (dataModelList[dataModelIndex].name == "Serv")
-                                                        Log.d("($dataModelName) Adding to Serv, slavedField: $slaveField")
                                                 }
                                             }
                                             slaveRelationList.forEach { slaveRelation ->
@@ -527,9 +516,6 @@ fun MutableList<DataModel>.handleAlias(nextTableName: String?, relationName: Str
                             fieldList.add(relationKeyField)
                         } else {
 
-//                            val relationSizeField = buildNewSizeField(relation.name)
-//                            fieldList.add(relationSizeField)
-
                             Log.d("One to many relation, need to add the inverse many to one relation to its Entity definition")
                             field.inverseName?.let { inverseName ->
                                 val newField = Field(
@@ -585,12 +571,9 @@ fun MutableList<DataModel>.handleAlias(nextTableName: String?, relationName: Str
                             val relationKeyField = buildNewKeyField(relation.name)
                             newList.takeIf { newList.find { it.name == relationKeyField.name } == null }
                                 ?.add(relationKeyField)
+                            field.variableType = VariableType.VAR.string
                             newList.add(field)
                         } else {
-//                            val relationSizeField = buildNewSizeField(relation.name)
-//                            newList.takeIf { newList.find { it.name == relationSizeField.name } == null }
-//                                ?.add(relationSizeField)
-
                             Log.d("One to many relation, need to add the inverse many to one relation to its Entity definition")
                             field.inverseName?.let { inverseName ->
                                 val newField = Field(
@@ -736,15 +719,6 @@ fun buildNewKeyField(name: String): Field {
     newKeyField.fieldTypeString = STRING_TYPE
     newKeyField.variableType = VariableType.VAR.string
     return newKeyField
-}
-
-fun buildNewSizeField(name: String): Field {
-    val newSizeField =
-        Field(name = "__${name.validateWordDecapitalized()}Size")
-    newSizeField.fieldType = 8
-    newSizeField.fieldTypeString = INT_TYPE
-    newSizeField.variableType = VariableType.VAR.string
-    return newSizeField
 }
 
 data class FieldToAdd(

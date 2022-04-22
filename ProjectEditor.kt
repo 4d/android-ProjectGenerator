@@ -153,7 +153,7 @@ class ProjectEditor(projectEditorFile: File, val catalogDef: CatalogDef, isCreat
                 team = Team(TeamID = teamId, TeamName = ""),
                 guestLogin = mailAuth.not(),
                 remoteUrl = remoteUrl,
-                initialGlobalStamp = findJsonInt("dumpedStamp") ?: 0,
+                initialGlobalStamp = if (debugMode) 0 else findJsonInt("dumpedStamp") ?: 0,
                 dumpedTables = findJsonArray("dumpedTables")?.getStringList() ?: mutableListOf(),
                 logLevel = if (debugMode) DEBUG_LOG_LEVEL else DEFAULT_LOG_LEVEL,
                 relations = findJsonBoolean(FeatureFlagConstants.HAS_RELATIONS_KEY) ?: true

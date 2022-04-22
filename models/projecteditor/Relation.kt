@@ -93,7 +93,8 @@ fun Field.getFieldAliasName(currentTable: String, dataModelList: List<DataModel>
             Log.d("getFieldAliasName changed a name from ${this.name} to $name where path was $path")
             Log.d("field is $this")
         }
-        return name
+        return path
+//        return name
     } else {
         Log.d("getFieldAliasName kept name, ${this.name}")
         Log.d("field is $this")
@@ -102,9 +103,11 @@ fun Field.getFieldAliasName(currentTable: String, dataModelList: List<DataModel>
 }
 
 fun addAliasToDataModel(dataModelList: List<DataModel>, aliasToAdd: Relation) {
-    val dmRelations = dataModelList.find { dm -> dm.name == aliasToAdd.source }?.relations ?: mutableListOf()
-    dmRelations.add(aliasToAdd)
-    dataModelList.find { dm -> dm.name == aliasToAdd.source }?.relations = dmRelations
+//    val dmRelations = dataModelList.find { dm -> dm.name == aliasToAdd.source }?.relations ?: mutableListOf()
+//    dmRelations.add(aliasToAdd)
+    Log.d("aliasToAdd after form def reading")
+    Log.d("$aliasToAdd")
+//    dataModelList.find { dm -> dm.name == aliasToAdd.source }?.relations = dmRelations
 }
 
 fun unAliasPath(path: String?, source: String, catalogDef: CatalogDef): String {

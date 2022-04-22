@@ -67,6 +67,8 @@ class SqlQueryBuilder(entry: Any, private val fields: List<FieldData>) {
             val key: String = it.toString()
             if (hashMap.containsKey(key.fieldAdjustment())) {
                 hashMap[key.fieldAdjustment()] = inputEntity[key]
+                Log.d("inputEntity de Key is :")
+                Log.d("${inputEntity[key]}")
 
                 fields.find { it.name.fieldAdjustment() == key.fieldAdjustment() }?.let { field ->
 //                fields.find { f -> f.name.fieldAdjustment() == key.fieldAdjustment() }?.let { field ->

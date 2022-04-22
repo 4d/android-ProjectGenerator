@@ -95,9 +95,6 @@ class CatalogDef(catalogFile: File) {
                         if (relation.type == RelationType.MANY_TO_ONE){
                             val relationKeyField = buildNewKeyFieldCatalog(relation.name, tableNumber.toString())
                             fieldsToAdd.add(relationKeyField)
-                        } else {
-//                            val relationSizeField = buildNewSizeFieldCatalog(relation.name, tableNumber.toString())
-//                            fieldsToAdd.add(relationSizeField)
                         }
                     }
                 }
@@ -226,13 +223,4 @@ fun buildNewKeyFieldCatalog(name: String, dataModelId: String): FieldCatalog {
     newKeyField.fieldTypeString = STRING_TYPE
     newKeyField.variableType = VariableType.VAR.string
     return newKeyField
-}
-
-fun buildNewSizeFieldCatalog(name: String, dataModelId: String): FieldCatalog {
-    val newSizeField =
-        FieldCatalog(name = "__${name.validateWordDecapitalized()}Size", dataModelId = dataModelId)
-    newSizeField.fieldType = 8
-    newSizeField.fieldTypeString = INT_TYPE
-    newSizeField.variableType = VariableType.VAR.string
-    return newSizeField
 }

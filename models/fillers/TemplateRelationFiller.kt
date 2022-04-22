@@ -123,6 +123,8 @@ fun Relation.checkSubRelations(): List<TemplateRelationFiller> {
             getRelation(oneToManySubRelationField, this.target, listOf())?.let { secondRelation ->
 
                 val subTemplateRelationFiller = getSubTemplateRelationFiller(this, secondRelation, relationName, inverseName, originalSubRelationName)
+                Log.d("CheckSubrelations, SHOULD ADD :")
+                Log.d("subTemplateRelationFiller: $subTemplateRelationFiller")
                 subTemplateRelationFillerList.add(subTemplateRelationFiller)
             }
         }
