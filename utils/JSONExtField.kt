@@ -70,13 +70,14 @@ fun JSONObject?.getFormField(dataModelName: String, catalogDef: CatalogDef): Fie
 //        field.fieldTypeString = "Entities<${it?.tableNameAdjustment()}>"
 //    }
     this?.getSafeString("path")?.let { path ->
-        if (field.kind == "alias") {
+        val isNotNativeType = catalogDef.dataModelAliases.map { it.name }.contains(field.fieldTypeString)
+        if (field.kind == "alias" || !isNotNativeType) {
             val unAliasedPath = unAliasPath(path, dataModelName, catalogDef)
             field.path = unAliasedPath
             Log.d("Form field creation, path : $path, unaliased path : $unAliasedPath")
             if (path == unAliasedPath && !unAliasedPath.contains(".")) { // path : FirstName, name : First
-                field.name = path
-                field.kind = ""
+//                field.name = path
+//                field.kind = ""
 
                 Log.d("GET FIELD FOR FORM:")
                 Log.d("- path is : ${path}")

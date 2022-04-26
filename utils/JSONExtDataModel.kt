@@ -132,7 +132,8 @@ fun JSONObject.getDataModelList(catalogDef: CatalogDef, isCreateDatabaseCommand:
                                             fieldTypeString = dataModelName,
                                             relatedTableNumber = keyDataModel.toString().toIntOrNull(),
                                             relatedEntities = null,
-                                            variableType = VariableType.VAR.string
+                                            variableType = VariableType.VAR.string,
+                                            kind = "relatedEntity"
                                         )
                                         Log.d("newField.name: ${newField.name}")
                                         getRelation(newField, relation.target, listOf())?.let { newRelation ->
@@ -206,7 +207,8 @@ fun JSONObject.getDataModelList(catalogDef: CatalogDef, isCreateDatabaseCommand:
                                                                 fieldTypeString = relatedDataClass,
                                                                 relatedTableNumber = relatedTableNumber,
                                                                 relatedEntities = null,
-                                                                variableType = VariableType.VAR.string
+                                                                variableType = VariableType.VAR.string,
+                                                                kind = "relatedEntity"
                                                             )
                                                             Log.d("slave newField.name : ${newField.name}")
                                                             getRelation(
@@ -308,7 +310,7 @@ fun JSONObject.getDataModelList(catalogDef: CatalogDef, isCreateDatabaseCommand:
                     Log.d("catalogField: $catalogField")
 
                     val path = cleanPath(aliasField.path ?: "", dataModelAlias.name, catalogDef)
-                    Log.d("path: $path")
+                    Log.d("cleaned path: $path")
 
                     var nextTableName: String? = dataModelAlias.name
 
@@ -334,8 +336,13 @@ fun JSONObject.getDataModelList(catalogDef: CatalogDef, isCreateDatabaseCommand:
                         path = unAliasedPath,
                         relation_embedded_return_type = buildRelationEmbeddedReturnType(catalogDef, dataModelAlias.name, unAliasedPath)
                     )
-                    Log.d("Adding aliasRelation : $aliasRelation")
-                    newRelationList.add(aliasRelation)
+
+                    if (aliasRelation.isNotNativeType(catalogDef)) {
+                        Log.d("Adding aliasRelation : $aliasRelation")
+                        newRelationList.add(aliasRelation)
+                    } else {
+                        Log.d("Not adding aliasRelation : $aliasRelation")
+                    }
 
 //                    if (catalogField.isFieldAlias()) { // manager.service.Name
                     /*if (isFieldCatalogAlias(catalogField.path, dataModelAlias.name, catalogDef)) { // manager.service.Name
@@ -525,7 +532,8 @@ fun MutableList<DataModel>.handleAlias(nextTableName: String?, relationName: Str
                                     fieldTypeString = dmAlias.name,
                                     relatedTableNumber = dmAlias.tableNumber,
                                     relatedEntities = null,
-                                    variableType = VariableType.VAR.string
+                                    variableType = VariableType.VAR.string,
+                                    kind = "relatedEntity"
                                 )
                                 Log.d("newField.name: ${newField.name}")
                                 getRelation(newField, relation.target, listOf())?.let { newRelation ->
@@ -583,7 +591,8 @@ fun MutableList<DataModel>.handleAlias(nextTableName: String?, relationName: Str
                                     fieldTypeString = dmAlias.name,
                                     relatedTableNumber = dmAlias.tableNumber,
                                     relatedEntities = null,
-                                    variableType = VariableType.VAR.string
+                                    variableType = VariableType.VAR.string,
+                                    kind = "relatedEntity"
                                 )
                                 Log.d("newField.name: ${newField.name}")
                                 getRelation(newField, relation.target, listOf())?.let { newRelation ->
@@ -606,6 +615,7 @@ fun MutableList<DataModel>.handleAlias(nextTableName: String?, relationName: Str
 }
 
 fun JSONObject?.getDataModelField(keyField: String, dataModelId: String?, dataModelName: String, catalogDef: CatalogDef): Field {
+    Log.d("getDataModelField: THIS = $this")
     val field = Field(name = "")
     this?.getSafeString(LABEL_KEY)?.let { field.label = it }
     this?.getSafeString(SHORTLABEL_KEY)?.let { field.shortLabel = it }
@@ -669,8 +679,8 @@ fun JSONObject?.getDataModelField(keyField: String, dataModelId: String?, dataMo
             Log.d("dataModel field creation, path : $path, unaliased path : $unAliasedPath")
 
             if (path == unAliasedPath && !unAliasedPath.contains(".")) { // path : FirstName, name : First
-                field.name = path
-                field.kind = ""
+//                field.name = path
+//                field.kind = ""
 
                 Log.d("GET FIELD FOR DM:")
                 Log.d("- path is : ${path}")
@@ -724,3 +734,5 @@ fun buildNewKeyField(name: String): Field {
 data class FieldToAdd(
     val targetTable: String, val field: Field, val keyField: Field, val relation: Relation
 )
+
+private fun Relation.isNotNativeType(catalogDef: CatalogDef): Boolean = catalogDef.dataModelAliases.map { it.name }.contains(this.target)

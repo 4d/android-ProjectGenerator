@@ -81,19 +81,20 @@ fun checkPath(pathPart: String, source: String, catalogDef: CatalogDef): Pair<St
 fun Field.getFieldAliasName(currentTable: String, dataModelList: List<DataModel>): String {
     val path = this.path // manager.service.Name
     if (this.isFieldAlias(currentTable, dataModelList) && path?.isNotEmpty() == true) {
-        val name: String // managerServiceName
-        var subPath = path.substringBeforeLast(".") // manager.service
-        if (subPath.contains(".")) {
-            subPath = subPath.replace(".", "_") // manager_service
-            name = (subPath + "." + path.substringAfterLast(".")).fieldAdjustment() // manager_service.Name
-        } else {
-            name = path.fieldAdjustment()
-        }
-        if (this.name != name){
-            Log.d("getFieldAliasName changed a name from ${this.name} to $name where path was $path")
-            Log.d("field is $this")
-        }
-        return path
+        Log.d("getFieldAliasName, aliasField here, field is $this")
+//        val name: String // managerServiceName
+//        var subPath = path.substringBeforeLast(".") // manager.service
+//        if (subPath.contains(".")) {
+//            subPath = subPath.replace(".", "_") // manager_service
+//            name = (subPath + "." + path.substringAfterLast(".")).fieldAdjustment() // manager_service.Name
+//        } else {
+//            name = path.fieldAdjustment()
+//        }
+//        if (this.name != name){
+//            Log.d("getFieldAliasName changed a name from ${this.name} to $name where path was $path")
+//            Log.d("field is $this")
+//        }
+        return path.fieldAdjustment()
 //        return name
     } else {
         Log.d("getFieldAliasName kept name, ${this.name}")
@@ -125,13 +126,15 @@ fun unAliasPath(path: String?, source: String, catalogDef: CatalogDef): String {
 }
 
 fun Field.isFieldAlias(currentTable: String, dataModelList: List<DataModel>): Boolean {
-    if (path?.isNotEmpty() == true && kind == "alias"){
-        Log.d("isFieldAlias: path: $path")
-        val aliasTarget = dataModelList.find { it.name == currentTable }?.relations?.find { it.path == path }?.target
-        Log.d("isFieldAlias: target: $aliasTarget")
-        return dataModelList.find { it.name == aliasTarget } == null
-    }
-    return false
+    Log.d("isFieldAlias [${this.name}]: ${path?.isNotEmpty() == true && !this.isNotNativeType(dataModelList)}, field : $this")
+    return path?.isNotEmpty() == true && !this.isNotNativeType(dataModelList)
+//    if (path?.isNotEmpty() == true && this.isNotNativeType(dataModelList)){
+//        Log.d("isFieldAlias: path: $path")
+//        val aliasTarget = dataModelList.find { it.name == currentTable }?.relations?.find { it.path == path }?.target
+//        Log.d("isFieldAlias: target: $aliasTarget")
+//        return dataModelList.find { it.name == aliasTarget } == null
+//    }
+//    return false
 }
 
 /*

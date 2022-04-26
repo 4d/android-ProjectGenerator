@@ -82,7 +82,7 @@ class SqlQueryBuilder(entry: Any, private val fields: List<FieldData>) {
                             if (neededObject is JSONObject) {
                                 hashMap["__${key.fieldAdjustment()}Key"] =
                                     neededObject.getSafeString("__KEY")
-                                hashMap[key.fieldAdjustment()] = null
+//                                hashMap[key.fieldAdjustment()] = null
 
 //                                hashMap["__${key.fieldAdjustment()}Key"] = neededObject.getSafeString("__KEY")
 

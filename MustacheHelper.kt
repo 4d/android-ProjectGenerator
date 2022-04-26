@@ -945,7 +945,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         data["field_${i}_custom_formatted"] = false
         data["field_${i}_custom_formatted_imageNamed"] = false
         data["field_${i}_format_type"] = ""
-        data["field_${i}_accessor"] = field.getLayoutVariableAccessor()
+        data["field_${i}_accessor"] = field.getLayoutVariableAccessor(projectEditor.dataModelList)
         data["field_${i}_field_name"] = field.getFieldName()
         data["field_${i}_source_table_name"] = field.getSourceTableName(projectEditor.dataModelList, form)
 

@@ -43,11 +43,15 @@ fun Field.getFieldKeyAccessor() =
     else
         "__KEY"
 
-fun Field.getLayoutVariableAccessor() =
-    if (this.name.fieldAdjustment().contains(".") || this.kind == "alias")
+fun Field.getLayoutVariableAccessor(dataModelList: List<DataModel>): String {
+    Log.d("getLayoutVariableAccessor: this = $this")
+    return if (this.name.fieldAdjustment().contains(".") || (this.kind == "alias" && this.isNotNativeType(dataModelList)))
         "entityData."
     else
         "entityData.__entity."
+}
+
+fun Field.isNotNativeType(dataModelList: List<DataModel>): Boolean = dataModelList.map { it.name }.contains(this.fieldTypeString)
 
 fun Field.getSourceTableName(dataModelList: List<DataModel>, form: Form): String {
     if (this.name.contains(".")) {
@@ -87,11 +91,9 @@ fun Field.getIcon(dataModelKey: String): String {
 }
 
 fun Field.isRelation(currentTable: String, dataModelList: List<DataModel>): Boolean {
-    if (this.name == "servEmployeesBureau") {
-
-        Log.d("this = $this")
-        Log.d("isFieldAlias ?  ${isFieldAlias(currentTable, dataModelList)}")
-    }
+    Log.d("kind is alias ? ${this.kind == "alias"}")
+    Log.d("!this.inverseName.isNullOrEmpty() ? ${!this.inverseName.isNullOrEmpty()}")
+    Log.d("!isFieldAlias(currentTable, dataModelList) ? ${!isFieldAlias(currentTable, dataModelList)}")
     return !this.inverseName.isNullOrEmpty() || (this.kind == "alias" && !isFieldAlias(currentTable, dataModelList) )
 }
 
@@ -334,6 +336,8 @@ fun getNavbarTitleWithFixes(dataModelList: List<DataModel>, form: Form, field: F
 
 fun isRelationWithFixes(dataModelList: List<DataModel>, form: Form, field: Field): Boolean {
     val fieldFromDataModel: Field? = getDataModelField(dataModelList, form, field)
+    Log.d("field from datamodel isrelatinwithfixes : $fieldFromDataModel")
+    Log.d("field was $field")
     return fieldFromDataModel?.isRelation(form.dataModel.name, dataModelList) ?: field.isRelation(form.dataModel.name, dataModelList)
 }
 

@@ -85,6 +85,8 @@ fun getKeyName(catalogDef: CatalogDef, relation: Relation): String {
                     firstRelation.name
                 Log.d("key = $key")
             }
+        } else if (relation.path.count { it == '.' } == 0){ // serv
+            key = relation.path.fieldAdjustment()
         }
     }
     return key

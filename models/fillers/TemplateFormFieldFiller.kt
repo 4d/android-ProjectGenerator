@@ -39,7 +39,8 @@ fun Field.getTemplateFormFieldFiller(
     wholeFormHasIcons: Boolean,
     pathHelper: PathHelper
 ): TemplateFormFieldFiller {
-    Log.d("createDetailFormField : field.fieldName() = ${this.getFieldName()}")
+    Log.d("createDetailFormField : field = $this")
+    Log.d("createDetailFormField : field.getFieldName() = ${this.getFieldName()}")
 
     val templateFormFieldFiller = TemplateFormFieldFiller(
         name = this.getFieldAliasName(form.dataModel.name, dataModelList).fieldAdjustment(),
@@ -49,7 +50,7 @@ fun Field.getTemplateFormFieldFiller(
         isRelation = isRelationWithFixes(dataModelList, form, this),
         isImage = this.isImage(),
         sourceTableName = this.getSourceTableName(dataModelList, form),
-        accessor = this.getLayoutVariableAccessor(),
+        accessor = this.getLayoutVariableAccessor(dataModelList),
         isCustomFormat = pathHelper.isValidFormatter(formatType),
         formatFieldName = this.name,
         isImageNamed = isImageNamed,

@@ -101,17 +101,38 @@ fun JSONObject.getSearchFields(dataModelList: List<DataModel>): HashMap<String, 
                     val searchableFieldAsArray = listForm.getSafeArray("searchableField")
                     if (searchableFieldAsArray != null) {
                         for (ind in 0 until searchableFieldAsArray.length()) {
-                            searchableFieldAsArray.getSafeObject(ind)?.getSafeString("name")?.let { fieldName ->
-                                Log.v("Adding searchField ${fieldName.fieldAdjustment()} for table $tableName")
-                                tableSearchableFields.add(fieldName.fieldAdjustment())
+                            searchableFieldAsArray.getSafeObject(ind)?.let { jsonObject ->
+                                jsonObject.getSafeString("kind")?.let { kind ->
+                                    if (kind == "alias") {
+                                        jsonObject.getSafeString("path")?.let { path ->
+                                            Log.v("Adding searchField alias ${path.fieldAdjustment()} for table $tableName")
+                                            tableSearchableFields.add(path.fieldAdjustment())
+                                        }
+                                    } else {
+                                        jsonObject.getSafeString("name")?.let { fieldName ->
+                                            Log.v("Adding searchField ${fieldName.fieldAdjustment()} for table $tableName")
+                                            tableSearchableFields.add(fieldName.fieldAdjustment())
+                                        }
+                                    }
+                                }
+
                             }
                         }
                     } else {
                         val searchableFieldAsObject = listForm.getSafeObject("searchableField")
                         if (searchableFieldAsObject != null) {
-                            searchableFieldAsObject.getSafeString("name")?.let { fieldName ->
-                                Log.v("Adding searchField ${fieldName.fieldAdjustment()} for table $tableName")
-                                tableSearchableFields.add(fieldName.fieldAdjustment())
+                            searchableFieldAsObject.getSafeString("kind")?.let { kind ->
+                                if (kind == "alias") {
+                                    searchableFieldAsObject.getSafeString("path")?.let { path ->
+                                        Log.v("Adding searchField alias ${path.fieldAdjustment()} for table $tableName")
+                                        tableSearchableFields.add(path.fieldAdjustment())
+                                    }
+                                } else {
+                                    searchableFieldAsObject.getSafeString("name")?.let { fieldName ->
+                                        Log.v("Adding searchField ${fieldName.fieldAdjustment()} for table $tableName")
+                                        tableSearchableFields.add(fieldName.fieldAdjustment())
+                                    }
+                                }
                             }
                         } else {
                             Log.w("searchField definition error for table $tableName")
