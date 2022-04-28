@@ -24,7 +24,9 @@ data class Field(
         var icon: String? = null,
         var kind: String? = null,
         var dataModelId: String? = null,
-        var path: String? = null
+        var path: String? = null,
+        var subFieldsForAlias: List<Field>? = null,
+        var parentIfSlave: Field? = null
 )
 
 fun isPrivateRelationField(fieldName: String): Boolean = fieldName.startsWith("__") && (fieldName.endsWith("Key") || fieldName.endsWith("Size"))
@@ -76,16 +78,18 @@ fun Field.getShortLabel(): String {
     return shortLabel?.encode() ?: ""
 }
 
-fun Field.getIcon(dataModelKey: String): String {
+fun Field.getIcon(dataModelKey: String, nameIfSlave: String): String {
+    Log.d("getIcon, field $this")
     if (this.icon.isNullOrEmpty()) {
-        if (this.id == null) {
-            this.id = this.name
+        when {
+            this.isSlave == true -> this.id = nameIfSlave
+            this.id == null -> this.id = this.name
         }
         this.id?.let { this.id = it.toLowerCase().replace("[^a-z0-9]+".toRegex(), "_") }
-        return if (this.isSlave == false)
-            "field_icon_${dataModelKey}_${this.id}"
-        else
+        return if (this.isSlave == true)
             "related_field_icon_${dataModelKey}_${this.relatedTableNumber}_${this.id}"
+        else
+            "field_icon_${dataModelKey}_${this.id}"
     }
     return this.icon ?: ""
 }
@@ -157,15 +161,17 @@ fun Field.getFormatNameForType(pathHelper: PathHelper): String {
 fun getDataModelField(dataModelList: List<DataModel>, form: Form, field: Field): Field? {
     if (field.name.contains(".")) {
         val dataModel = dataModelList.find { it.id == form.dataModel.id }
-        val relationList = dataModel?.relations
-        val fieldInRelationList = relationList?.find { it.name == field.name.split(".")[0] }
-        val subFields = fieldInRelationList?.subFields
-        val subField = subFields?.find { it.name == field.name.split(".")[1] }
-        return subField
+        dataModel?.relations?.find { it.name == field.name.split(".")[0] }?.let { fieldInRelationList ->
+            return fieldInRelationList.subFields.find { it.name == field.name.split(".")[1] }
+        }
+        Log.d("getDataModelField [${field.name}] not found in relations, going to check in fields")
+        dataModel?.fields?.find { it.name == field.name.split(".")[0] }?.let { fieldInFieldList ->
+            return fieldInFieldList.subFieldsForAlias?.find { it.name == field.name.split(".")[1] }
+        }
     } else {
-        val dataModelField = dataModelList.find { it.id == form.dataModel.id }?.fields?.find { it.name == field.name }
-        return dataModelField
+        return dataModelList.find { it.id == form.dataModel.id }?.fields?.find { it.name == field.name }
     }
+    return null
 }
 
 /**
@@ -311,47 +317,61 @@ fun Field.getNavbarTitle(dataModelList: List<DataModel>, source: String): String
 */
 fun getIconWithFixes(dataModelList: List<DataModel>, form: Form, field: Field): String {
     val fieldFromDataModel: Field? = getDataModelField(dataModelList, form, field)
-    return fieldFromDataModel?.getIcon(form.dataModel.id) ?: field.getIcon(form.dataModel.id)
+    if (field.name == "service.Name") {
+        Log.d("HIHI3, field : $field")
+        Log.d("HIHI3, fieldFromDataModel : $fieldFromDataModel")
+    }
+    return fieldFromDataModel?.getIcon(form.dataModel.id, field.name) ?: ""
 }
 
 fun getFormatWithFixes(dataModelList: List<DataModel>, form: Form, field: Field, pathHelper: PathHelper): String {
     val fieldFromDataModel: Field? = getDataModelField(dataModelList, form, field)
-    return fieldFromDataModel?.getFormatNameForType(pathHelper) ?: field.getFormatNameForType(pathHelper)
+    return fieldFromDataModel?.getFormatNameForType(pathHelper) ?: ""
 }
 
 fun getShortLabelWithFixes(dataModelList: List<DataModel>, form: Form, field: Field): String {
     val fieldFromDataModel: Field? = getDataModelField(dataModelList, form, field)
-    return fieldFromDataModel?.getShortLabel() ?: field.getShortLabel()
+    return fieldFromDataModel?.getShortLabel() ?: ""
 }
 
 fun getLabelWithFixes(dataModelList: List<DataModel>, form: Form, field: Field): String {
     val fieldFromDataModel: Field? = getDataModelField(dataModelList, form, field)
-    return fieldFromDataModel?.getLabel() ?: field.getLabel()
+    if (field.name == "serv.managerServiceName") {
+        Log.d("serv.managerServiceName")
+        Log.d("getLabelWithFixes : $fieldFromDataModel")
+        Log.d("fieldFromDataModel?.getLabel() : ${fieldFromDataModel?.getLabel()}")
+        Log.d("field was $field")
+    }
+    if (field.name == "service.managerServiceName") {
+        Log.d("service.managerServiceName")
+        Log.d("getLabelWithFixes : $fieldFromDataModel")
+        Log.d("fieldFromDataModel?.getLabel() : ${fieldFromDataModel?.getLabel()}")
+        Log.d("field was $field")
+    }
+    return fieldFromDataModel?.getLabel() ?: ""
 }
 
 fun getNavbarTitleWithFixes(dataModelList: List<DataModel>, form: Form, field: Field, source: String): String {
     val fieldFromDataModel: Field? = getDataModelField(dataModelList, form, field)
-    return fieldFromDataModel?.getNavbarTitle(dataModelList, source) ?: field.getNavbarTitle(dataModelList, source)
+    return fieldFromDataModel?.getNavbarTitle(dataModelList, source) ?: ""
 }
 
 fun isRelationWithFixes(dataModelList: List<DataModel>, form: Form, field: Field): Boolean {
     val fieldFromDataModel: Field? = getDataModelField(dataModelList, form, field)
-    Log.d("field from datamodel isrelatinwithfixes : $fieldFromDataModel")
-    Log.d("field was $field")
-    return fieldFromDataModel?.isRelation(form.dataModel.name, dataModelList) ?: field.isRelation(form.dataModel.name, dataModelList)
+    return fieldFromDataModel?.isRelation(form.dataModel.name, dataModelList) ?: false
 }
 
 fun getInverseNameWithFixes(dataModelList: List<DataModel>, form: Form, field: Field): String? {
     val fieldFromDataModel: Field? = getDataModelField(dataModelList, form, field)
-    return fieldFromDataModel?.inverseName ?: field.inverseName
+    return fieldFromDataModel?.inverseName
 }
 
 fun isOneToManyRelationWithFixes(dataModelList: List<DataModel>, form: Form, field: Field): Boolean {
     val fieldFromDataModel: Field? = getDataModelField(dataModelList, form, field)
-    return fieldFromDataModel?.isOneToManyRelation(form.dataModel.name, dataModelList) ?: field.isOneToManyRelation(form.dataModel.name, dataModelList)
+    return fieldFromDataModel?.isOneToManyRelation(form.dataModel.name, dataModelList) ?: false
 }
 
 fun isManyToOneRelationWithFixes(dataModelList: List<DataModel>, form: Form, field: Field): Boolean {
     val fieldFromDataModel: Field? = getDataModelField(dataModelList, form, field)
-    return fieldFromDataModel?.isManyToOneRelation(form.dataModel.name, dataModelList) ?: field.isManyToOneRelation(form.dataModel.name, dataModelList)
+    return fieldFromDataModel?.isManyToOneRelation(form.dataModel.name, dataModelList) ?: false
 }

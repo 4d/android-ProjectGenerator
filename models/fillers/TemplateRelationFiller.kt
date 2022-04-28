@@ -22,7 +22,7 @@ fun Relation.getTemplateRelationFiller(catalogDef: CatalogDef): TemplateRelation
     TemplateRelationFiller(
         relation_source = this.source.tableNameAdjustment(),
         relation_target = this.target.tableNameAdjustment(),
-        relation_name = this.name.fieldAdjustment(),
+        relation_name = this.name.relationAdjustment(),
         inverse_name = this.inverseName.fieldAdjustment(),
         isSubRelation = false,
         originalSubRelationName = "",
@@ -62,10 +62,12 @@ fun getFirstTarget(catalogDef: CatalogDef, relation: Relation): String {
 }
 
 fun getEmbeddedReturnType(relation: Relation): String {
-    return if (relation.path.isNotEmpty()) relation.relation_embedded_return_type else relation.target
+    return if (relation.path.contains(".")) relation.relation_embedded_return_type else relation.target
+//    return if (relation.path.isNotEmpty()) relation.relation_embedded_return_type else relation.target
 }
 
 fun getKeyName(catalogDef: CatalogDef, relation: Relation): String {
+    Log.d("getKeyName, relation: $relation")
     var key = ""
 
     if (relation.path.isEmpty()) {
@@ -74,10 +76,12 @@ fun getKeyName(catalogDef: CatalogDef, relation: Relation): String {
         else
             relation.name
     } else {
-        if (relation.path.count { it == '.' } == 1) {
+        if (relation.path.count { it == '.' } > 0) {
+            Log.d("relation.path contains at least one '.'")
             val firstRelationName = relation.path.split(".")[0]
             // la relation du premier element avant "."
             catalogDef.relations.find { it.source == relation.source && it.name == firstRelationName }?.let { firstRelation ->
+                Log.d("firstRelation = $firstRelation")
 
                 key = if (relation.type == RelationType.ONE_TO_MANY)
                     firstRelation.inverseName
@@ -96,7 +100,7 @@ private fun getSubTemplateRelationFiller(firstRelation: Relation, secondRelation
     TemplateRelationFiller(
         relation_source = firstRelation.source.tableNameAdjustment(),
         relation_target = secondRelation.target.tableNameAdjustment(),
-        relation_name = name.fieldAdjustment(),
+        relation_name = name.relationAdjustment(),
         inverse_name = inverseName.fieldAdjustment(),
         isSubRelation = true,
         originalSubRelationName = originalSubRelationName,
@@ -105,7 +109,7 @@ private fun getSubTemplateRelationFiller(firstRelation: Relation, secondRelation
         relation_name_original = name,
         isAlias = false,
         path = firstRelation.name + "." + secondRelation.name,
-        relation_embedded_return_type = secondRelation.source.tableNameAdjustment() + "Relation" + secondRelation.name.dataBindingAdjustment(),
+        relation_embedded_return_type = getEmbeddedReturnTypeName(secondRelation.source, secondRelation.name),
         key_name = firstRelation.name,
         firstIsToMany = firstRelation.type == RelationType.ONE_TO_MANY,
         firstTarget = firstRelation.target.tableNameAdjustment()
@@ -144,7 +148,8 @@ data class TemplateRelationForRoomFiller(
     val key_name: String,
     val relation_embedded_return_type: String,
     val isToMany: Boolean,
-    val relation_part_name: String
+    val relation_part_name: String,
+    val firstTarget: String
 )
 
 fun Relation.getTemplateRelationForRoomFiller(catalogDef: CatalogDef): TemplateRelationForRoomFiller? {
@@ -156,7 +161,7 @@ fun Relation.getTemplateRelationForRoomFiller(catalogDef: CatalogDef): TemplateR
         else
             this.name
         return TemplateRelationForRoomFiller(
-            className = source + "Relation" + name.capitalize(),
+            className = getEmbeddedReturnTypeName(source, name),
             relation_source = source,
             relation_target = target,
             relation_name = name,
@@ -164,11 +169,12 @@ fun Relation.getTemplateRelationForRoomFiller(catalogDef: CatalogDef): TemplateR
             key_name = key,
             relation_embedded_return_type = target,
             isToMany = this.type == RelationType.ONE_TO_MANY,
-            relation_part_name = name.fieldAdjustment()
+            relation_part_name = name.fieldAdjustment(),
+            firstTarget = target
         )
     } else {
-        if (this.path.count { it == '.' } == 1) {
-            Log.d("path contains one '.'")
+        if (this.path.count { it == '.' } > 0) {
+            Log.d("path contains at least one '.'")
             val firstRelationName = this.path.split(".")[0]
             Log.d("firstRelationName = $firstRelationName")
 
@@ -181,18 +187,17 @@ fun Relation.getTemplateRelationForRoomFiller(catalogDef: CatalogDef): TemplateR
                     firstRelation.name
 
                 Log.d("key = $key")
-                val secondRelationName = this.path.split(".")[1]
-                Log.d("secondRelationName = $secondRelationName")
                 return TemplateRelationForRoomFiller(
-                    className = source + "Relation" + name.capitalize(),
+                    className = getEmbeddedReturnTypeName(source, name),
                     relation_source = source,
                     relation_target = target,
                     relation_name = name,
                     relation_source_camelCase = source.fieldAdjustment(),
                     key_name = key,
-                    relation_embedded_return_type = firstRelation.target.tableNameAdjustment() + "Relation" + secondRelationName.dataBindingAdjustment(),
+                    relation_embedded_return_type = getEmbeddedReturnTypeName(firstRelation.target, this.path.substringAfter(".")),
                     isToMany = firstRelation.type == RelationType.ONE_TO_MANY,
-                    relation_part_name = secondRelationName.fieldAdjustment()
+                    relation_part_name = this.path.relationAdjustment(),
+                    firstTarget = getFirstTarget(catalogDef, this)
                 )
             }
         }

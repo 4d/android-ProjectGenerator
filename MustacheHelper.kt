@@ -441,7 +441,9 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
         projectEditor.dataModelList.forEach { dataModel ->
             dataModel.relations?.filter { it.isNotNativeType() }?.forEach { relation ->
+                Log.d("relationsEmbeddedReturnType relation : $relation")
                 relation.getTemplateRelationForRoomFiller(projectEditor.catalogDef)?.let { filler ->
+                    Log.d("relationsEmbeddedReturnType Add filler : $filler")
                     relationsEmbeddedReturnType.add(filler)
                 }
             }

@@ -30,7 +30,7 @@ fun getTemplateRelationFillerForLayout(
     TemplateRelationFillerForEachLayout(
         relation_source = source.tableNameAdjustment(),
         relation_target = target.tableNameAdjustment(),
-        relation_name = relationName.fieldAdjustment(),
+        relation_name = relationName.relationAdjustment(),
         inverse_name = inverseName.fieldAdjustment(),
         tableNameLowercase = source.dataBindingAdjustment().decapitalize(Locale.getDefault()),
         associatedViewId = viewId,
@@ -39,7 +39,7 @@ fun getTemplateRelationFillerForLayout(
         navbarTitle = navbarTitle,
         relation_source_camelCase = source.dataBindingAdjustment(),
         relation_target_camelCase = target.dataBindingAdjustment(),
-        isAlias = aliasRelation.path.isNotEmpty(),
+        isAlias = aliasRelation.path.contains("."),
         pathToOneWithoutFirst = aliasRelation.path.substringAfter("."),
         pathToManyWithoutFirst = getPathToManyWithoutFirst(aliasRelation, catalogDef)
     )

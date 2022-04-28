@@ -45,8 +45,10 @@ private fun String.lowerCustomProperties() =
         this
     else
         when {
-            this.startsWith("__") && this.endsWith("Key") -> this.removeSuffix("Key").toLowerCase(Locale.getDefault()) + "Key"
-            this.startsWith("__") && this.endsWith("Size") -> this.removeSuffix("Size").toLowerCase(Locale.getDefault()) + "Size"
+            this.startsWith("__") && this.endsWith("Key") -> this.removeSuffix("Key")
+                .toLowerCase(Locale.getDefault()) + "Key"
+            this.startsWith("__") && this.endsWith("Size") -> this.removeSuffix("Size")
+                .toLowerCase(Locale.getDefault()) + "Size"
             else -> this.toLowerCase(Locale.getDefault())
         }
 
@@ -77,6 +79,9 @@ fun String.validateWordDecapitalized(): String {
         if (reservedKeywords.contains(it)) "qmobile_$it" else it
     }
 }
+
+fun String.relationAdjustment(): String =
+    this.split(".").map { it.tableNameAdjustment() }.joinToString("").tableNameAdjustment().decapitalize()
 
 fun String.encode(): String = this
     .replace("&", "&amp;")
