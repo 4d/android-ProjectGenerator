@@ -156,21 +156,22 @@ fun Field.getFieldAliasName(currentTable: String, dataModelList: List<DataModel>
     val path = this.path ?: ""
     if (this.isFieldAlias(currentTable, dataModelList) && path.isNotEmpty()) {
         Log.d("getFieldAliasName, aliasField here, field is $this")
-        var name = ""
-        var nextPath = path.substringBeforeLast(".")
-        while (nextPath.contains(".")) {
+        if (path.contains(".")) {
+            var name = ""
+            var nextPath = path.substringBeforeLast(".")
+            while (nextPath.contains(".")) {
 
-            name += nextPath.relationAdjustment() + "."
-            Log.d("building name = $name")
+                name += nextPath.relationAdjustment() + "."
+                Log.d("building name = $name")
 
-            nextPath = nextPath.substringAfter(".")
+                nextPath = nextPath.substringAfter(".")
+            }
+            val returnName = name + nextPath.relationAdjustment() + "." + path.substringAfterLast(".").fieldAdjustment()
+            Log.d("getFieldAliasName returnName: $returnName")
+            return returnName
+        } else {
+            return path.fieldAdjustment()
         }
-
-
-
-        val returnName = name + nextPath.relationAdjustment() + "." + path.substringAfterLast(".").fieldAdjustment()
-        Log.d("getFieldAliasName returnName: $returnName")
-        return returnName
     } else {
         Log.d("getFieldAliasName kept name, ${this.name}")
         Log.d("field is $this")
