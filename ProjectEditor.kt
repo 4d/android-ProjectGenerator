@@ -73,17 +73,13 @@ class ProjectEditor(projectEditorFile: File, val catalogDef: CatalogDef, isCreat
                 dataModelList = jsonObj.getDataModelList(catalogDef)
                 Log.d("> DataModels list successfully read.")
 
-                searchableFields = jsonObj.getSearchFields(dataModelList)
+                searchableFields = jsonObj.getSearchFields(dataModelList, catalogDef)
                 Log.d("> Searchable fields successfully read.")
 
-                listFormList = jsonObj.getFormList(dataModelList, FormType.LIST, navigationTableList, catalogDef) { aliasToAdd ->
-                    addAliasToDataModel(dataModelList, aliasToAdd)
-                }
+                listFormList = jsonObj.getFormList(dataModelList, FormType.LIST, navigationTableList, catalogDef)
                 Log.d("> List forms list successfully read.")
 
-                detailFormList = jsonObj.getFormList(dataModelList, FormType.DETAIL, navigationTableList, catalogDef) { aliasToAdd ->
-                    addAliasToDataModel(dataModelList, aliasToAdd)
-                }
+                detailFormList = jsonObj.getFormList(dataModelList, FormType.DETAIL, navigationTableList, catalogDef)
                 Log.d("> Detail forms list successfully read.")
             }
 

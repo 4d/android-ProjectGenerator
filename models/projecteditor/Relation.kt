@@ -90,22 +90,6 @@ fun buildRelationEmbeddedReturnType(catalogDef: CatalogDef, source: String, path
         return getEmbeddedReturnTypeName(firstTarget, relationName)
     }
     return ""
-    /*var nextTableName = source
-    val pathWithoutLast = path?.split(".")?.toMutableList()
-    pathWithoutLast?.removeLast()
-    pathWithoutLast?.forEach eachPathPart@{
-        val pair = checkPath(it, nextTableName, catalogDef)
-        if (path == "service.manager.service") {
-            Log.d("pair = $pair")
-        }
-        nextTableName = pair.first ?: return@eachPathPart
-    }
-    val embeddedSource = nextTableName
-    val relationName = path?.split(".")?.lastOrNull() ?: ""
-    return if (relationName.isNotEmpty())
-        embeddedSource.tableNameAdjustment() + "Relation" + relationName.dataBindingAdjustment()
-    else
-        ""*/
 }
 
 fun getEmbeddedReturnTypeName(first: String, second: String): String {
@@ -152,9 +136,9 @@ fun checkPath(pathPart: String, source: String, catalogDef: CatalogDef): Pair<St
     }
 }
 
-fun Field.getFieldAliasName(currentTable: String, dataModelList: List<DataModel>): String {
+fun Field.getFieldAliasName(dataModelList: List<DataModel>): String {
     val path = this.path ?: ""
-    if (this.isFieldAlias(currentTable, dataModelList) && path.isNotEmpty()) {
+    if (this.isFieldAlias(dataModelList) && path.isNotEmpty()) {
         Log.d("getFieldAliasName, aliasField here, field is $this")
         if (path.contains(".")) {
             var name = ""
@@ -179,16 +163,6 @@ fun Field.getFieldAliasName(currentTable: String, dataModelList: List<DataModel>
     }
 }
 
-fun addAliasToDataModel(dataModelList: List<DataModel>, aliasToAdd: Relation) {
-
-    // TODO : HERE WE SHOULD JUST SET SOME RELATIONS FOR TEMPLATE.KT AND RELATIONS.KT AS 'TO_BE_ADDED' WE IF DON'T NEED EVERY
-//    val dmRelations = dataModelList.find { dm -> dm.name == aliasToAdd.source }?.relations ?: mutableListOf()
-//    dmRelations.add(aliasToAdd)
-    Log.d("aliasToAdd after form def reading")
-    Log.d("$aliasToAdd")
-//    dataModelList.find { dm -> dm.name == aliasToAdd.source }?.relations = dmRelations
-}
-
 fun unAliasPath(path: String?, source: String, catalogDef: CatalogDef): String {
     var nextTableName = source
     var newPath = ""
@@ -203,7 +177,7 @@ fun unAliasPath(path: String?, source: String, catalogDef: CatalogDef): String {
     return newPath.removeSuffix(".")
 }
 
-fun Field.isFieldAlias(currentTable: String, dataModelList: List<DataModel>): Boolean {
+fun Field.isFieldAlias(dataModelList: List<DataModel>): Boolean {
     Log.d(
         "isFieldAlias [${this.name}]: ${
             path?.isNotEmpty() == true && kind == "alias" && !this.isNotNativeType(
@@ -212,25 +186,7 @@ fun Field.isFieldAlias(currentTable: String, dataModelList: List<DataModel>): Bo
         }, field : $this"
     )
     return path?.isNotEmpty() == true && kind == "alias" && !this.isNotNativeType(dataModelList)
-//    if (path?.isNotEmpty() == true && this.isNotNativeType(dataModelList)){
-//        Log.d("isFieldAlias: path: $path")
-//        val aliasTarget = dataModelList.find { it.name == currentTable }?.relations?.find { it.path == path }?.target
-//        Log.d("isFieldAlias: target: $aliasTarget")
-//        return dataModelList.find { it.name == aliasTarget } == null
-//    }
-//    return false
 }
-
-/*
-fun isFieldCatalogAlias(path: String?, currentTable: String, catalogDef: CatalogDef): Boolean {
-    Log.d("isFieldCatalogAlias: path: $path")
-    if (path == null)
-        return false
-
-    val aliasTarget = catalogDef.dataModelAliases.find { it.name == currentTable }?.fields?.find { it.path == path }?.target
-    Log.d("isFieldCatalogAlias: target: $aliasTarget")
-    return catalogDef.dataModelAliases.find { it.name == aliasTarget } == null && path?.isNotEmpty() == true
-}*/
 
 fun getRelation(field: Field, tableName: String, subFields: List<Field>): Relation? {
     Log.d("getRelation, field: $field")

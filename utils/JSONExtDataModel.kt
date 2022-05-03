@@ -398,11 +398,25 @@ fun JSONObject.getDataModelList(catalogDef: CatalogDef, isCreateDatabaseCommand:
                     val isNotNativeType = catalogDef.dataModelAliases.map { it.name }.contains(target)
                     Log.d("isNotNativeType = $isNotNativeType")
 
-                    // if the alias is a slave, we need to create a relation from parent. Example: service.managerServiceName we must create service_manager_service
+                    // Add the end field in the related dataModel (add Name in Service for serviceName whose path is service.Name)
+                    if (!isNotNativeType) {
+                        Log.d("A native type field should be added")
+                        val dest = destBeforeField(catalogDef, dataModelAlias.name, catalogField.path)
+                        Log.d("dest: $dest")
+                        catalogField.path?.substringAfterLast(".")?.let { endFieldName ->
+                            Log.d("endFieldName: $endFieldName")
+                            catalogDef.dataModelAliases.find { it.name == dest }?.fields?.find { it.name == endFieldName }?.let { endField ->
+                                Log.d("endField: $endField")
+                                val newList = dataModelList.find { it.name == dest }?.fields ?: mutableListOf()
+                                newList.takeIf { newList.find { it.name == endField.name } == null }?.add(endField.convertToField())
+                            }
+                        }
+                    }
 
+                    // if the alias is a slave, we need to create a relation from parent. Example: service.managerServiceName we must create serviceManagerService
                     val parent = aliasField.parentIfSlave
                     Log.d("parent = $parent")
-                    // same with sub slaves / grandparent
+                    // same with sub slaves / grandparent. Example : service.manager.ServiceName we must create serviceManagerService
                     val grandParent = aliasField.grandParentsIfSlave
                     Log.d("grandParent = $grandParent")
 
@@ -650,8 +664,7 @@ fun MutableList<DataModel>.handleAlias(nextTableName: String?, relationName: Str
                         }
                         if (relation.type == RelationType.MANY_TO_ONE) {
                             val relationKeyField = buildNewKeyField(relation.name)
-                            newList.takeIf { newList.find { it.name == relationKeyField.name } == null }
-                                ?.add(relationKeyField)
+                            newList.takeIf { newList.find { it.name == relationKeyField.name } == null }?.add(relationKeyField)
                             field.variableType = VariableType.VAR.string
                             newList.add(field)
                         } else {
@@ -816,5 +829,3 @@ fun buildNewKeyField(name: String): Field {
 data class FieldToAdd(
     val targetTable: String, val field: Field, val keyField: Field, val relation: Relation
 )
-
-private fun Relation.isNotNativeType(catalogDef: CatalogDef): Boolean = catalogDef.dataModelAliases.map { it.name }.contains(this.target)

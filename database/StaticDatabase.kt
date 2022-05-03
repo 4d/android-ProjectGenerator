@@ -49,7 +49,6 @@ class StaticDatabase private constructor(
 
         private fun createSql(tableName: String, fields: List<Field>): String {
             var str = "CREATE TABLE IF NOT EXISTS `$tableName`"
-            if (fields.isEmpty()) return str
             str += " ("
             fields.forEach { field ->
                 str += "`${field.name.fieldAdjustment()}` ${getFieldType(field.fieldType)}"

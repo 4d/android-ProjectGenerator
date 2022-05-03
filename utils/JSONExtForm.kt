@@ -1,5 +1,4 @@
 import ProjectEditorConstants.DETAIL_KEY
-import ProjectEditorConstants.EMPTY_KEY
 import ProjectEditorConstants.FIELDS_KEY
 import ProjectEditorConstants.FORM_KEY
 import ProjectEditorConstants.LIST_KEY
@@ -7,7 +6,7 @@ import ProjectEditorConstants.PHOTO_TYPE
 import ProjectEditorConstants.PROJECT_KEY
 import org.json.JSONObject
 
-fun JSONObject.getFormList(dataModelList: List<DataModel>, formType: FormType, navigationTableList: List<String>, catalogDef: CatalogDef, aliasToAddCallback: (aliasToAdd: Relation) -> Unit): List<Form> {
+fun JSONObject.getFormList(dataModelList: List<DataModel>, formType: FormType, navigationTableList: List<String>, catalogDef: CatalogDef): List<Form> {
     val formList = mutableListOf<Form>()
     val formTypeKey = if (formType == FormType.LIST) LIST_KEY else DETAIL_KEY
     val forms = this.getSafeObject(PROJECT_KEY)?.getSafeObject(formTypeKey)
@@ -39,7 +38,7 @@ fun JSONObject.getFormList(dataModelList: List<DataModel>, formType: FormType, n
             // Set default forms
             val fields = mutableListOf<Field>()
             dataModelList.find { it.name == form.dataModel.name }?.fields?.forEach {
-                if (!isPrivateRelationField(it.name) && it.isSlave == false) {
+                if (!isPrivateRelationField(it.name) && it.isSlave == false && it.label != null) {
                     // if Simple Table (default list form, avoid photo and relation)
                     if (formType == FormType.LIST && (it.fieldTypeString == PHOTO_TYPE || it.inverseName != null)) {
                         // don't add this field
@@ -56,30 +55,6 @@ fun JSONObject.getFormList(dataModelList: List<DataModel>, formType: FormType, n
         }
     }
 
-    // Add any relation for unaliased path
-    formList.forEach { form ->
-        form.fields?.forEach { field ->
-            if (field.isFieldAlias(form.dataModel.name, dataModelList)) {
-                field.path?.let { path ->
-                    Log.d("Going to add first part of a fieldAlias")
-                    Log.d("field : $field")
-                    val aliasRelation = Relation(
-                        source = form.dataModel.name,
-                        target = destBeforeField(catalogDef, form.dataModel.name, path),
-                        name = path.substringBeforeLast(".").replace(".", "_").fieldAdjustment(),
-                        type = RelationType.MANY_TO_ONE,
-                        subFields = listOf(),
-                        inverseName = "",
-                        path = path.substringBeforeLast("."),
-                        relation_embedded_return_type = buildRelationEmbeddedReturnType(catalogDef, form.dataModel.name, path.substringBeforeLast("."))
-                    )
-                    Log.d("new Alias to be added : $aliasRelation")
-                    aliasToAddCallback(aliasRelation)
-                }
-            }
-        }
-    }
-
     formList.find { it.dataModel.name == "Emp" }?.fields?.forEach {
         Log.d("XX: Name: ${it.name}, path: ${it.path}, field: $it")
     }
@@ -87,7 +62,7 @@ fun JSONObject.getFormList(dataModelList: List<DataModel>, formType: FormType, n
     return formList
 }
 
-fun JSONObject.getSearchFields(dataModelList: List<DataModel>): HashMap<String, List<String>> {
+fun JSONObject.getSearchFields(dataModelList: List<DataModel>, catalogDef: CatalogDef): HashMap<String, List<String>> {
     val searchFields = HashMap<String, List<String>>()
     this.getSafeObject("project")?.let { project ->
         project.getSafeObject("list")?.let { listForms ->
@@ -104,8 +79,9 @@ fun JSONObject.getSearchFields(dataModelList: List<DataModel>): HashMap<String, 
                                 jsonObject.getSafeString("kind")?.let { kind ->
                                     if (kind == "alias") {
                                         jsonObject.getSafeString("path")?.let { path ->
-                                            Log.v("Adding searchField alias ${path.fieldAdjustment()} for table $tableName")
-                                            tableSearchableFields.add(path.fieldAdjustment())
+                                            val unAliasedPath = unAliasPath(path, tableName ?: "", catalogDef)
+                                            Log.v("Adding searchField alias ${unAliasedPath.fieldAdjustment()} for table $tableName")
+                                            tableSearchableFields.add(unAliasedPath.fieldAdjustment())
                                         }
                                     } else {
                                         jsonObject.getSafeString("name")?.let { fieldName ->
@@ -123,8 +99,9 @@ fun JSONObject.getSearchFields(dataModelList: List<DataModel>): HashMap<String, 
                             searchableFieldAsObject.getSafeString("kind")?.let { kind ->
                                 if (kind == "alias") {
                                     searchableFieldAsObject.getSafeString("path")?.let { path ->
-                                        Log.v("Adding searchField alias ${path.fieldAdjustment()} for table $tableName")
-                                        tableSearchableFields.add(path.fieldAdjustment())
+                                        val unAliasedPath = unAliasPath(path, tableName ?: "", catalogDef)
+                                        Log.v("Adding searchField alias ${unAliasedPath.fieldAdjustment()} for table $tableName")
+                                        tableSearchableFields.add(unAliasedPath.fieldAdjustment())
                                     }
                                 } else {
                                     searchableFieldAsObject.getSafeString("name")?.let { fieldName ->

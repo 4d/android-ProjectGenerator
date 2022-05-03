@@ -1,4 +1,3 @@
-import ProjectEditorConstants.INT_TYPE
 import ProjectEditorConstants.STRING_TYPE
 import org.json.JSONObject
 import java.io.File
@@ -91,7 +90,6 @@ class CatalogDef(catalogFile: File) {
                     val subFields = baseCatalogDef.find { it.name == field.relatedDataClass }?.fields?.convertToFields()
                     field.createRelation(name, subFields)?.let { relation ->
                         relations.add(relation)
-//                        fieldsToRemove.add(field)
                         if (relation.type == RelationType.MANY_TO_ONE){
                             val relationKeyField = buildNewKeyFieldCatalog(relation.name, tableNumber.toString())
                             fieldsToAdd.add(relationKeyField)

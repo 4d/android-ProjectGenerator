@@ -1,15 +1,7 @@
 import ProjectEditorConstants.FIELDTYPE_KEY
-import ProjectEditorConstants.FORMAT_KEY
-import ProjectEditorConstants.ICON_KEY
-import ProjectEditorConstants.ID_KEY
-import ProjectEditorConstants.INVERSENAME_KEY
 import ProjectEditorConstants.KIND_KEY
-import ProjectEditorConstants.LABEL_KEY
 import ProjectEditorConstants.NAME_KEY
-import ProjectEditorConstants.RELATEDDATACLASS_KEY
-import ProjectEditorConstants.RELATEDENTITIES_KEY
 import ProjectEditorConstants.RELATEDTABLENUMBER_KEY
-import ProjectEditorConstants.SHORTLABEL_KEY
 import org.json.JSONObject
 
 fun getFormFields(fieldList: List<String>, dataModelName: String, catalogDef: CatalogDef): List<Field> {
@@ -19,26 +11,6 @@ fun getFormFields(fieldList: List<String>, dataModelName: String, catalogDef: Ca
     }
     return fields
 }
-
-/*fun getFormFields(fieldList: List<String>, dataModelName: String, dataModelList: List<DataModel>): List<Field> {
-    val fields = mutableListOf<Field>()
-    fieldList.forEach { fieldString ->
-        val name = retrieveJSONObject(fieldString)?.getSafeString("name")
-        val path = retrieveJSONObject(fieldString)?.getSafeString("path")
-        dataModelList.find { it.name == dataModelName }?.fields?.find { it.name == name }?.let { field ->
-            Log.d("Found field named $name in dataModel $dataModelName")
-            fields.add(field)
-        } ?: dataModelList.find { it.name == dataModelName }?.relations?.find { it.path == path }?.let { field ->
-            Log.d("Found field named $name in dataModel $dataModelName")
-            fields.add(field)
-        } ?: run {
-            val field = Field(name = "")
-            fields.add(field)
-            Log.d("Could not find a field named $name in dataModel $dataModelName")
-        }
-    }
-    return fields
-}*/
 
 fun JSONObject?.getFormField(dataModelName: String, catalogDef: CatalogDef): Field {
     if (dataModelName == "Emp")
@@ -79,10 +51,6 @@ fun JSONObject?.getFormField(dataModelName: String, catalogDef: CatalogDef): Fie
 //                field.name = path
 //                field.kind = ""
 
-                Log.d("GET FIELD FOR FORM:")
-                Log.d("- path is : ${path}")
-                Log.d("- unaliased path is : ${field.path}")
-                Log.d("- field is : ${field}")
                 // path doesn't contains "." so it can't be relation.object of type 38 Object
                 // so if it's type 38 object, it's a relation
 

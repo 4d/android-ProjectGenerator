@@ -8,12 +8,6 @@ fun replaceTemplateText(oldFormText: String, formType: FormType): String {
     val variableType = "{{package}}.data.model.entity.{{tableName}}RoomEntity"
     val variableName = "entityData"
 
-//    if (formType == FormType.LIST) {
-//        variableType = "{{package}}.data.model.entity.{{tableName}}"
-//    } else {
-//        variableType = "{{package}}.data.model.entity.{{tableName}}RoomEntity"
-//    }
-
     var newFormText = oldFormText.replace("<!--FOR_EACH_FIELD-->", "{{#form_fields}}")
         .replace("<!--END_FOR_EACH_FIELD-->", "{{/form_fields}}")
         .replace("<!--IF_IS_RELATION-->", "{{#isRelation}}")
@@ -114,20 +108,6 @@ fun replaceTemplateText(oldFormText: String, formType: FormType): String {
             "${indent}<variable\n" +
                     "${indent}\tname=\"${variableName}\"\n" +
                     "${indent}\ttype=\"${variableType}\"/>"
-//                    "${indent}\ttype=\"${variableType}\"/>\n\n" +
-//                    "${indent}{{#relations_many_to_one}}\n" +
-//                    "${indent}<variable\n" +
-//                    "${indent}\tname=\"{{relation_name}}\"\n" +
-//                    "${indent}\ttype=\"{{package}}.data.model.entity.{{relation_target}}\"/>\n" +
-//                    "${indent}{{/relations_many_to_one}}\n" +
-//                    "${indent}{{#has_any_one_to_many_relation_for_layout}}\n" +
-//                    "${indent}<import type=\"java.util.List\" />\n" +
-//                    "${indent}{{#relations_one_to_many}}\n" +
-//                    "${indent}<variable\n" +
-//                    "${indent}\tname=\"{{relation_name}}\"\n" +
-//                    "${indent}\ttype=\"List&lt;{{package}}.data.model.entity.{{relation_target}}>\"/>\n" +
-//                    "${indent}{{/relations_one_to_many}}\n" +
-//                    "${indent}{{/has_any_one_to_many_relation_for_layout}}"
         else
             "${indent}<variable\n" +
                     "${indent}\tname=\"${variableName}\"\n" +

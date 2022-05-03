@@ -95,16 +95,16 @@ fun Field.getIcon(dataModelKey: String, nameIfSlave: String): String {
     return this.icon ?: ""
 }
 
-fun Field.isRelation(currentTable: String, dataModelList: List<DataModel>): Boolean {
+fun Field.isRelation(dataModelList: List<DataModel>): Boolean {
     Log.d("kind is alias ? ${this.kind == "alias"}")
     Log.d("!this.inverseName.isNullOrEmpty() ? ${!this.inverseName.isNullOrEmpty()}")
-    Log.d("!isFieldAlias(currentTable, dataModelList) ? ${!isFieldAlias(currentTable, dataModelList)}")
-    return !this.inverseName.isNullOrEmpty() || (this.kind == "alias" && !isFieldAlias(currentTable, dataModelList) )
+    Log.d("!isFieldAlias(currentTable, dataModelList) ? ${!isFieldAlias(dataModelList)}")
+    return !this.inverseName.isNullOrEmpty() || (this.kind == "alias" && !isFieldAlias(dataModelList) )
 }
 
-fun Field.isOneToManyRelation(currentTable: String, dataModelList: List<DataModel>): Boolean = this.relatedEntities != null && this.isRelation(currentTable, dataModelList)
+fun Field.isOneToManyRelation(dataModelList: List<DataModel>): Boolean = this.relatedEntities != null && this.isRelation(dataModelList)
 
-fun Field.isManyToOneRelation(currentTable: String, dataModelList: List<DataModel>): Boolean = this.relatedEntities == null && this.isRelation(currentTable, dataModelList)
+fun Field.isManyToOneRelation(dataModelList: List<DataModel>): Boolean = this.relatedEntities == null && this.isRelation(dataModelList)
 
 fun correctIconPath(iconPath: String): String {
     val correctedIconPath = iconPath
@@ -363,7 +363,7 @@ fun getNavbarTitleWithFixes(dataModelList: List<DataModel>, form: Form, field: F
 
 fun isRelationWithFixes(dataModelList: List<DataModel>, form: Form, field: Field): Boolean {
     val fieldFromDataModel: Field? = getDataModelField(dataModelList, form, field)
-    return fieldFromDataModel?.isRelation(form.dataModel.name, dataModelList) ?: false
+    return fieldFromDataModel?.isRelation(dataModelList) ?: false
 }
 
 fun getInverseNameWithFixes(dataModelList: List<DataModel>, form: Form, field: Field): String? {
@@ -373,10 +373,10 @@ fun getInverseNameWithFixes(dataModelList: List<DataModel>, form: Form, field: F
 
 fun isOneToManyRelationWithFixes(dataModelList: List<DataModel>, form: Form, field: Field): Boolean {
     val fieldFromDataModel: Field? = getDataModelField(dataModelList, form, field)
-    return fieldFromDataModel?.isOneToManyRelation(form.dataModel.name, dataModelList) ?: false
+    return fieldFromDataModel?.isOneToManyRelation(dataModelList) ?: false
 }
 
 fun isManyToOneRelationWithFixes(dataModelList: List<DataModel>, form: Form, field: Field): Boolean {
     val fieldFromDataModel: Field? = getDataModelField(dataModelList, form, field)
-    return fieldFromDataModel?.isManyToOneRelation(form.dataModel.name, dataModelList) ?: false
+    return fieldFromDataModel?.isManyToOneRelation(dataModelList) ?: false
 }

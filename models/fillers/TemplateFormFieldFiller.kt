@@ -42,7 +42,7 @@ fun Field.getTemplateFormFieldFiller(
     Log.d("createDetailFormField : field = $this")
 
     val templateFormFieldFiller = TemplateFormFieldFiller(
-        name = this.getFieldAliasName(form.dataModel.name, dataModelList),
+        name = this.getFieldAliasName(dataModelList),
         label = getLabelWithFixes(dataModelList, form, this),
         shortLabel = getShortLabelWithFixes(dataModelList, form, this),
         viewId = i,

@@ -32,7 +32,6 @@ class CreateDatabaseTask(
     private fun getTableNameAndFieldsMap(): Map<String, List<Field>> {
         val map = mutableMapOf<String, List<Field>>()
         dataModelList.forEach { dataModel ->
-//            map[dataModel.name.tableNameAdjustment()] = dataModel.fields ?: mutableListOf()
             map[dataModel.name.tableNameAdjustment()] = dataModel.fields?.filter { it.path.isNullOrEmpty() } ?: mutableListOf()
         }
         return map
