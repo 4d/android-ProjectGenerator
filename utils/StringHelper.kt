@@ -47,8 +47,6 @@ private fun String.lowerCustomProperties() =
         when {
             this.startsWith("__") && this.endsWith("Key") -> this.removeSuffix("Key")
                 .toLowerCase(Locale.getDefault()) + "Key"
-            this.startsWith("__") && this.endsWith("Size") -> this.removeSuffix("Size")
-                .toLowerCase(Locale.getDefault()) + "Size"
             else -> this.toLowerCase(Locale.getDefault())
         }
 

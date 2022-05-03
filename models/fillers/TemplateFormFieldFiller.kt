@@ -40,7 +40,6 @@ fun Field.getTemplateFormFieldFiller(
     pathHelper: PathHelper
 ): TemplateFormFieldFiller {
     Log.d("createDetailFormField : field = $this")
-    Log.d("createDetailFormField : field.getFieldName() = ${this.getFieldName()}")
 
     val templateFormFieldFiller = TemplateFormFieldFiller(
         name = this.getFieldAliasName(form.dataModel.name, dataModelList),

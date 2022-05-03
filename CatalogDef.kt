@@ -35,7 +35,7 @@ class CatalogDef(catalogFile: File) {
         }
     }
 
-    // If baseDef, we don't want to simplify relations with __fieldKey and __fieldSize
+    // If baseDef, we don't want to simplify relations with __fieldKey
     private fun getCatalogDef(isBaseDef: Boolean = false): List<DataModelAlias> {
         val dataModelAliases = mutableListOf<DataModelAlias>()
         val dataModels = jsonObj.getSafeObject("structure")?.getSafeArray("definition").getObjectListAsString()
@@ -64,7 +64,7 @@ class CatalogDef(catalogFile: File) {
         return dataModelAliases.flatMap { it.relations }
     }
 
-    // If baseDef, we don't want to simplify relations with __fieldKey and __fieldSize
+    // If baseDef, we don't want to simplify relations with __fieldKey
     private fun JSONObject.getDataModelCatalog(isBaseDef: Boolean): DataModelAlias? {
         val name = this.getSafeString("name")
         val tableNumber = this.getSafeInt("tableNumber")

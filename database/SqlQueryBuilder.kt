@@ -28,7 +28,6 @@ class SqlQueryBuilder(entry: Any, private val fields: List<FieldData>) {
                             hashMap["__${field.name.fieldAdjustment()}Key"] = null
 //                        when {
 //                            field.isManyToOneRelation -> hashMap["__${field.name.fieldAdjustment()}Key"] = null
-//                            field.isOneToManyRelation -> hashMap["__${field.name.fieldAdjustment()}Size"] = null
 //                            else -> hashMap[field.name.fieldAdjustment()] = null
 //                        }
                     }

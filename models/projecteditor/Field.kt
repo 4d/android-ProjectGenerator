@@ -26,10 +26,11 @@ data class Field(
         var dataModelId: String? = null,
         var path: String? = null,
         var subFieldsForAlias: List<Field>? = null,
-        var parentIfSlave: Field? = null
+        var parentIfSlave: Field? = null,
+        var grandParentsIfSlave: Field? = null
 )
 
-fun isPrivateRelationField(fieldName: String): Boolean = fieldName.startsWith("__") && (fieldName.endsWith("Key") || fieldName.endsWith("Size"))
+fun isPrivateRelationField(fieldName: String): Boolean = fieldName.startsWith("__") && fieldName.endsWith("Key")
 
 fun Field.isImage() = this.fieldType == 3
 
@@ -159,14 +160,34 @@ fun Field.getFormatNameForType(pathHelper: PathHelper): String {
 }
 
 fun getDataModelField(dataModelList: List<DataModel>, form: Form, field: Field): Field? {
+    val partCount = field.name.count { it == '.'}
     if (field.name.contains(".")) {
         val dataModel = dataModelList.find { it.id == form.dataModel.id }
+        // service.manager.serviceName
         dataModel?.relations?.find { it.name == field.name.split(".")[0] }?.let { fieldInRelationList ->
-            return fieldInRelationList.subFields.find { it.name == field.name.split(".")[1] }
+            Log.d("fieldInRelationList: $fieldInRelationList")
+             fieldInRelationList.subFields.find { it.name == field.name.split(".")[1] }?.let { son ->
+                 if (partCount > 1) {
+                     son.subFieldsForAlias?.find { it.name == field.name.split(".")[2] }?.let { grandSon ->
+                         return grandSon
+                     }
+                 } else {
+                     return son
+                 }
+             }
         }
         Log.d("getDataModelField [${field.name}] not found in relations, going to check in fields")
         dataModel?.fields?.find { it.name == field.name.split(".")[0] }?.let { fieldInFieldList ->
-            return fieldInFieldList.subFieldsForAlias?.find { it.name == field.name.split(".")[1] }
+            Log.d("fieldInFieldList: $fieldInFieldList")
+            fieldInFieldList.subFieldsForAlias?.find { it.name == field.name.split(".")[1] }?.let { son ->
+                if (partCount > 1) {
+                    son.subFieldsForAlias?.find { it.name == field.name.split(".")[2] }?.let { grandSon ->
+                        return grandSon
+                    }
+                } else {
+                    return son
+                }
+            }
         }
     } else {
         return dataModelList.find { it.id == form.dataModel.id }?.fields?.find { it.name == field.name }
@@ -317,10 +338,6 @@ fun Field.getNavbarTitle(dataModelList: List<DataModel>, source: String): String
 */
 fun getIconWithFixes(dataModelList: List<DataModel>, form: Form, field: Field): String {
     val fieldFromDataModel: Field? = getDataModelField(dataModelList, form, field)
-    if (field.name == "service.Name") {
-        Log.d("HIHI3, field : $field")
-        Log.d("HIHI3, fieldFromDataModel : $fieldFromDataModel")
-    }
     return fieldFromDataModel?.getIcon(form.dataModel.id, field.name) ?: ""
 }
 
@@ -336,18 +353,6 @@ fun getShortLabelWithFixes(dataModelList: List<DataModel>, form: Form, field: Fi
 
 fun getLabelWithFixes(dataModelList: List<DataModel>, form: Form, field: Field): String {
     val fieldFromDataModel: Field? = getDataModelField(dataModelList, form, field)
-    if (field.name == "serv.managerServiceName") {
-        Log.d("serv.managerServiceName")
-        Log.d("getLabelWithFixes : $fieldFromDataModel")
-        Log.d("fieldFromDataModel?.getLabel() : ${fieldFromDataModel?.getLabel()}")
-        Log.d("field was $field")
-    }
-    if (field.name == "service.managerServiceName") {
-        Log.d("service.managerServiceName")
-        Log.d("getLabelWithFixes : $fieldFromDataModel")
-        Log.d("fieldFromDataModel?.getLabel() : ${fieldFromDataModel?.getLabel()}")
-        Log.d("field was $field")
-    }
     return fieldFromDataModel?.getLabel() ?: ""
 }
 
