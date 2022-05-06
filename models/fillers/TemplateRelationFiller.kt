@@ -83,7 +83,7 @@ fun getKeyName(catalogDef: CatalogDef, relation: Relation): String {
             catalogDef.relations.find { it.source == relation.source && it.name == firstRelationName }?.let { firstRelation ->
                 Log.d("firstRelation = $firstRelation")
 
-                key = if (relation.type == RelationType.ONE_TO_MANY)
+                key = if (firstRelation.type == RelationType.ONE_TO_MANY)
                     firstRelation.inverseName
                 else
                     firstRelation.name
@@ -131,7 +131,7 @@ fun Relation.checkSubRelations(): List<TemplateRelationFiller> {
                 val subTemplateRelationFiller = getSubTemplateRelationFiller(this, secondRelation, relationName, inverseName, originalSubRelationName)
                 Log.d("CheckSubrelations, SHOULD ADD :")
                 Log.d("subTemplateRelationFiller: $subTemplateRelationFiller")
-                subTemplateRelationFillerList.add(subTemplateRelationFiller)
+//                subTemplateRelationFillerList.add(subTemplateRelationFiller)
             }
         }
     }

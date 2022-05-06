@@ -20,6 +20,23 @@ fun destBeforeField(catalogDef: CatalogDef, source: String, path: String?): Stri
     return nextTableName
 }
 
+fun destWithField(catalogDef: CatalogDef, source: String, path: String): String {
+    Log.d("destWithField, source: $source, path: $path")
+    var nextSource = source
+    path.split(".").forEach { part ->
+        val relation = catalogDef.relations.find { it.source == nextSource && it.name == part }
+        Log.d("destWithField, relation = $relation")
+        relation?.let {
+            nextSource = relation.target
+        } ?: run {
+            val field = catalogDef.dataModelAliases.find { it.name == nextSource }?.fields?.find { it.name == path.substringAfterLast(".") }
+            Log.d("destWithField, returns field : $field")
+            return field?.fieldTypeString ?: ""
+        }
+    }
+    return nextSource
+}
+
 fun getRelationType(catalogDef: CatalogDef, source: String, path: String): RelationType {
     Log.d("getRelationType, source: $source, path: $path")
     var nextSource = source
@@ -137,9 +154,9 @@ fun checkPath(pathPart: String, source: String, catalogDef: CatalogDef): Pair<St
 }
 
 fun Field.getFieldAliasName(dataModelList: List<DataModel>): String {
-    val path = this.path ?: ""
-    if (this.isFieldAlias(dataModelList) && path.isNotEmpty()) {
+    if (this.isFieldAlias(dataModelList)) {
         Log.d("getFieldAliasName, aliasField here, field is $this")
+        val path = this.path ?: ""
         if (path.contains(".")) {
             var name = ""
             var nextPath = path.substringBeforeLast(".")
@@ -177,15 +194,10 @@ fun unAliasPath(path: String?, source: String, catalogDef: CatalogDef): String {
     return newPath.removeSuffix(".")
 }
 
+// REMINDER : kind == "alias" condition removed because alias.FirstName is not an alias kind
 fun Field.isFieldAlias(dataModelList: List<DataModel>): Boolean {
-    Log.d(
-        "isFieldAlias [${this.name}]: ${
-            path?.isNotEmpty() == true && kind == "alias" && !this.isNotNativeType(
-                dataModelList
-            )
-        }, field : $this"
-    )
-    return path?.isNotEmpty() == true && kind == "alias" && !this.isNotNativeType(dataModelList)
+    Log.d("isFieldAlias [${this.name}]: ${path?.isNotEmpty() == true /*&& kind == "alias"*/ && this.isNativeType(dataModelList)}, field : $this")
+    return path?.isNotEmpty() == true /*&& kind == "alias"*/ && this.isNativeType(dataModelList)
 }
 
 fun getRelation(field: Field, tableName: String, subFields: List<Field>): Relation? {

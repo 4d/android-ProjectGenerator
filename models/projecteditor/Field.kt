@@ -54,7 +54,9 @@ fun Field.getLayoutVariableAccessor(dataModelList: List<DataModel>): String {
         "entityData.__entity."
 }
 
-fun Field.isNotNativeType(dataModelList: List<DataModel>): Boolean = dataModelList.map { it.name }.contains(this.fieldTypeString)
+fun Field.isNotNativeType(dataModelList: List<DataModel>): Boolean = dataModelList.map { it.name }.contains(this.fieldTypeString) || this.fieldTypeString?.startsWith("Entities<") == true
+
+fun Field.isNativeType(dataModelList: List<DataModel>): Boolean = this.isNotNativeType(dataModelList).not()
 
 fun Field.getSourceTableName(dataModelList: List<DataModel>, form: Form): String {
     if (this.name.contains(".")) {
@@ -96,6 +98,7 @@ fun Field.getIcon(dataModelKey: String, nameIfSlave: String): String {
 }
 
 fun Field.isRelation(dataModelList: List<DataModel>): Boolean {
+    Log.d("isRelation, field : $this")
     Log.d("kind is alias ? ${this.kind == "alias"}")
     Log.d("!this.inverseName.isNullOrEmpty() ? ${!this.inverseName.isNullOrEmpty()}")
     Log.d("!isFieldAlias(currentTable, dataModelList) ? ${!isFieldAlias(dataModelList)}")
@@ -160,10 +163,11 @@ fun Field.getFormatNameForType(pathHelper: PathHelper): String {
 }
 
 fun getDataModelField(dataModelList: List<DataModel>, form: Form, field: Field): Field? {
+    Log.d("getDataModelField [${field.name}], field: $field")
     val partCount = field.name.count { it == '.'}
     if (field.name.contains(".")) {
+        Log.d("getDataModelField field.name contains '.'")
         val dataModel = dataModelList.find { it.id == form.dataModel.id }
-        // service.manager.serviceName
         dataModel?.relations?.find { it.name == field.name.split(".")[0] }?.let { fieldInRelationList ->
             Log.d("fieldInRelationList: $fieldInRelationList")
              fieldInRelationList.subFields.find { it.name == field.name.split(".")[1] }?.let { son ->
@@ -190,8 +194,11 @@ fun getDataModelField(dataModelList: List<DataModel>, form: Form, field: Field):
             }
         }
     } else {
+        Log.d("getDataModelField returns field : ${dataModelList.find { it.id == form.dataModel.id }?.fields?.find { it.name == field.name }}")
         return dataModelList.find { it.id == form.dataModel.id }?.fields?.find { it.name == field.name }
     }
+
+    Log.d("getDataModelField returns null")
     return null
 }
 
@@ -363,12 +370,8 @@ fun getNavbarTitleWithFixes(dataModelList: List<DataModel>, form: Form, field: F
 
 fun isRelationWithFixes(dataModelList: List<DataModel>, form: Form, field: Field): Boolean {
     val fieldFromDataModel: Field? = getDataModelField(dataModelList, form, field)
+    Log.d("fieldFromDataModel: $fieldFromDataModel")
     return fieldFromDataModel?.isRelation(dataModelList) ?: false
-}
-
-fun getInverseNameWithFixes(dataModelList: List<DataModel>, form: Form, field: Field): String? {
-    val fieldFromDataModel: Field? = getDataModelField(dataModelList, form, field)
-    return fieldFromDataModel?.inverseName
 }
 
 fun isOneToManyRelationWithFixes(dataModelList: List<DataModel>, form: Form, field: Field): Boolean {

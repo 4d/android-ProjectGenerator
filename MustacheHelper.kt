@@ -410,7 +410,9 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
         projectEditor.dataModelList.forEach { dataModel ->
             dataModel.relations?.forEach { relation ->
+                Log.d("HH: relation: $relation")
                 val filler = relation.getTemplateRelationFiller(projectEditor.catalogDef)
+                Log.d("HH: filler: $filler")
                 if (relation.type == RelationType.MANY_TO_ONE) {
                     if (relation.path.isEmpty())
                         relationsManyToOne.add(filler)
@@ -624,6 +626,8 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                 listForm.fields?.forEach { field -> // Could also iterate over specificFieldsCount as Detail form
                                     i++
 
+                                    Log.d("[${listForm.dataModel.name}][${field.name}] - $field")
+
                                     if (fileHelper.pathHelper.isDefaultTemplateListFormPath(formPath) && field.isImage()) { // is image in default template
                                         resetIndexedEntries(i)
                                     } else { // not a relation
@@ -820,7 +824,12 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         Log.d("XX: fillRelationFillerForEachLayout, $field")
         val source: String = form.dataModel.name
         val navbarTitle = getNavbarTitleWithFixes(projectEditor.dataModelList, form, field, source)
-        val relation = projectEditor.dataModelList.find { it.name == source }?.relations?.filter { it.isNotNativeType() }?.find { it.name == field.name }
+        val fieldName = if (field.name.contains(".")) // service.employees, no alias
+            field.name.relationAdjustment()
+        else
+            field.name
+
+        val relation = projectEditor.dataModelList.find { it.name == source }?.relations?.filter { it.isNotNativeType() }?.find { it.name == fieldName }
         Log.d("XX: relation, $relation")
         if (relation != null) {
             fillRelationFillerForEachRelation(source, relation.target, relation.name, index, formType, relation, navbarTitle)
@@ -828,7 +837,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
             projectEditor.dataModelList.find { it.name == source }?.fields?.filter { it.kind == "alias" }?.find { it.name == field.name }?.let { aliasField ->
                 Log.d("XX: aliasField, $aliasField")
                 // find relation which has the same path
-                projectEditor.dataModelList.find { it.name == source }?.relations?.find { it.name == aliasField.path }?.let { siblingRelation ->
+                projectEditor.dataModelList.find { it.name == source }?.relations?.find { it.name == aliasField.path?.relationAdjustment() }?.let { siblingRelation ->
                     Log.d("XX: siblingRelation, $siblingRelation")
                     fillRelationFillerForEachRelation(source, siblingRelation.target, siblingRelation.name, index, formType, siblingRelation, navbarTitle)
                 }
@@ -910,7 +919,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
     private fun fillIndexedFormData(i: Int, field: Field, formType: FormType, form: Form, wholeFormHasIcons: Boolean) {
         Log.d("index is $i")
         Log.d("fillIndexedFormData, field = $field")
-        data["field_${i}_name"] = field.name.fieldAdjustment()
+        data["field_${i}_name"] = field.getFieldAliasName(projectEditor.dataModelList)
         data["field_${i}_defined"] = field.name.isNotEmpty()
         data["field_${i}_is_image"] = field.isImage()
         data["field_${i}_label"] = getLabelWithFixes(projectEditor.dataModelList, form, field)
@@ -923,8 +932,6 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         data["field_${i}_accessor"] = field.getLayoutVariableAccessor(projectEditor.dataModelList)
         data["field_${i}_field_name"] = field.getFieldName()
         data["field_${i}_source_table_name"] = field.getSourceTableName(projectEditor.dataModelList, form)
-
-        data["field_${i}_name"] = field.getFieldAliasName( projectEditor.dataModelList)
 
         val isRelation = isRelationWithFixes(projectEditor.dataModelList, form, field)
         Log.d("field ${field.name}, isRelation ? : $isRelation")

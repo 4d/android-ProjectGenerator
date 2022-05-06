@@ -1,6 +1,9 @@
 import ProjectEditorConstants.FIELDTYPE_KEY
+import ProjectEditorConstants.INVERSENAME_KEY
 import ProjectEditorConstants.KIND_KEY
 import ProjectEditorConstants.NAME_KEY
+import ProjectEditorConstants.RELATEDDATACLASS_KEY
+import ProjectEditorConstants.RELATEDENTITIES_KEY
 import ProjectEditorConstants.RELATEDTABLENUMBER_KEY
 import org.json.JSONObject
 
@@ -13,15 +16,13 @@ fun getFormFields(fieldList: List<String>, dataModelName: String, catalogDef: Ca
 }
 
 fun JSONObject?.getFormField(dataModelName: String, catalogDef: CatalogDef): Field {
-    if (dataModelName == "Emp")
-        Log.d("getFormField YY : json : $this")
     val field = Field(name = "")
 //    this?.getSafeString(LABEL_KEY)?.let { field.label = it }
 //    this?.getSafeString(SHORTLABEL_KEY)?.let { field.shortLabel = it }
-    this?.getSafeInt(FIELDTYPE_KEY).let { field.fieldType = it }
+    this?.getSafeInt(FIELDTYPE_KEY)?.let { field.fieldType = it }
 //    this?.getSafeInt(ID_KEY).let { field.id = it.toString() }
-    this?.getSafeInt(RELATEDTABLENUMBER_KEY).let { field.relatedTableNumber = it }
-//    this?.getSafeString(INVERSENAME_KEY).let { field.inverseName = it }
+    this?.getSafeInt(RELATEDTABLENUMBER_KEY)?.let { field.relatedTableNumber = it }
+    this?.getSafeString(INVERSENAME_KEY)?.let { field.inverseName = it }
     this?.getSafeString(NAME_KEY)?.let {
         field.name = it
         field.fieldTypeString = typeStringFromTypeInt(field.fieldType)
@@ -33,39 +34,56 @@ fun JSONObject?.getFormField(dataModelName: String, catalogDef: CatalogDef): Fie
 //            field.icon = correctIconPath(iconPath)
 //        }
 //    }
-//    this?.getSafeString(RELATEDDATACLASS_KEY).let {
-//        field.relatedDataClass = it
-//        field.fieldTypeString = it
-//    }
+    this?.getSafeString(RELATEDDATACLASS_KEY)?.let {
+        field.relatedDataClass = it
+        field.fieldTypeString = it
+    }
+    this?.getSafeInt(RELATEDTABLENUMBER_KEY)?.let {
+        field.relatedTableNumber = it
+    }
 //    this?.getSafeString(RELATEDENTITIES_KEY).let {
 //        field.relatedEntities = it
 //        field.fieldTypeString = "Entities<${it?.tableNameAdjustment()}>"
 //    }
+
     this?.getSafeString("path")?.let { path ->
-        val isNotNativeType = catalogDef.dataModelAliases.map { it.name }.contains(field.fieldTypeString)
-        if (field.kind == "alias" || !isNotNativeType) {
-            val unAliasedPath = unAliasPath(path, dataModelName, catalogDef)
-            field.path = unAliasedPath
-            Log.d("Form field creation, path : $path, unaliased path : $unAliasedPath")
-            if (path == unAliasedPath && !unAliasedPath.contains(".")) { // path : FirstName, name : First
-//                field.name = path
-//                field.kind = ""
 
-                // path doesn't contains "." so it can't be relation.object of type 38 Object
-                // so if it's type 38 object, it's a relation
+        val unAliasedPath = unAliasPath(path, dataModelName, catalogDef)
+        field.path = unAliasedPath
+        Log.d("Form field creation, path : $path, unaliased path : $unAliasedPath")
+        Log.d("getFormField YY : json : $this")
+        if (path == unAliasedPath && !unAliasedPath.contains(".")) { // path : FirstName, name : First
 
-                // if is N-1 relation
-                val catalogRelation: Relation? = catalogDef.dataModelAliases.find { it.name == dataModelName }?.relations?.find { it.name == unAliasedPath }
-                if (catalogRelation?.type == RelationType.MANY_TO_ONE) {
-//                    field.fieldTypeString = destBeforeField(catalogDef, dataModelName, path)
-                    field.fieldTypeString = catalogRelation.target
-                    field.fieldType = null
+            // path doesn't contains "." so it can't be relation.object of type 38 Object
+            // so if it's type 38 object, it's a relation
+
+            val catalogRelation: Relation? = catalogDef.dataModelAliases.find { it.name == dataModelName }?.relations?.find { it.name == unAliasedPath }
+            Log.d("catalogRelation = $catalogRelation")
+            catalogRelation?.let { relation ->
+
+                field.relatedDataClass = relation.target
+                field.inverseName = relation.inverseName
+                field.fieldType = null
+
+                if (relation.type == RelationType.MANY_TO_ONE) {
+                    field.fieldTypeString = relation.target
                     field.variableType = VariableType.VAR.string
                     field.isToMany = false
-                    field.relatedDataClass = catalogRelation.target
-                    field.inverseName = catalogRelation.inverseName
+                } else {
+                    field.fieldTypeString = "Entities<${relation.target.tableNameAdjustment()}>"
+                    field.variableType = VariableType.VAL.string
+                    field.isToMany = true
                 }
             }
+        }
+
+        if (field.fieldTypeString.isNullOrEmpty()) {
+            val relationType = getRelationType(catalogDef, dataModelName, unAliasedPath)
+            val dest = destWithField(catalogDef, dataModelName, unAliasedPath)
+            field.fieldTypeString = if (relationType == RelationType.ONE_TO_MANY)
+                "Entities<$dest>"
+            else
+                dest
         }
     }
     Log.d("form field extracted: $field")
