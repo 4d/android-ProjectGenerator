@@ -63,7 +63,6 @@ fun getFirstTarget(catalogDef: CatalogDef, relation: Relation): String {
 
 fun getEmbeddedReturnType(relation: Relation): String {
     return if (relation.path.contains(".")) relation.relation_embedded_return_type else relation.target
-//    return if (relation.path.isNotEmpty()) relation.relation_embedded_return_type else relation.target
 }
 
 fun getKeyName(catalogDef: CatalogDef, relation: Relation): String {
@@ -147,7 +146,7 @@ data class TemplateRelationForRoomFiller(
     val relation_source_camelCase: String,
     val key_name: String,
     val relation_embedded_return_type: String,
-    val isToMany: Boolean,
+    val firstIsToMany: Boolean,
     val relation_part_name: String,
     val firstTarget: String
 )
@@ -168,8 +167,8 @@ fun Relation.getTemplateRelationForRoomFiller(catalogDef: CatalogDef): TemplateR
             relation_source_camelCase = source.fieldAdjustment(),
             key_name = key,
             relation_embedded_return_type = target,
-            isToMany = this.type == RelationType.ONE_TO_MANY,
-            relation_part_name = name.fieldAdjustment(),
+            firstIsToMany = this.type == RelationType.ONE_TO_MANY,
+            relation_part_name = name,
             firstTarget = target
         )
     } else {
@@ -180,8 +179,8 @@ fun Relation.getTemplateRelationForRoomFiller(catalogDef: CatalogDef): TemplateR
 
             // la relation du premier element avant "."
             catalogDef.relations.find { it.source == this.source && it.name == firstRelationName }?.let { firstRelation ->
-
-                val key = if (this.type == RelationType.ONE_TO_MANY)
+                Log.d("firstRelation: $firstRelation")
+                val key = if (firstRelation.type == RelationType.ONE_TO_MANY)
                     firstRelation.inverseName
                 else
                     firstRelation.name
@@ -195,8 +194,8 @@ fun Relation.getTemplateRelationForRoomFiller(catalogDef: CatalogDef): TemplateR
                     relation_source_camelCase = source.fieldAdjustment(),
                     key_name = key,
                     relation_embedded_return_type = getEmbeddedReturnTypeName(firstRelation.target, this.path.substringAfter(".")),
-                    isToMany = firstRelation.type == RelationType.ONE_TO_MANY,
-                    relation_part_name = this.path.relationAdjustment(),
+                    firstIsToMany = firstRelation.type == RelationType.ONE_TO_MANY,
+                    relation_part_name = if (this.path.contains(".")) this.path.relationAdjustment() else this.path.fieldAdjustment(),
                     firstTarget = getFirstTarget(catalogDef, this)
                 )
             }

@@ -45,9 +45,10 @@ private fun String.lowerCustomProperties() =
         this
     else
         when {
-            this.startsWith("__") && this.endsWith("Key") -> this.removeSuffix("Key")
-                .toLowerCase(Locale.getDefault()) + "Key"
-            else -> this.toLowerCase(Locale.getDefault())
+//            this.startsWith("__") && this.endsWith("Key") -> this.removeSuffix("Key").toLowerCase(Locale.getDefault()) + "Key"
+            this.startsWith("__") && this.endsWith("Key") -> this.removeSuffix("Key").decapitalize(Locale.getDefault()) + "Key"
+//            else -> this.toLowerCase(Locale.getDefault())
+            else -> this.decapitalize(Locale.getDefault())
         }
 
 private fun String.decapitalizeExceptID() =

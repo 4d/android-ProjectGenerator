@@ -799,12 +799,7 @@ fun JSONObject?.getDataModelField(keyField: String, dataModelId: String?, dataMo
             Log.d("dataModel field creation, path : $path, unaliased path : $unAliasedPath")
 
             if (path == unAliasedPath && !unAliasedPath.contains(".")) { // path : FirstName, name : First
-//                field.name = path
-//                field.kind = ""
 
-                Log.d("GET FIELD FOR DM:")
-                Log.d("- path is : $path")
-                Log.d("- field is : $field")
                 // path doesn't contains "." so it can't be relation.object of type 38 Object
                 // so if it's type 38 object, it's a relation
 

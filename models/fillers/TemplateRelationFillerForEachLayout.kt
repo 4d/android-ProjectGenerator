@@ -39,9 +39,36 @@ fun getTemplateRelationFillerForLayout(
         relation_target_camelCase = target.dataBindingAdjustment(),
         isAlias = aliasRelation.path.contains("."),
         path = aliasRelation.path.ifEmpty { aliasRelation.name },
-        pathToOneWithoutFirst = aliasRelation.path.substringAfter("."),
+        pathToOneWithoutFirst = getPathToOneWithoutFirst(aliasRelation, catalogDef),
         pathToManyWithoutFirst = getPathToManyWithoutFirst(aliasRelation, catalogDef)
     )
+
+
+fun getPathToOneWithoutFirst(aliasRelation: Relation, catalogDef: CatalogDef): String {
+    Log.d("getPathToManyWithoutFirst, aliasRelation = $aliasRelation")
+    var path = ""
+    val pathList = aliasRelation.path.split(".")
+    var nextSource = aliasRelation.source
+    var tmpNextPath = aliasRelation.path
+    pathList.forEachIndexed { index, pathPart ->
+        Log.d("getPathToManyWithoutFirst, pathPart = $pathPart")
+        catalogDef.relations.find { it.source == nextSource && it.name == pathPart }?.let { relation ->
+            Log.d("getPathToManyWithoutFirst, relation = $relation")
+            if (index > 0) {
+                if (path.isNotEmpty())
+                    path += "?."
+
+                Log.d("tmpNextPath = $tmpNextPath")
+                path += tmpNextPath.relationAdjustment()
+            }
+            nextSource = relation.target
+            tmpNextPath = tmpNextPath.substringAfter(".")
+        }
+        Log.d("path building : $path")
+    }
+    Log.d("final path = $path")
+    return path
+}
 
 fun getPathToManyWithoutFirst(aliasRelation: Relation, catalogDef: CatalogDef): String {
     Log.d("getPathToManyWithoutFirst, aliasRelation = $aliasRelation")
@@ -59,10 +86,11 @@ fun getPathToManyWithoutFirst(aliasRelation: Relation, catalogDef: CatalogDef): 
                     path += "?."
 
                 Log.d("tmpNextPath = $tmpNextPath")
-                if (previousRelationType == RelationType.ONE_TO_MANY) {
-                    path += "map { it.${tmpNextPath.relationAdjustment()}"
+
+                path += if (previousRelationType == RelationType.ONE_TO_MANY) {
+                    "map { it.${tmpNextPath.relationAdjustment()}"
                 } else {
-                    path += tmpNextPath.relationAdjustment()
+                    tmpNextPath.relationAdjustment()
                 }
             }
             previousRelationType = relation.type
