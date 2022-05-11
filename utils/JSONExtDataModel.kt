@@ -189,7 +189,7 @@ fun JSONObject.getDataModelList(catalogDef: CatalogDef, isCreateDatabaseCommand:
                                             field.isSlave = true
                                             slaveFieldList.addWithSanity(field, relatedDataClass, catalogDef)
                                             getRelation(field, relatedDataClass, slaveSubFieldsForRelation)?.let { relation ->
-                                                Log.d("slave relation.name : ${relation.name}")
+
                                                 Log.d("slave relation : $relation")
                                                 slaveRelationList.add(relation)
 
@@ -197,6 +197,7 @@ fun JSONObject.getDataModelList(catalogDef: CatalogDef, isCreateDatabaseCommand:
 
                                                     val relationKeyField = buildNewKeyField(relation.name)
                                                     slaveFieldList.add(relationKeyField)
+
                                                 } else {
 
                                                     Log.d("One to many slave relation, need to add the inverse many to one relation to its Entity definition")
@@ -229,22 +230,23 @@ fun JSONObject.getDataModelList(catalogDef: CatalogDef, isCreateDatabaseCommand:
                                                             fieldToAddList.add(fieldToAdd)
                                                         }
                                                     }
-
-                                                    Log.d("One to many slave relation, need to create a relation with relationAdjustment() (example: serviceEmployees for service.employees)")
-                                                    val path = parentField.name + "." + field.name
-                                                    val adjustedRelation = Relation(
-                                                        source = dataModelName,
-                                                        target = relation.target,
-                                                        name = path.relationAdjustment(),
-                                                        type = RelationType.ONE_TO_MANY,
-                                                        subFields = listOf(),
-                                                        inverseName = "",
-                                                        path = path,
-                                                        relation_embedded_return_type = buildRelationEmbeddedReturnType(catalogDef, dataModelName, path)
-                                                    )
-                                                    Log.d("adjustedRelation : $adjustedRelation")
-                                                    relationList.add(adjustedRelation)
                                                 }
+                                                Log.d("Slave relation, need to create a relation with relationAdjustment() (example: serviceEmployees for service.employees)")
+                                                val parentPart = if (parentField.kind == "alias") parentField.path else parentField.name
+                                                val childPart = if (field.kind == "alias") field.path else field.name
+                                                val path =  "$parentPart.$childPart"
+                                                val adjustedRelation = Relation(
+                                                    source = dataModelName,
+                                                    target = relation.target,
+                                                    name = path.relationAdjustment(),
+                                                    type = relation.type,
+                                                    subFields = slaveSubFieldsForRelation,
+                                                    inverseName = "",
+                                                    path = path,
+                                                    relation_embedded_return_type = buildRelationEmbeddedReturnType(catalogDef, dataModelName, path)
+                                                )
+                                                Log.d("adjustedRelation : $adjustedRelation")
+                                                relationList.add(adjustedRelation)
                                             }
                                         }
 
@@ -280,16 +282,19 @@ fun JSONObject.getDataModelList(catalogDef: CatalogDef, isCreateDatabaseCommand:
                                                         catalogDef
                                                     )
 
+                                                    Log.d("slaveSlaveField: $slaveSlaveField")
+
                                                     slaveSlaveField?.let { slaveSlaveField ->
                                                         if (slaveSlaveField.kind == "alias") {
 //                                                            slaveField.isSlave = true
                                                             slaveSlaveField.parentIfSlave = field
                                                             slaveSlaveField.grandParentsIfSlave = it
                                                             aliasToHandleList.add(slaveSlaveField)
-                                                            slaveSlaveFieldList.add(slaveSlaveField) // TODO : AJOUTER SLAVELSAVEFIEDLIST DANS LE BON DATAMODEL, on doit avoir serviceName dans Emp
+                                                            slaveSlaveFieldList.add(slaveSlaveField)
                                                             Log.d("Adding to aliasToHandleList, keyDataModel = $relatedTableNumber , $slaveSlaveField")
                                                         } else {
-                                                            // never there ?
+                                                            // only scalar here
+                                                            slaveSlaveFieldList.add(slaveSlaveField)
                                                         }
 
                                                         Log.d("Checking if we already added this dataModel")
@@ -438,7 +443,7 @@ fun JSONObject.getDataModelList(catalogDef: CatalogDef, isCreateDatabaseCommand:
                     val grandParent = aliasField.grandParentsIfSlave
                     Log.d("grandParent = $grandParent")
 
-                    var relationsToCreate: List<Relation>? = null
+                    var relationsToCreate: MutableList<Relation>? = null
 
                     when {
                         grandParent != null && parent != null -> {
@@ -456,7 +461,8 @@ fun JSONObject.getDataModelList(catalogDef: CatalogDef, isCreateDatabaseCommand:
                             }
                         }
                         else -> {
-                            val unAliasedPath = unAliasPath(catalogField.path, dataModelAlias.name, catalogDef)
+//                            val unAliasedPath = unAliasPath(catalogField.path, dataModelAlias.name, catalogDef)
+                            val unAliasedPath = unAliasPath(aliasField.path, dataModelAlias.name, catalogDef)
                             relationsToCreate = getRelationsToCreate(catalogDef, dataModelAlias.name, if (isNotNativeType) unAliasedPath else unAliasedPath.substringBeforeLast("."))
                         }
                     }

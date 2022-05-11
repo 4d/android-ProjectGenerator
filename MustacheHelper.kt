@@ -250,8 +250,8 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                 if (relation.type == RelationType.MANY_TO_ONE) {
                     relationsManyToOne.add(filler)
                     // Check for sub 1-N relations
-                    val subTemplateRelationFillerList = relation.checkSubRelations()
-                    relationsOneToMany.addAll(subTemplateRelationFillerList)
+//                    val subTemplateRelationFillerList = relation.checkSubRelations()
+//                    relationsOneToMany.addAll(subTemplateRelationFillerList)
                 } else {
                     relationsOneToMany.add(filler)
                 }
@@ -330,10 +330,10 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
             dataModel.relations?.filter { it.isNotNativeType() }?.forEach { relation ->
                 layoutRelationList.add(relation.getTemplateRelationFiller(projectEditor.catalogDef))
                 // Check for sub 1-N relations
-                if (relation.type == RelationType.MANY_TO_ONE) {
-                    val subTemplateRelationFillerList = relation.checkSubRelations()
-                    layoutRelationList.addAll(subTemplateRelationFillerList)
-                }
+//                if (relation.type == RelationType.MANY_TO_ONE) {
+//                    val subTemplateRelationFillerList = relation.checkSubRelations()
+//                    layoutRelationList.addAll(subTemplateRelationFillerList)
+//                }
             }
         }
         data[TABLENAMES_NAVIGATION] = tableNamesForNavigation
@@ -417,8 +417,8 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                     if (relation.path.isEmpty())
                         relationsManyToOne.add(filler)
                     // Check for sub 1-N relations
-                    val subTemplateRelationFillerList = relation.checkSubRelations()
-                    relationsOneToMany.addAll(subTemplateRelationFillerList)
+//                    val subTemplateRelationFillerList = relation.checkSubRelations()
+//                    relationsOneToMany.addAll(subTemplateRelationFillerList)
                 } else {
                     relationsOneToMany.add(filler)
                 }
@@ -542,11 +542,11 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                 Log.d("XXX Add Many to one, relation was $relation")
                 relationsManyToOne.add(filler)
                 // Check for sub 1-N relations
-                val subTemplateRelationFillerList = relation.checkSubRelations()
-                subTemplateRelationFillerList.forEach {
-                    Log.d("XXX Add One to many sub filler = $it")
-                }
-                relationsOneToMany.addAll(subTemplateRelationFillerList)
+//                val subTemplateRelationFillerList = relation.checkSubRelations()
+//                subTemplateRelationFillerList.forEach {
+//                    Log.d("XXX Add One to many sub filler = $it")
+//                }
+//                relationsOneToMany.addAll(subTemplateRelationFillerList)
             } else {
                 Log.d("XXX Add One to many filler = $filler")
                 relationsOneToMany.add(filler)
@@ -597,8 +597,8 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                     if (relation.type == RelationType.MANY_TO_ONE) {
                                         relationsManyToOne.add(filler)
                                         // Check for sub 1-N relations
-                                        val subTemplateRelationFillerList = relation.checkSubRelations()
-                                        relationsOneToMany.addAll(subTemplateRelationFillerList)
+//                                        val subTemplateRelationFillerList = relation.checkSubRelations()
+//                                        relationsOneToMany.addAll(subTemplateRelationFillerList)
                                     } else {
                                         relationsOneToMany.add(filler)
                                     }
@@ -824,22 +824,23 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         Log.d("XX: fillRelationFillerForEachLayout, $field")
         val source: String = form.dataModel.name
         val navbarTitle = getNavbarTitleWithFixes(projectEditor.dataModelList, form, field, source)
-        val fieldName = if (field.name.contains(".")) // service.employees, no alias
-            field.name.relationAdjustment()
-        else
-            field.name
 
-        val relation = projectEditor.dataModelList.find { it.name == source }?.relations?.filter { it.isNotNativeType() }?.find { it.name == fieldName }
-        Log.d("XX: relation, $relation")
-        if (relation != null) {
+        projectEditor.dataModelList.find { it.name == source }?.relations?.filter { it.isNotNativeType() }?.find { it.name == field.name }?.let { relation ->
+            Log.d("Found relation from name $relation")
             fillRelationFillerForEachRelation(source, relation.target, relation.name, index, formType, relation, navbarTitle)
-        } else {
-            projectEditor.dataModelList.find { it.name == source }?.fields?.filter { it.kind == "alias" }?.find { it.name == field.name }?.let { aliasField ->
-                Log.d("XX: aliasField, $aliasField")
-                // find relation which has the same path
-                projectEditor.dataModelList.find { it.name == source }?.relations?.find { it.name == aliasField.path?.relationAdjustment() }?.let { siblingRelation ->
-                    Log.d("XX: siblingRelation, $siblingRelation")
-                    fillRelationFillerForEachRelation(source, siblingRelation.target, siblingRelation.name, index, formType, siblingRelation, navbarTitle)
+        } ?: kotlin.run {
+            Log.d("No relation found with same name")
+
+            // If simple relation -> path will be null
+            projectEditor.dataModelList.find { it.name == source }?.relations?.filter { it.isNotNativeType() }?.find { it.path == field.path }?.let { relation ->
+                Log.d("Found relation from path $relation")
+                fillRelationFillerForEachRelation(source, relation.target, relation.name, index, formType, relation, navbarTitle)
+            } ?: kotlin.run {
+                Log.d("No relation found with same path")
+
+                projectEditor.dataModelList.find { it.name == source }?.relations?.filter { it.isNotNativeType() }?.find { it.name == field.path }?.let { relation ->
+                    Log.d("Found relation from name with path $relation")
+                    fillRelationFillerForEachRelation(source, relation.target, relation.name, index, formType, relation, navbarTitle)
                 }
             }
         }

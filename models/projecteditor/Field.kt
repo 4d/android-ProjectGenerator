@@ -165,9 +165,9 @@ fun Field.getFormatNameForType(pathHelper: PathHelper): String {
 fun getDataModelField(dataModelList: List<DataModel>, form: Form, field: Field): Field? {
     Log.d("getDataModelField [${field.name}], field: $field")
     val partCount = field.name.count { it == '.'}
+    val dataModel = dataModelList.find { it.id == form.dataModel.id }
     if (field.name.contains(".")) {
         Log.d("getDataModelField field.name contains '.'")
-        val dataModel = dataModelList.find { it.id == form.dataModel.id }
         dataModel?.relations?.find { it.name == field.name.split(".")[0] }?.let { fieldInRelationList ->
             Log.d("fieldInRelationList: $fieldInRelationList")
              fieldInRelationList.subFields.find { it.name == field.name.split(".")[1] }?.let { son ->
@@ -194,8 +194,31 @@ fun getDataModelField(dataModelList: List<DataModel>, form: Form, field: Field):
             }
         }
     } else {
-        Log.d("getDataModelField returns field : ${dataModelList.find { it.id == form.dataModel.id }?.fields?.find { it.name == field.name }}")
-        return dataModelList.find { it.id == form.dataModel.id }?.fields?.find { it.name == field.name }
+        Log.d("getDataModelField field.name doesn't contain '.'")
+
+        dataModelList.find { it.id == form.dataModel.id }?.fields?.find { it.name == field.name }?.let { field ->
+            Log.d("Found field with this name: $field")
+            return field
+        }
+
+        val fieldPath = field.path ?: ""
+        val pathPartCount = fieldPath.count { it == '.'}
+        if (fieldPath.contains(".")) {         // TODO: TO CHECK
+            Log.d("getDataModelField fieldPath contains '.'")
+            dataModel?.fields?.find { it.name == fieldPath.split(".")[0] }?.let { fieldInFieldList ->
+                Log.d("fieldInFieldList: $fieldInFieldList")
+
+                fieldInFieldList.subFieldsForAlias?.find { it.name == field.name.split(".")[1] }?.let { son ->
+                    if (pathPartCount > 1) {
+                        son.subFieldsForAlias?.find { it.name == field.name.split(".")[2] }?.let { grandSon ->
+                            return grandSon
+                        }
+                    } else {
+                        return son
+                    }
+                }
+            }
+        }
     }
 
     Log.d("getDataModelField returns null")

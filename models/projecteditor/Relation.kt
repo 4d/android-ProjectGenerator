@@ -25,7 +25,7 @@ fun destWithField(catalogDef: CatalogDef, source: String, path: String): String 
     var nextSource = source
     path.split(".").forEach { part ->
         val relation = catalogDef.relations.find { it.source == nextSource && it.name == part }
-        Log.d("destWithField, relation = $relation")
+//        Log.d("destWithField, relation = $relation")
         relation?.let {
             nextSource = relation.target
         } ?: run {
@@ -42,7 +42,7 @@ fun getRelationType(catalogDef: CatalogDef, source: String, path: String): Relat
     var nextSource = source
     path.split(".").forEach { part ->
         val relation = catalogDef.relations.find { it.source == nextSource && it.name == part }
-        Log.d("getRelationType, relation = $relation")
+//        Log.d("getRelationType, relation = $relation")
         nextSource = relation?.target ?: ""
         if (relation?.type == RelationType.ONE_TO_MANY)
             return RelationType.ONE_TO_MANY
@@ -62,7 +62,7 @@ fun getFollowingTypeToCreate(catalogDef: CatalogDef, source: String, path: Strin
     return Pair(firstTarget, path.substringAfter("."))
 }
 
-fun getRelationsToCreate(catalogDef: CatalogDef, source: String, path: String): List<Relation> {
+fun getRelationsToCreate(catalogDef: CatalogDef, source: String, path: String): MutableList<Relation> {
     Log.d("getRelationsToCreate, source: $source, path: $path")
     val newRelationList = mutableListOf<Relation>()
 
@@ -74,9 +74,10 @@ fun getRelationsToCreate(catalogDef: CatalogDef, source: String, path: String): 
     while (nextPath.contains(".")) {
         val pair = getFollowingTypeToCreate(catalogDef, nextSource, nextPath) ?: break
         Log.d("pair = $pair")
+        val target = destBeforeField(catalogDef, nextSource, nextPath)
         val nextRelation = Relation(
             source = nextSource,
-            target = destBeforeField(catalogDef, nextSource, nextPath),
+            target = target,
             name = nextPath.relationAdjustment(),
             type = getRelationType(catalogDef, nextSource, nextPath),
             subFields = listOf(),

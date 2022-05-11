@@ -85,6 +85,13 @@ fun JSONObject?.getFormField(dataModelName: String, catalogDef: CatalogDef): Fie
             else
                 dest
         }
+
+
+        // TODO: TO CHECK
+        if (/*path != unAliasedPath &&*/ path.contains(".") && field.kind == "relatedEntities") {
+            Log.d("field has his name being changed to path value")
+            field.name = path
+        }
     }
     Log.d("form field extracted: $field")
     return field

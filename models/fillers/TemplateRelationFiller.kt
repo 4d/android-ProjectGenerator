@@ -15,7 +15,9 @@ data class TemplateRelationFiller(
     val relation_embedded_return_type: String,
     val key_name: String,
     val firstIsToMany: Boolean,
-    val firstTarget: String
+    val firstTarget: String,
+    val pathToOneWithoutFirst: String,
+    val pathToManyWithoutFirst: String
 )
 
 fun Relation.getTemplateRelationFiller(catalogDef: CatalogDef): TemplateRelationFiller =
@@ -34,7 +36,9 @@ fun Relation.getTemplateRelationFiller(catalogDef: CatalogDef): TemplateRelation
         relation_embedded_return_type = getEmbeddedReturnType(this),
         key_name = getKeyName(catalogDef,this),
         firstIsToMany = getFirstIsToMany(catalogDef, this),
-        firstTarget = getFirstTarget(catalogDef, this)
+        firstTarget = getFirstTarget(catalogDef, this),
+        pathToOneWithoutFirst = getPathToOneWithoutFirst(this, catalogDef),
+        pathToManyWithoutFirst = getPathToManyWithoutFirst(this, catalogDef)
     )
 
 fun getFirstIsToMany(catalogDef: CatalogDef, relation: Relation): Boolean {
@@ -80,7 +84,7 @@ fun getKeyName(catalogDef: CatalogDef, relation: Relation): String {
             val firstRelationName = relation.path.split(".")[0]
             // la relation du premier element avant "."
             catalogDef.relations.find { it.source == relation.source && it.name == firstRelationName }?.let { firstRelation ->
-                Log.d("firstRelation = $firstRelation")
+//                Log.d("firstRelation = $firstRelation")
 
                 key = if (firstRelation.type == RelationType.ONE_TO_MANY)
                     firstRelation.inverseName
@@ -95,7 +99,7 @@ fun getKeyName(catalogDef: CatalogDef, relation: Relation): String {
     return key
 }
 
-private fun getSubTemplateRelationFiller(firstRelation: Relation, secondRelation: Relation, name: String, inverseName: String, originalSubRelationName: String): TemplateRelationFiller =
+/*private fun getSubTemplateRelationFiller(firstRelation: Relation, secondRelation: Relation, name: String, inverseName: String, originalSubRelationName: String): TemplateRelationFiller =
     TemplateRelationFiller(
         relation_source = firstRelation.source.tableNameAdjustment(),
         relation_target = secondRelation.target.tableNameAdjustment(),
@@ -112,9 +116,9 @@ private fun getSubTemplateRelationFiller(firstRelation: Relation, secondRelation
         key_name = firstRelation.name,
         firstIsToMany = firstRelation.type == RelationType.ONE_TO_MANY,
         firstTarget = firstRelation.target.tableNameAdjustment()
-    )
+    )*/
 
-fun Relation.checkSubRelations(): List<TemplateRelationFiller> {
+/*fun Relation.checkSubRelations(): List<TemplateRelationFiller> {
     Log.d("checkSubRelations !!")
     Log.d("relation is $this")
     val subTemplateRelationFillerList = mutableListOf<TemplateRelationFiller>()
@@ -135,7 +139,7 @@ fun Relation.checkSubRelations(): List<TemplateRelationFiller> {
         }
     }
     return subTemplateRelationFillerList
-}
+}*/
 
 data class TemplateRelationForRoomFiller(
     val className: String,
@@ -179,7 +183,7 @@ fun Relation.getTemplateRelationForRoomFiller(catalogDef: CatalogDef): TemplateR
 
             // la relation du premier element avant "."
             catalogDef.relations.find { it.source == this.source && it.name == firstRelationName }?.let { firstRelation ->
-                Log.d("firstRelation: $firstRelation")
+//                Log.d("firstRelation: $firstRelation")
                 val key = if (firstRelation.type == RelationType.ONE_TO_MANY)
                     firstRelation.inverseName
                 else

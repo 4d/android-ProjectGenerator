@@ -45,15 +45,15 @@ fun getTemplateRelationFillerForLayout(
 
 
 fun getPathToOneWithoutFirst(aliasRelation: Relation, catalogDef: CatalogDef): String {
-    Log.d("getPathToManyWithoutFirst, aliasRelation = $aliasRelation")
+    Log.d("getPathToOneWithoutFirst, aliasRelation = $aliasRelation")
     var path = ""
     val pathList = aliasRelation.path.split(".")
     var nextSource = aliasRelation.source
     var tmpNextPath = aliasRelation.path
     pathList.forEachIndexed { index, pathPart ->
-        Log.d("getPathToManyWithoutFirst, pathPart = $pathPart")
+        Log.d("getPathToOneWithoutFirst, pathPart = $pathPart")
         catalogDef.relations.find { it.source == nextSource && it.name == pathPart }?.let { relation ->
-            Log.d("getPathToManyWithoutFirst, relation = $relation")
+//            Log.d("getPathToOneWithoutFirst, relation = $relation")
             if (index > 0) {
                 if (path.isNotEmpty())
                     path += "?."
@@ -80,7 +80,7 @@ fun getPathToManyWithoutFirst(aliasRelation: Relation, catalogDef: CatalogDef): 
     pathList.forEachIndexed { index, pathPart ->
         Log.d("getPathToManyWithoutFirst, pathPart = $pathPart")
         catalogDef.relations.find { it.source == nextSource && it.name == pathPart }?.let { relation ->
-            Log.d("getPathToManyWithoutFirst, relation = $relation")
+//            Log.d("getPathToManyWithoutFirst, relation = $relation")
             if (index > 0) {
                 if (path.isNotEmpty())
                     path += "?."
@@ -88,7 +88,7 @@ fun getPathToManyWithoutFirst(aliasRelation: Relation, catalogDef: CatalogDef): 
                 Log.d("tmpNextPath = $tmpNextPath")
 
                 path += if (previousRelationType == RelationType.ONE_TO_MANY) {
-                    "map { it.${tmpNextPath.relationAdjustment()}"
+                    "mapNotNull { it.${tmpNextPath.relationAdjustment()}"
                 } else {
                     tmpNextPath.relationAdjustment()
                 }
@@ -100,9 +100,9 @@ fun getPathToManyWithoutFirst(aliasRelation: Relation, catalogDef: CatalogDef): 
         Log.d("path building : $path")
     }
     // remove suffix in case it ends by a 1-N relation
-    path = path.removeSuffix("?.map { it.")
+    path = path.removeSuffix("?.mapNotNull { it.")
     repeat(path.count { it == '{' }) {
-        path += " }"
+        path += " }?.takeIf { it.isNotEmpty() }"
     }
     Log.d("final path = $path")
     return path
