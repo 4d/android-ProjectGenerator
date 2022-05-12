@@ -48,7 +48,7 @@ fun Field.getFieldKeyAccessor() =
 
 fun Field.getLayoutVariableAccessor(dataModelList: List<DataModel>): String {
     Log.d("getLayoutVariableAccessor: this = $this")
-    return if (this.name.fieldAdjustment().contains(".") || (this.kind == "alias" && this.isNotNativeType(dataModelList)))
+    return if (this.name.fieldAdjustment().contains(".") || (this.kind == "alias" /*&& this.isNotNativeType(dataModelList)*/ && this.path?.contains(".") == true))
         "entityData."
     else
         "entityData.__entity."

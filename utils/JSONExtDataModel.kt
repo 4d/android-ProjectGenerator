@@ -429,8 +429,15 @@ fun JSONObject.getDataModelList(catalogDef: CatalogDef, isCreateDatabaseCommand:
                             Log.d("endFieldName: $endFieldName")
                             catalogDef.dataModelAliases.find { it.name == dest }?.fields?.find { it.name == endFieldName }?.let { endField ->
                                 Log.d("endField: $endField")
+
                                 val newList = dataModelList.find { it.name == dest }?.fields ?: mutableListOf()
                                 newList.takeIf { newList.find { it.name == endField.name } == null }?.add(endField.convertToField())
+                                // If endField is an alias, also add the path field
+                                if (!endField.path.isNullOrEmpty()) {
+                                    catalogDef.dataModelAliases.find { it.name == dest }?.fields?.find { it.name == endField.path }?.let { pathField ->
+                                        newList.takeIf { newList.find { it.name == pathField.name } == null }?.add(pathField.convertToField())
+                                    }
+                                }
                                 dataModelList.find { it.name == dest }?.fields = newList
                             }
                         }
