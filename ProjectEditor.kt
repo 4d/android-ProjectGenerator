@@ -17,6 +17,7 @@ import ProjectEditorConstants.INT_TYPE
 import ProjectEditorConstants.NAME_KEY
 import ProjectEditorConstants.OBJECT_TYPE
 import ProjectEditorConstants.ORGANIZATION_KEY
+import ProjectEditorConstants.PACKAGE_KEY
 import ProjectEditorConstants.PATH_KEY
 import ProjectEditorConstants.PHOTO_TYPE
 import ProjectEditorConstants.PRODUCTION_KEY
@@ -102,6 +103,7 @@ class ProjectEditor(projectEditorFile: File, isCreateDatabaseCommand: Boolean = 
             "cache4dSdk" -> jsonObj.getSafeString(CACHE_4D_SDK_KEY)
             "companyWithCaps" -> jsonObj.getSafeObject(PROJECT_KEY)?.getSafeObject(ORGANIZATION_KEY)
                     ?.getSafeString(NAME_KEY)
+            "package" -> jsonObj.getSafeString(PACKAGE_KEY)
             "appNameWithCaps" -> jsonObj.getSafeObject(PROJECT_KEY)?.getSafeObject(PRODUCT_KEY)?.getSafeString(NAME_KEY)
             "bundleIdentifier" -> jsonObj.getSafeObject(PROJECT_KEY)?.getSafeObject(PRODUCT_KEY)?.getSafeString(BUNDLE_IDENTIFIER)
             "version" -> jsonObj.getSafeObject(PROJECT_KEY)?.getSafeObject(PRODUCT_KEY)?.getSafeString(VERSION)
