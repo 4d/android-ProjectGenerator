@@ -23,8 +23,8 @@
 //INCLUDE database/StaticDatabase.kt
 //INCLUDE database/StaticDataInitializer.kt
 //INCLUDE models/Actions.kt
+//INCLUDE models/AppData.kt
 //INCLUDE models/AppInfo.kt
-//INCLUDE models/Team.kt
 //INCLUDE models/fillers/TemplateFieldFiller.kt
 //INCLUDE models/fillers/TemplateFormatterFiller.kt
 //INCLUDE models/fillers/TemplateFormFieldFiller.kt

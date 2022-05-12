@@ -4,6 +4,7 @@ import DefaultValues.DEFAULT_REMOTE_URL
 import ProjectEditorConstants.ACTIONS_KEY
 import ProjectEditorConstants.AUTHENTICATION_KEY
 import ProjectEditorConstants.BOOLEAN_TYPE
+import ProjectEditorConstants.BUNDLE_IDENTIFIER
 import ProjectEditorConstants.CACHE_4D_SDK_KEY
 import ProjectEditorConstants.DATASOURCE_KEY
 import ProjectEditorConstants.DATE_TYPE
@@ -19,7 +20,6 @@ import ProjectEditorConstants.INT_TYPE
 import ProjectEditorConstants.NAME_KEY
 import ProjectEditorConstants.OBJECT_TYPE
 import ProjectEditorConstants.ORGANIZATION_KEY
-import ProjectEditorConstants.PACKAGE_KEY
 import ProjectEditorConstants.PATH_KEY
 import ProjectEditorConstants.PHOTO_TYPE
 import ProjectEditorConstants.PRODUCTION_KEY
@@ -34,6 +34,7 @@ import ProjectEditorConstants.TEAMID_KEY
 import ProjectEditorConstants.TIME_TYPE
 import ProjectEditorConstants.UI_KEY
 import ProjectEditorConstants.URLS_KEY
+import ProjectEditorConstants.VERSION
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
@@ -97,7 +98,8 @@ class ProjectEditor(projectEditorFile: File, val catalogDef: CatalogDef, isCreat
             "companyWithCaps" -> jsonObj.getSafeObject(PROJECT_KEY)?.getSafeObject(ORGANIZATION_KEY)
                     ?.getSafeString(NAME_KEY)
             "appNameWithCaps" -> jsonObj.getSafeObject(PROJECT_KEY)?.getSafeObject(PRODUCT_KEY)?.getSafeString(NAME_KEY)
-            "package" -> jsonObj.getSafeString(PACKAGE_KEY)
+            "bundleIdentifier" -> jsonObj.getSafeObject(PROJECT_KEY)?.getSafeObject(PRODUCT_KEY)?.getSafeString(BUNDLE_IDENTIFIER)
+            "version" -> jsonObj.getSafeObject(PROJECT_KEY)?.getSafeObject(PRODUCT_KEY)?.getSafeString(VERSION)
             "productionUrl" -> jsonObj.getSafeObject(PROJECT_KEY)?.getSafeObject(SERVER_KEY)?.getSafeObject(URLS_KEY)
                     ?.getSafeString(PRODUCTION_KEY)
             "remoteUrl" -> jsonObj.getSafeString(REMOTE_URL_KEY)
@@ -137,6 +139,10 @@ class ProjectEditor(projectEditorFile: File, val catalogDef: CatalogDef, isCreat
     }
 
     fun getAppInfo(): AppInfo {
+        val appId = findJsonString("bundleIdentifier") ?: ""
+        val appName = findJsonString("companyWithCaps") ?: ""
+        val appVersion = findJsonString("version") ?: ""
+        val appData = AppData(appId, appName, appVersion)
         val mailAuth = findJsonBoolean("mailAuth") ?: false
         var remoteUrl = findJsonString("productionUrl")
         if (remoteUrl.isNullOrEmpty())
@@ -146,7 +152,8 @@ class ProjectEditor(projectEditorFile: File, val catalogDef: CatalogDef, isCreat
         val teamId = findJsonString("teamId") ?: ""
         val debugMode = findJsonBoolean("debugMode") ?: false
         return AppInfo(
-                team = Team(TeamID = teamId, TeamName = ""),
+                appData = appData,
+                teamId = findJsonString("teamId") ?: "",
                 guestLogin = mailAuth.not(),
                 remoteUrl = remoteUrl,
                 initialGlobalStamp = if (debugMode) 0 else findJsonInt("dumpedStamp") ?: 0,
@@ -236,7 +243,6 @@ class ProjectEditor(projectEditorFile: File, val catalogDef: CatalogDef, isCreat
         return newMap
     }
 }
-
 
 fun typeStringFromTypeInt(type: Int?): String = when (type) {
     0 -> STRING_TYPE
