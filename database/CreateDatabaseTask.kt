@@ -16,6 +16,7 @@ class CreateDatabaseTask(
     private val propertyListMap = mutableMapOf<String, List<String>>()
     private val relatedEntitiesMapList =
         mutableListOf<MutableMap<String, MutableList<JSONObject>>>()
+    private val updateQueryHolderList = mutableListOf<UpdateQueryHolder>()
     private val dataClassList = mutableListOf<DataClass>()
 
     private var initialGlobalStamp = 0
@@ -32,7 +33,7 @@ class CreateDatabaseTask(
     private fun getTableNameAndFieldsMap(): Map<String, List<Field>> {
         val map = mutableMapOf<String, List<Field>>()
         dataModelList.forEach { dataModel ->
-            map[dataModel.name.tableNameAdjustment()] = dataModel.fields?.filter { it.path.isNullOrEmpty() } ?: mutableListOf()
+            map[dataModel.name.tableNameAdjustment()] = dataModel.fields ?: mutableListOf()
         }
         return map
     }
@@ -49,7 +50,8 @@ class CreateDatabaseTask(
                 val staticDataInitializer = StaticDataInitializer()
 
                 database.insertAll(getSqlQueries(staticDataInitializer))
-                Log.i("Database updated")
+                database.updateAll(getUpdateQueries())
+                println("Database updated")
                 val dumpInfoFile = getDumpedInfoFile(assetsPath)
                 integrateGlobalStamp(dumpInfoFile, initialGlobalStamp)
                 integrateDumpedTables(dumpInfoFile, dumpedTables)
@@ -58,9 +60,12 @@ class CreateDatabaseTask(
 
     private fun getSqlQueries(staticDataInitializer: StaticDataInitializer): List<SqlQuery> {
         val queryList = mutableListOf<SqlQuery>()
+
+        println("originalTableNamesMap = $originalTableNamesMap")
+        println("tableNameAndFieldsMap = $tableNameAndFieldsMap")
+
         for ((tableName, tableNameOriginal) in originalTableNamesMap) {
             tableNameAndFieldsMap[tableName]?.let { fields ->
-                Log.d("fields name: ${fields.joinToString { it.name }}")
                 getCatalog(assetsPath, tableNameOriginal, fields)?.let { dataClass ->
 
                     Log.d("ZZZ, dataclassform catalog: ${dataClass.fields.joinToString { it.name }}")
@@ -72,11 +77,11 @@ class CreateDatabaseTask(
                             staticDataInitializer
                         )
                     )
-
                     dataClassList.add(dataClass)
                 }
             }
         }
+
         queryList.addAll(getSqlQueriesForRelatedTables(staticDataInitializer))
 
         return filterUnique(queryList)
@@ -136,6 +141,10 @@ class CreateDatabaseTask(
                 if (tableName != null && relatedTableFields != null) {
 
                     jsonEntityList.forEach { jsonEntity ->
+
+                        Log.d("getSqlQueriesForRelatedTables\n")
+                        Log.d("jsonEntity = $jsonEntity")
+
                         val sqlQueryBuilder = SqlQueryBuilder(jsonEntity, relatedTableFields)
 
                         queryList.add(
@@ -150,6 +159,19 @@ class CreateDatabaseTask(
             }
         }
         return queryList
+    }
+
+    private fun getUpdateQueries(): List<String> {
+        val queryList = mutableListOf<String>()
+        updateQueryHolderList.forEach { updateQueryHolder ->
+            dataModelList.find { it.name.tableNameAdjustment() == updateQueryHolder.relatedDataClass }?.let { dataModel ->
+                dataModel.relations?.find { it.inverseName.fieldAdjustment() == updateQueryHolder.oneToManyRelationName }?.let { manyToOneRelation ->
+                    val query = "UPDATE ${dataModel.name.tableNameAdjustment()} SET __${manyToOneRelation.name.fieldAdjustment()}Key = ${updateQueryHolder.relationKey} WHERE __KEY = ${updateQueryHolder.entityKey}"
+                    queryList.add(query)
+                }
+            }
+        }
+        return queryList.distinct()
     }
 
     private fun getSqlQueriesForTable(
@@ -227,6 +249,7 @@ class CreateDatabaseTask(
                     val sqlQueryBuilder = SqlQueryBuilder(it, fields)
 
                     relatedEntitiesMapList.add(sqlQueryBuilder.relatedEntitiesMap)
+                    updateQueryHolderList.addAll(sqlQueryBuilder.updateQueryHolderList)
 
                     return getQueryFromSqlQueryBuilder(
                         sqlQueryBuilder,

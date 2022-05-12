@@ -1,6 +1,6 @@
 import java.io.File
 
-fun getCatalog(assetsPath: String, tableName: String, concatFields: List<Field>): DataClass? {
+fun getCatalog(assetsPath: String, tableName: String, fields: List<Field>): DataClass? {
 
     val filePath = getCatalogPath(assetsPath, tableName)
 
@@ -20,7 +20,7 @@ fun getCatalog(assetsPath: String, tableName: String, concatFields: List<Field>)
 
                         jsonDataClass.getSafeArray("attributes")?.let { attributes ->
 
-                            val fields = mutableListOf<FieldData>()
+                            val fieldDataList = mutableListOf<FieldData>()
 
                             for (i in 0 until attributes.length()) {
 
@@ -28,36 +28,37 @@ fun getCatalog(assetsPath: String, tableName: String, concatFields: List<Field>)
 
                                 attribute.getSafeString("name")?.let { fieldName ->
 
-                                    Log.d("catalogExtractor, fieldName: $fieldName")
-                                    Log.d("catalogExtractor, fields name: ${concatFields.joinToString { it.name }}")
-                                    if (concatFields.map { it.name }.contains(fieldName)) {
-                                        Log.d("CONTAINS")
+                                    if (fields.map { it.name }.contains(fieldName)) {
 
                                         val field = FieldData(fieldName.fieldAdjustment())
                                         attribute.getSafeString("type")
                                             ?.let { type -> field.isImage = type == "image" }
                                         attribute.getSafeString("kind")?.let { kind ->
                                             when (kind) {
-                                                "relatedEntity" -> field.isManyToOneRelation = true
-                                                "relatedEntities" -> field.isOneToManyRelation = true
-                                            }
-                                            if (field.isManyToOneRelation) {
-                                                attribute.getSafeString("type")
-                                                    ?.let { relatedOriginalTableName ->
-                                                        field.relatedOriginalTableName =
-                                                            relatedOriginalTableName
-                                                    }
+                                                "relatedEntity" -> {
+                                                    field.isManyToOneRelation = true
+                                                    attribute.getSafeString("type")
+                                                        ?.let { relatedOriginalTableName ->
+                                                            field.relatedOriginalTableName =
+                                                                relatedOriginalTableName
+                                                        }
+                                                }
+                                                "relatedEntities" -> {
+                                                    field.isOneToManyRelation = true
+                                                }
+                                                else -> {}
                                             }
                                         }
-                                        fields.add(field)
+                                        println("Field added: ${field.name}")
+                                        fieldDataList.add(field)
                                     } else {
                                         Log.i("Field is not defined : $fieldName")
                                     }
                                 }
                             }
 
-                            Log.i("[$tableName] Catalog successfully read")
-                            return DataClass(name = dataClassName, fields = fields)
+                            println("[$tableName] Catalog successfully read")
+                            return DataClass(name = dataClassName, fields = fieldDataList)
                         }
                     }
                 }
