@@ -1052,6 +1052,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
     fun makeActions() {
         val hasActionsFeatureFlag = projectEditor.findJsonBoolean(FeatureFlagConstants.HAS_ACTIONS_KEY) ?: false
+        Log.d("hasActionsFeatureFlag = $hasActionsFeatureFlag")
         if (hasActionsFeatureFlag) {
             makeJsonFile(ACTIONS_FILENAME, projectEditor.getActions())
         }

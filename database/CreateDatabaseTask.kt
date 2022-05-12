@@ -141,7 +141,6 @@ class CreateDatabaseTask(
                 if (tableName != null && relatedTableFields != null) {
 
                     jsonEntityList.forEach { jsonEntity ->
-
                         Log.d("getSqlQueriesForRelatedTables\n")
                         Log.d("jsonEntity = $jsonEntity")
 

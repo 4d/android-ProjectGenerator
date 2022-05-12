@@ -56,7 +56,6 @@ fun getCatalog(assetsPath: String, tableName: String, fields: List<Field>): Data
                                     }
                                 }
                             }
-
                             println("[$tableName] Catalog successfully read")
                             return DataClass(name = dataClassName, fields = fieldDataList)
                         }
