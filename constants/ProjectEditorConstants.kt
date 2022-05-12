@@ -6,6 +6,7 @@ object ProjectEditorConstants {
     const val PROJECT_KEY = "project"
     const val DATAMODEL_KEY = "dataModel"
     const val NAME_KEY = "name"
+    const val PACKAGE_KEY = "package"
     const val BUNDLE_IDENTIFIER = "bundleIdentifier"
     const val VERSION = "version"
     const val EMPTY_KEY = ""

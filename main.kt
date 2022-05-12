@@ -105,7 +105,7 @@ class GenerateCommand : CliktCommand(name = "generate") {
                 filesToCopy = FILES_TO_COPY,
                 companyWithCaps = projectEditor.findJsonString("companyWithCaps") ?: DEFAULT_COMPANY,
                 appNameWithCaps = projectEditor.findJsonString("appNameWithCaps") ?: DEFAULT_APPLICATION,
-                pkg = projectEditor.findJsonString("bundleIdentifier") ?: DEFAULT_PACKAGE
+                pkg = projectEditor.findJsonString("package") ?: DEFAULT_PACKAGE
         )
 
         val fileHelper = FileHelper(pathHelper)
