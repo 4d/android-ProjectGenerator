@@ -21,8 +21,8 @@
 //INCLUDE database/SqlQueryBuilder.kt
 //INCLUDE database/StaticDatabase.kt
 //INCLUDE database/StaticDataInitializer.kt
+//INCLUDE models/AppData.kt
 //INCLUDE models/AppInfo.kt
-//INCLUDE models/Team.kt
 //INCLUDE models/Queries.kt
 //INCLUDE models/Query.kt
 //INCLUDE models/fillers/TemplateFieldFiller.kt

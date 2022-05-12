@@ -1,5 +1,6 @@
 data class AppInfo(
-    val team: Team,
+    val appData: AppData,
+    val teamId: String,
     val guestLogin: Boolean,
     val remoteUrl: String,
     val initialGlobalStamp: Int,
