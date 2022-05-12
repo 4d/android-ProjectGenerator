@@ -82,7 +82,7 @@ class SqlQueryBuilder(entry: Any, private val fields: List<FieldData>) {
                             }
                         }
                         field.isOneToManyRelation -> {
-                            // TODO
+                            // Nothing to do
                         }
                     }
                 }
