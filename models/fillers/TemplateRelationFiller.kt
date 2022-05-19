@@ -99,48 +99,6 @@ fun getKeyName(catalogDef: CatalogDef, relation: Relation): String {
     return key
 }
 
-/*private fun getSubTemplateRelationFiller(firstRelation: Relation, secondRelation: Relation, name: String, inverseName: String, originalSubRelationName: String): TemplateRelationFiller =
-    TemplateRelationFiller(
-        relation_source = firstRelation.source.tableNameAdjustment(),
-        relation_target = secondRelation.target.tableNameAdjustment(),
-        relation_name = name.relationAdjustment(),
-        inverse_name = inverseName.fieldAdjustment(),
-        isSubRelation = true,
-        originalSubRelationName = originalSubRelationName,
-        relation_source_camelCase = firstRelation.source.dataBindingAdjustment(),
-        relation_target_camelCase = secondRelation.target.dataBindingAdjustment(),
-        relation_name_original = name,
-        isAlias = false,
-        path = firstRelation.name + "." + secondRelation.name,
-        relation_embedded_return_type = getEmbeddedReturnTypeName(secondRelation.source, secondRelation.name),
-        key_name = firstRelation.name,
-        firstIsToMany = firstRelation.type == RelationType.ONE_TO_MANY,
-        firstTarget = firstRelation.target.tableNameAdjustment()
-    )*/
-
-/*fun Relation.checkSubRelations(): List<TemplateRelationFiller> {
-    Log.d("checkSubRelations !!")
-    Log.d("relation is $this")
-    val subTemplateRelationFillerList = mutableListOf<TemplateRelationFiller>()
-    this.subFields.filter { it.relatedEntities != null }.forEach { oneToManySubRelationField ->
-        val target = oneToManySubRelationField.relatedEntities?.tableNameAdjustment()
-        val relationName = "${this.name.fieldAdjustment()}_${oneToManySubRelationField.name.fieldAdjustment()}"
-        val originalSubRelationName = "${this.name.fieldAdjustment()}.${oneToManySubRelationField.name.fieldAdjustment()}"
-        val inverseName = oneToManySubRelationField.inverseName?.fieldAdjustment()
-        if (target != null && inverseName != null) {
-
-            getRelation(oneToManySubRelationField, this.target, listOf())?.let { secondRelation ->
-
-                val subTemplateRelationFiller = getSubTemplateRelationFiller(this, secondRelation, relationName, inverseName, originalSubRelationName)
-                Log.d("CheckSubrelations, SHOULD ADD :")
-                Log.d("subTemplateRelationFiller: $subTemplateRelationFiller")
-//                subTemplateRelationFillerList.add(subTemplateRelationFiller)
-            }
-        }
-    }
-    return subTemplateRelationFillerList
-}*/
-
 data class TemplateRelationForRoomFiller(
     val className: String,
     val relation_source: String,

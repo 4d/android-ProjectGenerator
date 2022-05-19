@@ -84,9 +84,10 @@ fun Field.getShortLabel(): String {
 fun Field.getIcon(dataModelKey: String, nameIfSlave: String): String {
     Log.d("getIcon, field $this")
     if (this.icon.isNullOrEmpty()) {
-        when {
-            this.isSlave == true -> this.id = nameIfSlave
-            this.id == null -> this.id = this.name
+        this.id = when {
+            this.isSlave == true -> nameIfSlave
+            this.id == null -> this.name
+            else -> this.id
         }
         this.id?.let { this.id = it.toLowerCase().replace("[^a-z0-9]+".toRegex(), "_") }
         return if (this.isSlave == true)
@@ -171,8 +172,10 @@ fun getDataModelField(dataModelList: List<DataModel>, form: Form, field: Field):
         dataModel?.relations?.find { it.name == field.name.split(".")[0] }?.let { fieldInRelationList ->
             Log.d("fieldInRelationList: $fieldInRelationList")
              fieldInRelationList.subFields.find { it.name == field.name.split(".")[1] }?.let { son ->
+                 Log.d("son: $son")
                  if (partCount > 1) {
                      son.subFieldsForAlias?.find { it.name == field.name.split(".")[2] }?.let { grandSon ->
+                         Log.d("grandSon: $grandSon")
                          return grandSon
                      }
                  } else {
@@ -184,8 +187,10 @@ fun getDataModelField(dataModelList: List<DataModel>, form: Form, field: Field):
         dataModel?.fields?.find { it.name == field.name.split(".")[0] }?.let { fieldInFieldList ->
             Log.d("fieldInFieldList: $fieldInFieldList")
             fieldInFieldList.subFieldsForAlias?.find { it.name == field.name.split(".")[1] }?.let { son ->
+                Log.d("son: $son")
                 if (partCount > 1) {
                     son.subFieldsForAlias?.find { it.name == field.name.split(".")[2] }?.let { grandSon ->
+                        Log.d("grandSon: $grandSon")
                         return grandSon
                     }
                 } else {
@@ -207,10 +212,11 @@ fun getDataModelField(dataModelList: List<DataModel>, form: Form, field: Field):
             Log.d("getDataModelField fieldPath contains '.'")
             dataModel?.fields?.find { it.name == fieldPath.split(".")[0] }?.let { fieldInFieldList ->
                 Log.d("fieldInFieldList: $fieldInFieldList")
-
                 fieldInFieldList.subFieldsForAlias?.find { it.name == field.name.split(".")[1] }?.let { son ->
+                    Log.d("son: $son")
                     if (pathPartCount > 1) {
                         son.subFieldsForAlias?.find { it.name == field.name.split(".")[2] }?.let { grandSon ->
+                            Log.d("grandSon: $grandSon")
                             return grandSon
                         }
                     } else {
