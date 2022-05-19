@@ -12,7 +12,7 @@ object ZipManager {
 
         val destDir =
             File(fileZip.parent + File.separator + TEMPORARY_UNZIPPED_TEMPLATE_PREFIX + fileZip.nameWithoutExtension)
-        Log.d("destDir = $destDir")
+        Log.d("unzip, destDir : $destDir")
         if (destDir.exists()) {
             Log.d("Temporary unzipped template already exists : ${destDir.absolutePath}, will try to delete.")
             if (destDir.deleteRecursively()) {

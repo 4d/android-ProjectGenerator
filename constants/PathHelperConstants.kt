@@ -7,8 +7,6 @@ object PathHelperConstants {
     const val PACKAGE_PH = "__PKG__"
     const val PACKAGE_JOINED_PH = "__PKG_JOINED__"
     const val TEMPLATE_PLACEHOLDER = "__TEMPLATE__"
-    const val TEMPLATE_RELATION_DAO_PLACEHOLDER = "__TEMPLATE_RELATION_DAO__"
-    const val TEMPLATE_RELATION_ENTITY_PLACEHOLDER = "__TEMPLATE_RELATION_ENTITY__"
 
     /**
      * PATH NAMES
@@ -22,7 +20,6 @@ object PathHelperConstants {
     const val NAVIGATION_PATH_KEY = "navigation"
     const val ASSETS_PATH_KEY = "assets"
     const val LAYOUT_PATH_KEY = "layout"
-    const val DRAWABLE_PATH_KEY = "drawable"
     const val JAVA_PATH_KEY = "java"
     const val HOST_FORMS = "form"
     const val LIST_FORMS_KEY = "list"
@@ -30,7 +27,6 @@ object PathHelperConstants {
     const val RECYCLER_VIEW_ITEM_PREFIX = "recyclerview_item_"
     const val DETAIL_FORM_PREFIX = "fragment_detail_"
     const val HOST_FORMATTERS_KEY = "formatters"
-    const val IMAGES_FORMATTER_KEY = "Images"
     const val FORMATTERS_FORMATTER_KEY = "Formatters"
 
     /**

@@ -7,7 +7,7 @@ data class DataModel(
     var query: String? = null,
     var iconPath: String? = null,
     var isSlave: Boolean? = null,
-    var relationList: MutableList<Relation>? = null
+    var relations: MutableList<Relation>? = null
 )
 
 fun DataModel.getLabel(): String {

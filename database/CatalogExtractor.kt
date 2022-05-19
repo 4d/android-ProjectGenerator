@@ -4,7 +4,7 @@ fun getCatalog(assetsPath: String, tableName: String, fields: List<Field>): Data
 
     val filePath = getCatalogPath(assetsPath, tableName)
 
-    println("[$tableName] Reading catalog at path $filePath")
+    Log.i("[$tableName] Reading catalog at path $filePath")
 
     val entityCatalogFile = File(filePath)
 
@@ -17,7 +17,6 @@ fun getCatalog(assetsPath: String, tableName: String, fields: List<Field>): Data
                 val dataClasses = jsonObj.getSafeArray("dataClasses")
                 dataClasses?.getJSONObject(0)?.let { jsonDataClass ->
                     jsonDataClass.getSafeString("name")?.let { dataClassName ->
-                        println("dataClassName = $dataClassName")
 
                         jsonDataClass.getSafeArray("attributes")?.let { attributes ->
 
@@ -53,7 +52,7 @@ fun getCatalog(assetsPath: String, tableName: String, fields: List<Field>): Data
                                         println("Field added: ${field.name}")
                                         fieldDataList.add(field)
                                     } else {
-                                        println("Field is not defined : $fieldName")
+                                        Log.i("Field is not defined : $fieldName")
                                     }
                                 }
                             }
@@ -63,12 +62,12 @@ fun getCatalog(assetsPath: String, tableName: String, fields: List<Field>): Data
                     }
                 }
             }
-            println("[$tableName] Catalog json is missing name or attributes keys")
+            Log.i("[$tableName] Catalog json is missing name or attributes keys")
         } else {
-            println("[$tableName] Empty catalog file")
+            Log.i("[$tableName] Empty catalog file")
         }
     } else {
-        println("[$tableName] No catalog file found")
+        Log.i("[$tableName] No catalog file found")
     }
     return null
 }

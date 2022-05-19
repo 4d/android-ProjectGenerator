@@ -4,8 +4,10 @@ import ProjectEditorConstants.FIELDTYPE_KEY
 import ProjectEditorConstants.FILTER_KEY
 import ProjectEditorConstants.FORMAT_KEY
 import ProjectEditorConstants.ICON_KEY
+import ProjectEditorConstants.INT_TYPE
 import ProjectEditorConstants.INVERSENAME_KEY
 import ProjectEditorConstants.ISTOMANY_KEY
+import ProjectEditorConstants.KIND_KEY
 import ProjectEditorConstants.LABEL_KEY
 import ProjectEditorConstants.NAME_KEY
 import ProjectEditorConstants.PROJECT_KEY
@@ -14,10 +16,11 @@ import ProjectEditorConstants.RELATEDENTITIES_KEY
 import ProjectEditorConstants.RELATEDTABLENUMBER_KEY
 import ProjectEditorConstants.SHORTLABEL_KEY
 import ProjectEditorConstants.STRING_KEY
+import ProjectEditorConstants.STRING_TYPE
 import ProjectEditorConstants.VALIDATED_KEY
 import org.json.JSONObject
 
-fun JSONObject.getDataModelList(isCreateDatabaseCommand: Boolean = false): List<DataModel> {
+fun JSONObject.getDataModelList(catalogDef: CatalogDef, isCreateDatabaseCommand: Boolean = false): List<DataModel> {
     val dataModelList = mutableListOf<DataModel>()
     val dataModels = if (isCreateDatabaseCommand)
         this.getSafeObject(DATAMODEL_KEY)
@@ -25,6 +28,8 @@ fun JSONObject.getDataModelList(isCreateDatabaseCommand: Boolean = false): List<
         this.getSafeObject(PROJECT_KEY)?.getSafeObject(DATAMODEL_KEY)
 
     val fieldToAddList = mutableListOf<FieldToAdd>()
+
+    val aliasToHandleList = mutableListOf<Field>()
 
     dataModels?.keys()?.forEach { keyDataModel ->
 
@@ -38,7 +43,7 @@ fun JSONObject.getDataModelList(isCreateDatabaseCommand: Boolean = false): List<
             dataModelList.find { it.name == dataModelName }?.fields?.let {
                 savedFields.addAll(it)
             }
-            dataModelList.find { it.name == dataModelName }?.relationList?.let {
+            dataModelList.find { it.name == dataModelName }?.relations?.let {
                 savedRelations.addAll(it)
             }
             if (dataModelList.removeIf { dataModel -> dataModel.name == dataModelName }) {
@@ -46,6 +51,7 @@ fun JSONObject.getDataModelList(isCreateDatabaseCommand: Boolean = false): List<
             }
 
             val newDataModel = DataModel(id = keyDataModel.toString(), name = dataModelName, isSlave = false)
+            Log.d("newDataModel.name : $dataModelName")
             newDataModelJSONObject.getSafeObject(EMPTY_KEY)?.getSafeString(LABEL_KEY)?.let { newDataModel.label = it }
             newDataModelJSONObject.getSafeObject(EMPTY_KEY)?.getSafeString(SHORTLABEL_KEY)
                 ?.let { newDataModel.shortLabel = it }
@@ -61,8 +67,6 @@ fun JSONObject.getDataModelList(isCreateDatabaseCommand: Boolean = false): List<
                 newDataModel.iconPath = "nav_icon_${newDataModel.id}"
             }
 
-            Log.d("newDataModel.iconPath = ${newDataModel.iconPath}")
-
             newDataModelJSONObject.getSafeObject(EMPTY_KEY)?.getSafeObject(FILTER_KEY)?.let {
                 if (it.getSafeBoolean(VALIDATED_KEY) == true)
                     newDataModel.query = it.getSafeString(STRING_KEY)?.replace("\"", "'")
@@ -71,31 +75,45 @@ fun JSONObject.getDataModelList(isCreateDatabaseCommand: Boolean = false): List<
             val fieldList = mutableListOf<Field>()
             val relationList = mutableListOf<Relation>()
 
+            Log.d("Checking fields")
+
             newDataModelJSONObject.keys().forEach eachKeyField@{ keyField ->
                 if (keyField !is String) return@eachKeyField
                 if (keyField != EMPTY_KEY) {
                     val newFieldJSONObject: JSONObject? = newDataModelJSONObject.getSafeObject(keyField.toString())
-                    val field: Field? = newFieldJSONObject?.getDataModelField(keyField)
+                    val field: Field? = newFieldJSONObject?.getDataModelField(keyField, keyDataModel, dataModelName, catalogDef)
+
                     field?.let {
-                        Log.d("ZZZ", "$field")
-                        if (field.kind != "alias") {
+                        Log.d("field: $field")
+
+                        val subFields: List<Field> = newFieldJSONObject.getSubFields(dataModelName, catalogDef)
+
+                        if (field.kind == "alias") {
+                            subFields.forEach { subField ->
+                                subField.relatedTableNumber = field.relatedTableNumber
+                                subField.dataModelId = field.relatedDataClass
+                            }
+                            field.subFieldsForAlias = subFields
+                            Log.d("Subfields for alias [${field.name}] are $subFields")
+                            aliasToHandleList.add(field)
+
+                            fieldList.addWithSanity(it, dataModelName, catalogDef)
+                            Log.d("Adding to aliasToHandleList, keyDataModel = $keyDataModel , $field")
+
+                        } else {
                             it.isSlave = false
-                            fieldList.add(it)
-                            val subFields: List<Field> = newFieldJSONObject.getSubFields()
+                            fieldList.addWithSanity(it, dataModelName, catalogDef)
                             getRelation(it, dataModelName, subFields)?.let { relation ->
-                                Log.d("getRelation, relation is $relation")
+                                Log.d("relation.name : ${relation.name}")
                                 relationList.add(relation)
 
-                                if (relation.relationType == RelationType.MANY_TO_ONE) {
-                                    val relationKeyField =
-                                        Field(name = "__${relation.name.validateWordDecapitalized()}Key")
-                                    Log.d("Many to One relation: adding relationKeyField = $relationKeyField")
-                                    relationKeyField.fieldType = 0
-                                    relationKeyField.fieldTypeString = typeStringFromTypeInt(relationKeyField.fieldType)
-                                    relationKeyField.variableType = VariableType.VAR.string
+                                if (relation.type == RelationType.MANY_TO_ONE) {
+
+                                    val relationKeyField = buildNewKeyField(relation.name)
                                     fieldList.add(relationKeyField)
+
                                 } else {
-                                    // One to many relation, need to add the inverse many to one relation to its Entity definition
+
                                     Log.d("One to many relation, need to add the inverse many to one relation to its Entity definition")
                                     it.inverseName?.let { inverseName ->
                                         val newField = Field(
@@ -105,92 +123,208 @@ fun JSONObject.getDataModelList(isCreateDatabaseCommand: Boolean = false): List<
                                             fieldTypeString = dataModelName,
                                             relatedTableNumber = keyDataModel.toString().toIntOrNull(),
                                             relatedEntities = null,
-                                            variableType = VariableType.VAR.string
+                                            variableType = VariableType.VAR.string,
+                                            kind = "relatedEntity"
                                         )
-                                        Log.d("newField = $newField")
+                                        Log.d("newField.name: ${newField.name}")
                                         getRelation(newField, relation.target, listOf())?.let { newRelation ->
-                                            Log.d("newRelation = $newRelation")
-                                            val newKeyField =
-                                                Field(name = "__${newRelation.name.validateWordDecapitalized()}Key")
-                                            newKeyField.fieldType = 0
-                                            newKeyField.fieldTypeString = typeStringFromTypeInt(newKeyField.fieldType)
-                                            newKeyField.variableType = VariableType.VAR.string
+                                            Log.d("newRelation.name : ${newRelation.name}")
+                                            val newKeyField = buildNewKeyField(newRelation.name)
 
                                             val fieldToAdd = FieldToAdd(relation.target, newField, newKeyField, newRelation)
-                                            Log.d("ZZZ", "fieldToAdd $fieldToAdd")
                                             fieldToAddList.add(fieldToAdd)
                                         }
                                     }
                                 }
                             }
-                            Log.d("Check if there is a slave table to add")
+                        }
 
-                            // Check if there is a slave table to add
-                            newFieldJSONObject.getSafeString(RELATEDDATACLASS_KEY)?.let { relatedDataClass ->
-                                newFieldJSONObject.getSafeInt(RELATEDTABLENUMBER_KEY)?.let { relatedTableNumber ->
-                                    val slaveDataModel = DataModel(
-                                        id = relatedTableNumber.toString(),
-                                        name = relatedDataClass,
-                                        isSlave = true
+                        Log.d("Check if there is a slave table to add")
+
+                        newFieldJSONObject.getSafeString(RELATEDDATACLASS_KEY)?.let { relatedDataClass ->
+                            newFieldJSONObject.getSafeInt(RELATEDTABLENUMBER_KEY)?.let { relatedTableNumber ->
+                                val slaveDataModel = DataModel(
+                                    id = relatedTableNumber.toString(),
+                                    name = relatedDataClass,
+                                    isSlave = true
+                                )
+                                Log.d("slaveDataModel.name : $relatedDataClass")
+
+                                val slaveFieldList = mutableListOf<Field>()
+                                val slaveRelationList = mutableListOf<Relation>()
+
+                                newFieldJSONObject.keys().forEach eachSlaveKeyField@{ slaveKeyField ->
+                                    if (slaveKeyField !is String) return@eachSlaveKeyField
+
+                                    val newSlaveFieldJSONObject = newFieldJSONObject.getSafeObject(slaveKeyField.toString())
+
+                                    val slaveField = newSlaveFieldJSONObject?.getDataModelField(
+                                        slaveKeyField,
+                                        relatedTableNumber.toString(),
+                                        relatedDataClass,
+                                        catalogDef
                                     )
 
-                                    val slaveFieldList = mutableListOf<Field>()
-                                    val slaveRelationList = mutableListOf<Relation>()
+                                    Log.d("slaveField : $slaveField")
+                                    Log.d("newSlaveFieldJSONObject : $newSlaveFieldJSONObject")
+                                    val parentField = field
 
-                                    newFieldJSONObject.keys().forEach eachSlaveKeyField@{ slaveKeyField ->
-                                        if (slaveKeyField !is String) return@eachSlaveKeyField
-                                        val newSlaveFieldJSONObject =
-                                            newFieldJSONObject.getSafeObject(slaveKeyField.toString())
-                                        val slaveField = newSlaveFieldJSONObject?.getDataModelField(slaveKeyField)
-                                        slaveField?.let { field ->
-                                            if (field.kind != "alias") {
-                                                field.isSlave = true
-                                                slaveFieldList.add(field)
-                                                val slaveSubFields: List<Field> = newSlaveFieldJSONObject.getSubFields()
-                                                getRelation(field, relatedDataClass, slaveSubFields)?.let { relation ->
-                                                    Log.d("getRelation, slave relation is $relation")
-                                                    slaveRelationList.add(relation)
+                                    slaveField?.let { field ->
 
-                                                    if (relation.relationType == RelationType.MANY_TO_ONE) {
-                                                        val relationKeyField =
-                                                            Field(name = "__${relation.name.validateWordDecapitalized()}Key")
-                                                        Log.d("Many to One relation: adding relationKeyField = $relationKeyField")
-                                                        relationKeyField.fieldType = 0
-                                                        relationKeyField.fieldTypeString =
-                                                            typeStringFromTypeInt(relationKeyField.fieldType)
-                                                        relationKeyField.variableType = VariableType.VAR.string
-                                                        slaveFieldList.add(relationKeyField)
-                                                    } else {
-                                                        Log.d("One to many relation, need to add the inverse many to one relation to its Entity definition")
-                                                        // One to many relation, need to add the inverse many to one relation to its Entity definition
-                                                        it.inverseName?.let {
-                                                            val newField = Field(
-                                                                name = relation.inverseName,
-                                                                inverseName = relation.name,
-                                                                relatedDataClass = relatedDataClass,
-                                                                fieldTypeString = relatedDataClass,
-                                                                relatedTableNumber = relatedTableNumber,
-                                                                relatedEntities = null,
-                                                                variableType = VariableType.VAR.string
+                                        val slaveSubFieldsForRelation: List<Field> = newSlaveFieldJSONObject.getSubFields(relatedDataClass, catalogDef)
+
+                                        if (field.kind == "alias") {
+                                            slaveSubFieldsForRelation.forEach { subField ->
+                                                subField.relatedTableNumber = field.relatedTableNumber
+                                                subField.dataModelId = field.relatedDataClass
+                                            }
+                                            field.subFieldsForAlias = slaveSubFieldsForRelation
+                                            Log.d("Subfields for alias [${field.name}] are $slaveSubFieldsForRelation")
+
+                                            field.parentIfSlave = it
+                                            aliasToHandleList.add(field)
+                                            slaveFieldList.add(field)
+                                            Log.d("Adding to aliasToHandleList, keyDataModel = $relatedTableNumber , $field")
+                                        } else {
+                                            field.isSlave = true
+                                            slaveFieldList.addWithSanity(field, relatedDataClass, catalogDef)
+                                            getRelation(field, relatedDataClass, slaveSubFieldsForRelation)?.let { relation ->
+
+                                                Log.d("slave relation : $relation")
+                                                slaveRelationList.add(relation)
+
+                                                if (relation.type == RelationType.MANY_TO_ONE) {
+
+                                                    val relationKeyField = buildNewKeyField(relation.name)
+                                                    slaveFieldList.add(relationKeyField)
+
+                                                } else {
+
+                                                    Log.d("One to many slave relation, need to add the inverse many to one relation to its Entity definition")
+                                                    it.inverseName?.let {
+                                                        val newField = Field(
+                                                            name = relation.inverseName,
+                                                            inverseName = relation.name,
+                                                            relatedDataClass = relatedDataClass,
+                                                            fieldTypeString = relatedDataClass,
+                                                            relatedTableNumber = relatedTableNumber,
+                                                            relatedEntities = null,
+                                                            variableType = VariableType.VAR.string,
+                                                            kind = "relatedEntity"
+                                                        )
+                                                        Log.d("slave newField.name : ${newField.name}")
+                                                        getRelation(
+                                                            newField,
+                                                            relation.target,
+                                                            listOf()
+                                                        )?.let { newRelation ->
+                                                            Log.d("slave newRelation.name : ${newRelation.name}")
+                                                            val newKeyField = buildNewKeyField(newRelation.name)
+
+                                                            val fieldToAdd = FieldToAdd(
+                                                                relation.target,
+                                                                newField,
+                                                                newKeyField,
+                                                                newRelation
                                                             )
-                                                            Log.d("slave newField = $newField")
-                                                            getRelation(newField, relation.target, listOf())?.let { newRelation ->
-                                                                Log.d("slave newRelation = $newRelation")
-                                                                val newKeyField =
-                                                                    Field(name = "__${newRelation.name.validateWordDecapitalized()}Key")
-                                                                newKeyField.fieldType = 0
-                                                                newKeyField.fieldTypeString =
-                                                                    typeStringFromTypeInt(newKeyField.fieldType)
-                                                                newKeyField.variableType = VariableType.VAR.string
+                                                            fieldToAddList.add(fieldToAdd)
+                                                        }
+                                                    }
+                                                }
+                                                Log.d("Slave relation, need to create a relation with relationAdjustment() (example: serviceEmployees for service.employees)")
+                                                val parentPart = if (parentField.kind == "alias") parentField.path else parentField.name
+                                                val childPart = if (field.kind == "alias") field.path else field.name
+                                                val path =  "$parentPart.$childPart"
+                                                val adjustedRelation = Relation(
+                                                    source = dataModelName,
+                                                    target = relation.target,
+                                                    name = path.relationAdjustment(),
+                                                    type = relation.type,
+                                                    subFields = slaveSubFieldsForRelation,
+                                                    inverseName = "",
+                                                    path = path,
+                                                    relation_embedded_return_type = buildRelationEmbeddedReturnType(catalogDef, dataModelName, path)
+                                                )
+                                                Log.d("adjustedRelation : $adjustedRelation")
+                                                relationList.add(adjustedRelation)
+                                            }
+                                        }
 
-                                                                val fieldToAdd = FieldToAdd(
-                                                                    relation.target,
-                                                                    newField,
-                                                                    newKeyField,
-                                                                    newRelation
-                                                                )
-                                                                Log.d("ZZZ", " slave fieldToAdd $fieldToAdd")
-                                                                fieldToAddList.add(fieldToAdd)
+                                        Log.d("Slave slave alias checking")
+                                        Log.d("Slave slave alias checking, newSlaveFieldJSONObject : $newSlaveFieldJSONObject")
+
+                                        newSlaveFieldJSONObject.getSafeString(RELATEDDATACLASS_KEY)?.let { relatedDataClass ->
+                                            newSlaveFieldJSONObject.getSafeInt(RELATEDTABLENUMBER_KEY)?.let { relatedTableNumber ->
+
+                                                val slaveSlaveDataModel = DataModel(
+                                                    id = relatedTableNumber.toString(),
+                                                    name = relatedDataClass,
+                                                    isSlave = true
+                                                )
+                                                Log.d("slaveSlaveDataModel.name : $relatedDataClass")
+
+                                                val slaveSlaveFieldList = mutableListOf<Field>()
+                                                val slaveSlaveRelationList = mutableListOf<Relation>()
+
+                                                newSlaveFieldJSONObject.keys().forEach eachSlaveSlaveKeyField@{ slaveSlaveKeyField ->
+                                                    if (slaveSlaveKeyField !is String) return@eachSlaveSlaveKeyField
+
+                                                    Log.d("slaveSlaveKeyField: $slaveSlaveKeyField")
+
+                                                    val newSlaveSlaveFieldJSONObject = newSlaveFieldJSONObject.getSafeObject(slaveSlaveKeyField.toString())
+
+                                                    Log.d("newSlaveSlaveFieldJSONObject: $newSlaveSlaveFieldJSONObject")
+
+                                                    val slaveSlaveField = newSlaveSlaveFieldJSONObject?.getDataModelField(
+                                                        slaveSlaveKeyField,
+                                                        relatedTableNumber.toString(),
+                                                        relatedDataClass,
+                                                        catalogDef
+                                                    )
+
+                                                    Log.d("slaveSlaveField: $slaveSlaveField")
+
+                                                    slaveSlaveField?.let { slaveSlaveField ->
+                                                        if (slaveSlaveField.kind == "alias") {
+//                                                            slaveField.isSlave = true
+                                                            slaveSlaveField.parentIfSlave = field
+                                                            slaveSlaveField.grandParentsIfSlave = it
+                                                            aliasToHandleList.add(slaveSlaveField)
+                                                            slaveSlaveFieldList.add(slaveSlaveField)
+                                                            Log.d("Adding to aliasToHandleList, keyDataModel = $relatedTableNumber , $slaveSlaveField")
+                                                        } else {
+                                                            // only scalar here
+                                                            slaveSlaveFieldList.add(slaveSlaveField)
+                                                        }
+
+                                                        Log.d("Checking if we already added this dataModel")
+
+                                                        val dataModelIndex =
+                                                            dataModelList.indexOfFirst { dataModel -> dataModel.name == relatedDataClass } // -1 if not found
+
+                                                        when {
+                                                            dataModelIndex != -1 -> { // dataModel exists
+                                                                slaveSlaveFieldList.forEach { slaveSlaveField ->
+                                                                    if (dataModelList[dataModelIndex].fields?.find { field -> field.name == slaveSlaveField.name } == null) {
+                                                                        dataModelList[dataModelIndex].fields?.add(slaveSlaveField)
+                                                                    }
+                                                                }
+//                                                                slaveSlaveRelationList.forEach { slaveSlaveRelation ->
+//                                                                    if (dataModelList[dataModelIndex].relations?.find { relation -> relation.name == slaveSlaveRelation.name } == null) {
+//                                                                        dataModelList[dataModelIndex].relations?.add(slaveSlaveRelation)
+//                                                                    }
+//                                                                }
+                                                            }
+                                                            relatedDataClass == dataModelName -> { // current table has a relation of its own type
+                                                                fieldList.addAll(slaveSlaveFieldList)
+                                                            }
+                                                            relatedDataClass == slaveDataModel.name -> { // current slave table has a relation of its own type
+                                                                slaveFieldList.addAll(slaveSlaveFieldList)
+                                                            }
+                                                            else -> {
+                                                                slaveSlaveDataModel.fields = slaveSlaveFieldList
+                                                                slaveSlaveDataModel.relations = slaveSlaveRelationList
+                                                                dataModelList.add(slaveSlaveDataModel)
                                                             }
                                                         }
                                                     }
@@ -198,32 +332,34 @@ fun JSONObject.getDataModelList(isCreateDatabaseCommand: Boolean = false): List<
                                             }
                                         }
                                     }
+                                }
 
-                                    // checking if we already added this dataModel
-                                    val dataModelIndex =
-                                        dataModelList.indexOfFirst { dataModel -> dataModel.name == relatedDataClass } // -1 if not found
-                                    when {
-                                        dataModelIndex != -1 -> { // in case we added this dataModel already
-                                            slaveFieldList.forEach { slaveField ->
-                                                if (dataModelList[dataModelIndex].fields?.find { field -> field.name == slaveField.name } == null) {
-                                                    dataModelList[dataModelIndex].fields?.add(slaveField)
-                                                }
-                                            }
-                                            slaveRelationList.forEach { slaveRelation ->
-                                                if (dataModelList[dataModelIndex].relationList?.find { relation -> relation.name == slaveRelation.name } == null) {
-                                                    dataModelList[dataModelIndex].relationList?.add(slaveRelation)
-                                                }
+                                Log.d("Checking if we already added this dataModel")
+
+                                val dataModelIndex =
+                                    dataModelList.indexOfFirst { dataModel -> dataModel.name == relatedDataClass } // -1 if not found
+
+                                when {
+                                    dataModelIndex != -1 -> { // dataModel exists
+                                        slaveFieldList.forEach { slaveField ->
+                                            if (dataModelList[dataModelIndex].fields?.find { field -> field.name == slaveField.name } == null) {
+                                                dataModelList[dataModelIndex].fields?.add(slaveField)
                                             }
                                         }
-                                        relatedDataClass == dataModelName -> { // current table has a relation of its own type
-                                            savedFields.addAll(slaveFieldList)
-                                            savedRelations.addAll(slaveRelationList)
+                                        slaveRelationList.forEach { slaveRelation ->
+                                            if (dataModelList[dataModelIndex].relations?.find { relation -> relation.name == slaveRelation.name } == null) {
+                                                dataModelList[dataModelIndex].relations?.add(slaveRelation)
+                                            }
                                         }
-                                        else -> {
-                                            slaveDataModel.fields = slaveFieldList
-                                            slaveDataModel.relationList = slaveRelationList
-                                            dataModelList.add(slaveDataModel)
-                                        }
+                                    }
+                                    relatedDataClass == dataModelName -> { // current table has a relation of its own type
+                                        savedFields.addAll(slaveFieldList)
+                                        savedRelations.addAll(slaveRelationList)
+                                    }
+                                    else -> {
+                                        slaveDataModel.fields = slaveFieldList
+                                        slaveDataModel.relations = slaveRelationList
+                                        dataModelList.add(slaveDataModel)
                                     }
                                 }
                             }
@@ -232,13 +368,14 @@ fun JSONObject.getDataModelList(isCreateDatabaseCommand: Boolean = false): List<
                 }
             }
 
-            // Add savedFields from another definition of this table (in a relation)
+            Log.d("Add savedFields from another definition of this table (in a relation)")
             savedFields.forEach { savedField ->
                 if (!fieldList.map { it.name }.contains(savedField.name)) {
                     savedField.isSlave = true
                     fieldList.add(savedField)
                 }
             }
+            Log.d("Add savedRelations from another definition of this table (in a relation)")
             savedRelations.forEach { savedRelation ->
                 if (!relationList.map { it.name }.contains(savedRelation.name)) {
                     relationList.add(savedRelation)
@@ -246,19 +383,117 @@ fun JSONObject.getDataModelList(isCreateDatabaseCommand: Boolean = false): List<
             }
 
             newDataModel.fields = fieldList
-            Log.d("fieldList Final = $fieldList")
-            newDataModel.relationList = relationList
-            Log.d("relationList Final = $relationList")
+            newDataModel.relations = relationList
             dataModelList.add(newDataModel)
         }
     }
 
-    // Sanity check for missing DataModel definition
+    Log.d("Checking aliases")
+
+    aliasToHandleList.forEach { aliasField ->
+        Log.d("aliasField: $aliasField")
+
+        aliasField.dataModelId?.let { dataModelId ->
+            Log.d("dataModelId: $dataModelId")
+
+            catalogDef.dataModelAliases.find { it.tableNumber.toString() == dataModelId }?.let { dataModelAlias ->
+                Log.d("dataModelAlias name: ${dataModelAlias.name}, fields.names : ${dataModelAlias.fields.joinToString { it.name }}")
+
+                dataModelAlias.fields.find { it.name == aliasField.name }?.let { catalogField ->
+                    Log.d("catalogField: $catalogField")
+
+                    val path = cleanPath(aliasField.path ?: "", dataModelAlias.name, catalogDef)
+                    Log.d("cleaned path: $path")
+
+                    var nextTableName: String? = dataModelAlias.name
+
+                    path.split(".").forEach { relationName ->
+                        Log.d("nextTableName: $nextTableName")
+                        Log.d("relationName: $relationName")
+                        nextTableName = dataModelList.handleAlias(nextTableName, relationName, catalogDef) { fieldToAdd ->
+                            fieldToAddList.add(fieldToAdd)
+                        }
+                    }
+
+                    val target = catalogField.relatedDataClass ?: typeStringFromTypeInt(catalogField.fieldType)
+                    Log.d("target = $target")
+                    val isNotNativeType = catalogDef.dataModelAliases.map { it.name }.contains(target)
+                    Log.d("isNotNativeType = $isNotNativeType")
+
+                    // Add the end field in the related dataModel (add Name in Service for serviceName whose path is service.Name)
+                    if (!isNotNativeType) {
+                        Log.d("A native type field should be added")
+                        val dest = destBeforeField(catalogDef, dataModelAlias.name, catalogField.path)
+                        Log.d("dest: $dest")
+                        catalogField.path?.substringAfterLast(".")?.let { endFieldName ->
+                            Log.d("endFieldName: $endFieldName")
+                            catalogDef.dataModelAliases.find { it.name == dest }?.fields?.find { it.name == endFieldName }?.let { endField ->
+                                Log.d("endField: $endField")
+
+                                val newList = dataModelList.find { it.name == dest }?.fields ?: mutableListOf()
+                                newList.takeIf { newList.find { it.name == endField.name } == null }?.add(endField.convertToField())
+                                // If endField is an alias, also add the path field
+                                if (!endField.path.isNullOrEmpty()) {
+                                    catalogDef.dataModelAliases.find { it.name == dest }?.fields?.find { it.name == endField.path }?.let { pathField ->
+                                        newList.takeIf { newList.find { it.name == pathField.name } == null }?.add(pathField.convertToField())
+                                    }
+                                }
+                                dataModelList.find { it.name == dest }?.fields = newList
+                            }
+                        }
+                    }
+
+                    // if the alias is a slave, we need to create a relation from parent. Example: service.managerServiceName we must create serviceManagerService
+                    val parent = aliasField.parentIfSlave
+                    Log.d("parent = $parent")
+                    // same with sub slaves / grandparent. Example : service.manager.ServiceName we must create serviceManagerService
+                    val grandParent = aliasField.grandParentsIfSlave
+                    Log.d("grandParent = $grandParent")
+
+                    var relationsToCreate: MutableList<Relation>? = null
+
+                    when {
+                        grandParent != null && parent != null -> {
+                            catalogDef.dataModelAliases.find { it.tableNumber.toString() == grandParent.dataModelId }?.let { dmAlias ->
+
+                                val unAliasedPath = unAliasPath(grandParent.name + "." + parent.name + "." +catalogField.path, dmAlias.name, catalogDef)
+                                relationsToCreate = getRelationsToCreate(catalogDef, dmAlias.name, if (isNotNativeType) unAliasedPath else unAliasedPath.substringBeforeLast("."))
+                            }
+                        }
+                        parent != null -> {
+                            catalogDef.dataModelAliases.find { it.tableNumber.toString() == parent.dataModelId }?.let { dmAlias ->
+
+                                val unAliasedPath = unAliasPath(parent.name + "." +catalogField.path, dmAlias.name, catalogDef)
+                                relationsToCreate = getRelationsToCreate(catalogDef, dmAlias.name, if (isNotNativeType) unAliasedPath else unAliasedPath.substringBeforeLast("."))
+                            }
+                        }
+                        else -> {
+//                            val unAliasedPath = unAliasPath(catalogField.path, dataModelAlias.name, catalogDef)
+                            val unAliasedPath = unAliasPath(aliasField.path, dataModelAlias.name, catalogDef)
+                            relationsToCreate = getRelationsToCreate(catalogDef, dataModelAlias.name, if (isNotNativeType) unAliasedPath else unAliasedPath.substringBeforeLast("."))
+                        }
+                    }
+
+                    // Add each relation to the appropriate dataModel
+                    relationsToCreate?.forEach { relation ->
+                        val dmRelations = dataModelList.find { it.name == relation.source }?.relations ?: mutableListOf()
+                        dmRelations.add(relation)
+                        dataModelList.find { it.name == relation.source }?.relations = dmRelations
+                    }
+                }
+            }
+        }
+    }
+
+    Log.d("Sanity check for missing DataModel definition")
+    Log.d("Sanity fields")
     dataModelList.forEach { dataModel ->
         val sanityFieldList = mutableListOf<Field>()
-        dataModel.fields?.forEach { field ->
+        dataModel.fields?.distinctBy { it.name }?.forEach { field ->
+            Log.d("field : $field")
             field.relatedTableNumber?.let { relatedTableNumber -> // relation
-                if (dataModelList.map { it.id }.contains(relatedTableNumber.toString())) {
+                if (catalogDef.dataModelAliases.map { it.tableNumber.toString() }.contains(relatedTableNumber.toString())) {
+
                     sanityFieldList.add(field)
                 } else {
                     Log.e("Excluding unknown field $field")
@@ -267,17 +502,20 @@ fun JSONObject.getDataModelList(isCreateDatabaseCommand: Boolean = false): List<
                 sanityFieldList.add(field)
             }
         }
-        Log.d("dataModel ${dataModel.name}, previous fields size = ${dataModel.fields?.size}, new size = ${sanityFieldList.size}")
+        Log.d("DataModel ${dataModel.name}, previous fields size = ${dataModel.fields?.size}, new size = ${sanityFieldList.size}")
         dataModel.fields = sanityFieldList
 
+        Log.d("Sanity relations")
         val sanityRelationList = mutableListOf<Relation>()
-        dataModel.relationList?.forEach { relation ->
-            if (dataModelList.map { it.name }.contains(relation.target)) {
+        dataModel.relations?.forEach { relation ->
+            Log.d("relation: $relation")
+            if (catalogDef.dataModelAliases.map { it.name }.contains(relation.target) || relation.path.isNotEmpty()) {
 
                 val sanitySubFieldList = mutableListOf<Field>()
                 relation.subFields.forEach { subField ->
                     subField.relatedTableNumber?.let { relatedTableNumber -> // relation
-                        if (dataModelList.map { it.id }.contains(relatedTableNumber.toString())) {
+                        if (catalogDef.dataModelAliases.map { it.tableNumber.toString() }.contains(relatedTableNumber.toString())) {
+
                             sanitySubFieldList.add(subField)
                         } else {
                             Log.e("Excluding unknown subField $subField")
@@ -286,7 +524,7 @@ fun JSONObject.getDataModelList(isCreateDatabaseCommand: Boolean = false): List<
                         sanitySubFieldList.add(subField)
                     }
                 }
-                Log.d("relation ${relation.name} from dataModel ${dataModel.name}, previous subField size = ${relation.subFields.size}, new size = ${sanitySubFieldList.size}")
+                Log.d("Relation ${relation.name} from dataModel ${dataModel.name}, previous subField size = ${relation.subFields.size}, new size = ${sanitySubFieldList.size}")
                 relation.subFields = sanitySubFieldList
 
                 sanityRelationList.add(relation)
@@ -294,12 +532,12 @@ fun JSONObject.getDataModelList(isCreateDatabaseCommand: Boolean = false): List<
                 Log.e("Excluding unknown relation $relation")
             }
         }
-        Log.d("dataModel ${dataModel.name}, previous relationList size = ${dataModel.relationList?.size}, new size = ${sanityRelationList.size}")
-        dataModel.relationList = sanityRelationList
+        Log.d("dataModel ${dataModel.name}, previous relationList size = ${dataModel.relations?.size}, new size = ${sanityRelationList.size}")
+        dataModel.relations = sanityRelationList.distinct().toMutableList()
     }
 
     fieldToAddList.forEach { fieldToAdd ->
-        Log.d("ending, field to add: $fieldToAdd")
+        Log.d("Field.name to add if not present: $fieldToAdd")
         dataModelList.find { it.name == fieldToAdd.targetTable }?.let { dm ->
             dm.fields?.let { dmFields ->
                 if (!dmFields.map { it.name }.contains(fieldToAdd.field.name)) {
@@ -309,7 +547,7 @@ fun JSONObject.getDataModelList(isCreateDatabaseCommand: Boolean = false): List<
                     dmFields.add(fieldToAdd.keyField)
                 }
             }
-            dm.relationList?.let { dmRelations ->
+            dm.relations?.let { dmRelations ->
                 if (!dmRelations.map { it.name }.contains(fieldToAdd.relation.name)) {
                     dmRelations.add(fieldToAdd.relation)
                 }
@@ -317,11 +555,29 @@ fun JSONObject.getDataModelList(isCreateDatabaseCommand: Boolean = false): List<
         }
     }
 
+    Log.d("Reordering fields")
     dataModelList.forEach {
         it.reOrderFields()
     }
-    Log.d("Final", "datamodelList = $dataModelList")
+
+    dataModelList.logDataModel()
+
     return dataModelList
+}
+
+fun List<DataModel>.logDataModel() {
+    this.forEach { dm ->
+        Log.d("\n\nDM name : ${dm.name}")
+        Log.d("\n- FIELDS -------------------")
+        dm.fields?.forEach { field ->
+            Log.d("[${field.name}] : $field")
+        }
+        Log.d("\n- RELATIONS -------------------")
+        dm.relations?.forEach { relation ->
+            Log.d("[${relation.name}] : $relation")
+        }
+        Log.d("\n/////////////////////////////////////////////////////////////////////////////////\n\n\n")
+    }
 }
 
 /**
@@ -332,17 +588,184 @@ fun DataModel.reOrderFields() {
     this.fields?.sortWith(nullsLast(compareBy { it.inverseName }))
 }
 
-fun JSONObject?.getDataModelField(keyField: String): Field {
+fun MutableList<Field>.addWithSanity(field: Field, tableName: String, catalogDef: CatalogDef) {
+    if (catalogDef.dataModelAliases.find { it.name == tableName }?.fields?.map { it.name }?.contains(field.name) == true) {
+        this.add(field)
+    } else {
+        Log.d("addWithSanity is not adding field named ${field.name} in table $tableName")
+    }
+}
+
+// Also removes field extension
+fun cleanPath(path: String?, source: String, catalogDef: CatalogDef): String {
+    var nextTableName = source
+    var newPath = ""
+    path?.split(".")?.forEach eachPathPart@{
+        val pair = checkPath(it, nextTableName, catalogDef)
+        nextTableName = pair.first ?: return@eachPathPart
+        newPath = if (newPath.isEmpty())
+            pair.second
+        else
+            newPath + "." + pair.second
+    }
+    return newPath.removeSuffix(".")
+}
+
+fun MutableList<DataModel>.handleAlias(nextTableName: String?, relationName: String, catalogDef: CatalogDef, fieldToAddCallback: (fieldToAdd: FieldToAdd) -> Unit): String? {
+
+    var returnNextTableName: String? = null
+    val sourceDM: DataModel? = this.find { it.name == nextTableName }
+    if (sourceDM == null) {
+        Log.d("sourceDM $nextTableName doesn't exist")
+
+        // dataModel does not exists, create one from catalog def
+        catalogDef.baseCatalogDef.find { it.name == nextTableName }?.let { dmAlias ->
+            Log.d("dmAlias: $dmAlias")
+            dmAlias.fields.find { it.name == relationName }?.let { fieldCatalog -> // Name
+                Log.d("fieldCatalog: $fieldCatalog")
+                val newDM = DataModel(id = dmAlias.tableNumber.toString(), name = dmAlias.name, isSlave = true)
+                val field = fieldCatalog.convertToField()
+                val fieldList = mutableListOf<Field>()
+
+                if (fieldCatalog.kind == null) {
+                    fieldList.add(field)
+                } else {
+                    getRelation(field, dmAlias.name, listOf())?.let { relation ->
+                        returnNextTableName = relation.target
+                        Log.d("relation.name : ${relation.name}")
+                        if (newDM.relations?.find { it.name == relation.name && it.source == relation.source } == null)
+                            newDM.relations = mutableListOf(relation)
+
+                        // Add target DM if doesn't exists
+                        if (this.find { it.name == relation.target } == null) {
+                            val newTargetDM = DataModel(id = field.relatedTableNumber.toString(), name = relation.target, isSlave = true)
+                            this.add(newTargetDM)
+                            Log.d("target DM [${relation.target}] doesn't exists, adding it !")
+                        }
+
+                        if (relation.type == RelationType.MANY_TO_ONE) {
+                            val relationKeyField = buildNewKeyField(relation.name)
+                            fieldList.add(relationKeyField)
+                        } else {
+
+                            Log.d("One to many relation, need to add the inverse many to one relation to its Entity definition")
+                            field.inverseName?.let { inverseName ->
+                                val newField = Field(
+                                    name = inverseName,
+                                    inverseName = field.name,
+                                    relatedDataClass = dmAlias.name,
+                                    fieldTypeString = dmAlias.name,
+                                    relatedTableNumber = dmAlias.tableNumber,
+                                    relatedEntities = null,
+                                    variableType = VariableType.VAR.string,
+                                    kind = "relatedEntity"
+                                )
+                                Log.d("newField.name: ${newField.name}")
+                                getRelation(newField, relation.target, listOf())?.let { newRelation ->
+                                    Log.d("newRelation.name : ${newRelation.name}")
+                                    val newKeyField = buildNewKeyField(newRelation.name)
+
+                                    val fieldToAdd =
+                                        FieldToAdd(relation.target, newField, newKeyField, newRelation)
+                                    fieldToAddCallback(fieldToAdd)
+                                }
+                            }
+                        }
+                    }
+                }
+                newDM.fields = fieldList
+                this.add(newDM)
+            }
+        }
+    } else {
+        Log.d("sourceDM $nextTableName already exists")
+        // dataModel exists
+        catalogDef.baseCatalogDef.find { it.name == nextTableName }?.let { dmAlias ->
+            Log.d("dmAlias: $dmAlias")
+            dmAlias.fields.find { it.name == relationName }?.let { fieldCatalog ->
+                Log.d("fieldCatalog: $fieldCatalog")
+                val newList = sourceDM.fields?.toMutableList() ?: mutableListOf()
+                val field = fieldCatalog.convertToField()
+
+                if (fieldCatalog.kind == null) {
+                    newList.add(field)
+                } else {
+                    getRelation(field, dmAlias.name, listOf())?.let { relation ->
+                        returnNextTableName = relation.target
+                        Log.d("relation.name : ${relation.name}")
+                        if (sourceDM.relations?.find { it.name == relation.name && it.source == relation.source } == null) {
+                            if (sourceDM.relations == null) {
+                                sourceDM.relations = mutableListOf(relation)
+                            } else {
+                                sourceDM.relations?.add(relation)
+                            }
+                        }
+
+                        // Add target DM if doesn't exists
+                        if (this.find { it.name == relation.target } == null) {
+                            val newTargetDM = DataModel(id = field.relatedTableNumber.toString(), name = relation.target, isSlave = true)
+                            this.add(newTargetDM)
+                            Log.d("target DM [${relation.target}] doesn't exists, adding it !")
+                        }
+
+                        if (relation.type == RelationType.MANY_TO_ONE) {
+                            val relationKeyField = buildNewKeyField(relation.name)
+                            newList.takeIf { newList.find { it.name == relationKeyField.name } == null }?.add(relationKeyField)
+                            field.variableType = VariableType.VAR.string
+                            newList.add(field)
+                        } else {
+                            newList.add(field)
+                            Log.d("One to many relation, need to add the inverse many to one relation to its Entity definition")
+                            field.inverseName?.let { inverseName ->
+                                val newField = Field(
+                                    name = inverseName,
+                                    inverseName = field.name,
+                                    relatedDataClass = dmAlias.name,
+                                    fieldTypeString = dmAlias.name,
+                                    relatedTableNumber = dmAlias.tableNumber,
+                                    relatedEntities = null,
+                                    variableType = VariableType.VAR.string,
+                                    kind = "relatedEntity"
+                                )
+                                Log.d("newField.name: ${newField.name}")
+                                getRelation(newField, relation.target, listOf())?.let { newRelation ->
+                                    Log.d("newRelation.name : ${newRelation.name}")
+                                    val newKeyField = buildNewKeyField(newRelation.name)
+
+                                    val fieldToAdd =
+                                        FieldToAdd(relation.target, newField, newKeyField, newRelation)
+                                    fieldToAddCallback(fieldToAdd)
+                                }
+                            }
+                        }
+                    }
+                }
+                sourceDM.fields = newList
+            }
+        }
+    }
+    return returnNextTableName
+}
+
+fun JSONObject?.getDataModelField(keyField: String, dataModelId: String?, dataModelName: String, catalogDef: CatalogDef): Field {
+    Log.d("getDataModelField: THIS = $this")
     val field = Field(name = "")
     this?.getSafeString(LABEL_KEY)?.let { field.label = it }
     this?.getSafeString(SHORTLABEL_KEY)?.let { field.shortLabel = it }
-    this?.getSafeInt(FIELDTYPE_KEY).let { field.fieldType = it }
+    this?.getSafeInt(FIELDTYPE_KEY)?.let { field.fieldType = it }
     this?.getSafeInt(RELATEDTABLENUMBER_KEY)?.let { field.relatedTableNumber = it }
     this?.getSafeString(INVERSENAME_KEY)?.let { field.inverseName = it }
     this?.getSafeString(NAME_KEY)?.let { fieldName -> // BASIC FIELD
         field.name = fieldName
         field.id = keyField
         field.fieldTypeString = typeStringFromTypeInt(field.fieldType)
+    }
+    this?.getSafeString(KIND_KEY)?.let {
+        field.kind = it
+        if (field.kind == "alias") {
+            field.name = keyField
+            field.fieldTypeString = typeStringFromTypeInt(field.fieldType)
+        }
     }
     this?.getSafeString(FORMAT_KEY)?.let {
         field.format = it
@@ -356,27 +779,74 @@ fun JSONObject?.getDataModelField(keyField: String): Field {
         field.name = keyField
         this.getSafeString(RELATEDDATACLASS_KEY)?.let { relatedDataClass ->
             if (isToMany) {
+                field.isToMany = true
                 field.relatedEntities = relatedDataClass
                 field.fieldTypeString = "Entities<${relatedDataClass.tableNameAdjustment()}>"
             } else {
+                field.isToMany = false
                 field.relatedDataClass = relatedDataClass
                 field.fieldTypeString = relatedDataClass
             }
         }
     } ?: kotlin.run {
         this?.getSafeString(RELATEDDATACLASS_KEY)?.let { relatedDataClass -> // Many-to-one relation
+            field.isToMany = false
             field.name = keyField
             field.relatedDataClass = relatedDataClass
             field.fieldTypeString = relatedDataClass
             field.variableType = VariableType.VAR.string
         }
         this?.getSafeString(RELATEDENTITIES_KEY)?.let { relatedEntities -> // One-to-many relation
+            field.isToMany = true
             field.name = keyField
             field.relatedEntities = relatedEntities
             field.fieldTypeString = "Entities<${relatedEntities.tableNameAdjustment()}>"
         }
     }
-    this?.getSafeString("kind")?.let { field.kind = it }
+    dataModelId?.let { field.dataModelId = it }
+    this?.getSafeString("path")?.let { path ->
+        if (field.kind == "alias") {
+            val unAliasedPath = unAliasPath(path, dataModelName, catalogDef)
+            field.path = unAliasedPath
+
+            Log.d("dataModel field creation, path : $path, unaliased path : $unAliasedPath")
+
+            if (path == unAliasedPath && !unAliasedPath.contains(".")) { // path : FirstName, name : First
+
+                // path doesn't contains "." so it can't be relation.object of type 38 Object
+                // so if it's type 38 object, it's a relation
+
+                // if is N-1 relation
+                val catalogRelation: Relation? = catalogDef.dataModelAliases.find { it.name == dataModelName }?.relations?.find { it.name == unAliasedPath }
+                Log.d("catalogRelation = $catalogRelation")
+                catalogRelation?.let { relation ->
+
+                    field.relatedDataClass = relation.target
+                    field.inverseName = relation.inverseName
+                    field.fieldType = null
+
+                    if (relation.type == RelationType.MANY_TO_ONE) {
+                        field.fieldTypeString = relation.target
+                        field.variableType = VariableType.VAR.string
+                        field.isToMany = false
+                    } else {
+                        field.fieldTypeString = "Entities<${relation.target.tableNameAdjustment()}>"
+                        field.variableType = VariableType.VAL.string
+                        field.isToMany = true
+                    }
+                }
+            }
+
+            if (field.fieldTypeString.isNullOrEmpty()) {
+                val relationType = getRelationType(catalogDef, dataModelName, unAliasedPath)
+                val dest = destWithField(catalogDef, dataModelName, unAliasedPath)
+                field.fieldTypeString = if (relationType == RelationType.ONE_TO_MANY)
+                    "Entities<$dest>"
+                else
+                    dest
+            }
+        }
+    }
     if (field.label.isNullOrEmpty())
         field.label = field.name
     if (field.shortLabel.isNullOrEmpty())
@@ -384,46 +854,35 @@ fun JSONObject?.getDataModelField(keyField: String): Field {
     return field
 }
 
-fun JSONObject?.getSubFields(): List<Field> {
+fun JSONObject?.getSubFields(dataModelName: String, catalogDef: CatalogDef): List<Field> {
     val subList = mutableListOf<Field>()
     this?.let {
         this.keys().forEach { key ->
-            val aSubField: JSONObject? = this.getSafeObject(key.toString())
-            aSubField?.getDataModelField(key.toString())?.let {
-                if (it.kind != "alias") {
-                    subList.add(it)
+            val aSubFieldJsonObject: JSONObject? = this.getSafeObject(key.toString())
+            aSubFieldJsonObject?.getDataModelField(key.toString(), null, dataModelName, catalogDef)?.let {
+                it.isSlave = true
+                if (it.kind == "relatedEntity" || it.kind == "relatedEntities" || it.kind == "alias") {
+                    it.relatedDataClass?.let { relatedDataClass ->
+                        val subFields = aSubFieldJsonObject.getSubFields(relatedDataClass, catalogDef)
+                        it.subFieldsForAlias = subFields
+                    }
                 }
+                subList.add(it)
             }
         }
     }
     return subList
 }
 
-fun getRelation(field: Field, tableName: String, subFields: List<Field>): Relation? {
-    field.relatedEntities?.let {
-        return Relation(
-            source = tableName,
-            target = it,
-            name = field.name,
-            relationType = RelationType.ONE_TO_MANY,
-            subFields = subFields,
-            inverseName = field.inverseName ?: ""
-        )
-    }
-    field.relatedDataClass?.let {
-        subFields.forEach { subField -> subField.relatedTableNumber = field.relatedTableNumber }
-        return Relation(
-            source = tableName,
-            target = it,
-            name = field.name,
-            relationType = RelationType.MANY_TO_ONE,
-            subFields = subFields,
-            inverseName = field.inverseName ?: ""
-        )
-    }
-    return null
+fun buildNewKeyField(name: String): Field {
+    val newKeyField =
+        Field(name = "__${name.validateWordDecapitalized()}Key")
+    Log.d("Many to One relation $name, adding new keyField.name : ${newKeyField.name}")
+    newKeyField.fieldType = 0
+    newKeyField.fieldTypeString = STRING_TYPE
+    newKeyField.variableType = VariableType.VAR.string
+    return newKeyField
 }
-
 
 data class FieldToAdd(
     val targetTable: String, val field: Field, val keyField: Field, val relation: Relation

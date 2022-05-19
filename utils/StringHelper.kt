@@ -44,10 +44,12 @@ private fun String.lowerCustomProperties() =
     if (this in arrayOf("__KEY", "__STAMP", "__GlobalStamp", "__TIMESTAMP"))
         this
     else
-        if (this.startsWith("__") && this.endsWith("Key"))
-            this.removeSuffix("Key").toLowerCase(Locale.getDefault()) + "Key"
-        else
-            this.toLowerCase(Locale.getDefault())
+        when {
+//            this.startsWith("__") && this.endsWith("Key") -> this.removeSuffix("Key").toLowerCase(Locale.getDefault()) + "Key"
+            this.startsWith("__") && this.endsWith("Key") -> this.removeSuffix("Key").decapitalize(Locale.getDefault()) + "Key"
+//            else -> this.toLowerCase(Locale.getDefault())
+            else -> this.decapitalize(Locale.getDefault())
+        }
 
 private fun String.decapitalizeExceptID() =
     if (this == "ID") this.toLowerCase(Locale.getDefault()) else this.decapitalize(Locale.getDefault())
@@ -76,6 +78,9 @@ fun String.validateWordDecapitalized(): String {
         if (reservedKeywords.contains(it)) "qmobile_$it" else it
     }
 }
+
+fun String.relationAdjustment(): String =
+    this.split(".").map { it.tableNameAdjustment() }.joinToString("").tableNameAdjustment().decapitalize()
 
 fun String.encode(): String = this
     .replace("&", "&amp;")

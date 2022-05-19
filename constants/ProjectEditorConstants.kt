@@ -11,6 +11,7 @@ object ProjectEditorConstants {
     const val VERSION = "version"
     const val EMPTY_KEY = ""
     const val LABEL_KEY = "label"
+    const val KIND_KEY = "kind"
     const val FORMAT_KEY = "format"
     const val SHORTLABEL_KEY = "shortLabel"
     const val ICON_KEY = "icon"
@@ -50,6 +51,8 @@ object ProjectEditorConstants {
     const val SCOPE_KEY = "scope"
     const val DUMPED_STAMP_KEY = "dumpedStamp"
     const val DUMPED_TABLES_KEY = "dumpedTables"
+    const val ACTIONS_KEY = "actions"
+    const val DEBUG_MODE_KEY = "debugMode"
 
     /**
      * TYPE STRING PARSING

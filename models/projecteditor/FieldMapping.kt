@@ -8,4 +8,6 @@ data class FieldMapping(
     val tintable: Boolean?,
     val target: Any?,
     val capabilities : List<String>
-)
+) {
+    fun isImageNamed() = this.binding == "imageNamed"
+}

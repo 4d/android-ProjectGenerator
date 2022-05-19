@@ -5,16 +5,8 @@ fun readFileDirectlyAsText(file: File): String
 
 fun replaceTemplateText(oldFormText: String, formType: FormType): String {
 
-    val variableType: String
-    val variableName : String
-
-    if (formType == FormType.LIST) {
-        variableType = "{{package}}.data.model.entity.{{tableName}}"
-        variableName = "entityData"
-    } else {
-        variableType = "{{package}}.viewmodel.entity.EntityViewModel{{tableName}}"
-        variableName = "viewModel"
-    }
+    val variableType = "{{package}}.data.model.entity.{{tableName}}RoomEntity"
+    val variableName = "entityData"
 
     var newFormText = oldFormText.replace("<!--FOR_EACH_FIELD-->", "{{#form_fields}}")
         .replace("<!--END_FOR_EACH_FIELD-->", "{{/form_fields}}")
@@ -115,20 +107,7 @@ fun replaceTemplateText(oldFormText: String, formType: FormType): String {
         if (formType == FormType.LIST)
             "${indent}<variable\n" +
                     "${indent}\tname=\"${variableName}\"\n" +
-                    "${indent}\ttype=\"${variableType}\"/>\n\n" +
-                    "${indent}{{#relations_many_to_one}}\n" +
-                    "${indent}<variable\n" +
-                    "${indent}\tname=\"{{relation_name}}\"\n" +
-                    "${indent}\ttype=\"{{package}}.data.model.entity.{{relation_target}}\"/>\n" +
-                    "${indent}{{/relations_many_to_one}}\n" +
-                    "${indent}{{#has_any_one_to_many_relation_for_layout}}\n" +
-                    "${indent}<import type=\"java.util.List\" />\n" +
-                    "${indent}{{#relations_one_to_many}}\n" +
-                    "${indent}<variable\n" +
-                    "${indent}\tname=\"{{relation_name}}\"\n" +
-                    "${indent}\ttype=\"List&lt;{{package}}.data.model.entity.{{relation_target}}>\"/>\n" +
-                    "${indent}{{/relations_one_to_many}}\n" +
-                    "${indent}{{/has_any_one_to_many_relation_for_layout}}"
+                    "${indent}\ttype=\"${variableType}\"/>"
         else
             "${indent}<variable\n" +
                     "${indent}\tname=\"${variableName}\"\n" +
@@ -169,7 +148,6 @@ fun replaceTemplateText(oldFormText: String, formType: FormType): String {
                 "${indent}{{^field_${id}_label_has_percent_placeholder}}\n" +
                 "${indent}android:text=\"{{field_${id}_label}}\"\n" +
                 "${indent}{{/field_${id}_label_has_percent_placeholder}}\n" +
-                "${indent}app:linkColor=\"@{true}\"\n" +
                 "${indent}{{/field_${id}_is_relation}}\n" +
                 "${indent}{{^field_${id}_is_relation}}\n" +
                 "${indent}{{#field_${id}_custom_formatted}}\n" +

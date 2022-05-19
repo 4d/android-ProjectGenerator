@@ -14,6 +14,7 @@ class SqlQueryBuilder(entry: Any, private val fields: List<FieldData>) {
     val updateQueryHolderList = mutableListOf<UpdateQueryHolder>()
 
     init {
+        Log.d("SqlQueryBuilder : fields = ${fields.joinToString { it.name }}")
 
         when (entry) {
             is JSONArray -> {
@@ -57,18 +58,20 @@ class SqlQueryBuilder(entry: Any, private val fields: List<FieldData>) {
             val key: String = it.toString()
             if (hashMap.containsKey(key.fieldAdjustment())) {
                 hashMap[key.fieldAdjustment()] = inputEntity[key]
+                Log.d("inputEntity de Key is :")
+                Log.d("${inputEntity[key]}")
 
-                fields.find { it.name.fieldAdjustment() == key.fieldAdjustment() }?.let { field ->
+                fields.find { f -> f.name.fieldAdjustment() == key.fieldAdjustment() }?.let { field ->
                     when {
                         field.isImage -> {
                             // Nothing to do
                         }
                         field.isManyToOneRelation -> {
                             val neededObject = hashMap[key.fieldAdjustment()]
+
                             if (neededObject is JSONObject) {
                                 hashMap["__${key.fieldAdjustment()}Key"] =
                                     neededObject.getSafeString("__KEY")
-                                hashMap[key.fieldAdjustment()] = null
 
                                 // add the relation in a new SqlQuery
                                 field.relatedOriginalTableName?.let { originalTableName ->
