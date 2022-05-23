@@ -110,9 +110,10 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
     private val permissionFillerList = mutableListOf<TemplatePermissionFiller>()
 
     // <formatName, <imageName, <resourceName, darkModeResourceName>>
-    private lateinit var customFormattersImagesMap: Map<String, Map<String, Pair<String, String>>>
+    private val customFormattersImagesMap: MutableMap<String, MutableMap<String, Pair<String, String>>> = mutableMapOf()
     // <tableName, <fieldName, fieldMapping>>
-    private val customFormattersFields: Map<String, Map<String, FieldMapping>> = getCustomFormatterFields()
+    private val customFormattersFields: MutableMap<String, MutableMap<String, FieldMapping>> = mutableMapOf()
+
 
     init {
         Log.d("==================================\n" +
@@ -249,9 +250,6 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                 val filler = relation.getTemplateRelationFiller(projectEditor.catalogDef)
                 if (relation.type == RelationType.MANY_TO_ONE) {
                     relationsManyToOne.add(filler)
-                    // Check for sub 1-N relations
-//                    val subTemplateRelationFillerList = relation.checkSubRelations()
-//                    relationsOneToMany.addAll(subTemplateRelationFillerList)
                 } else {
                     relationsOneToMany.add(filler)
                 }
@@ -329,11 +327,6 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
             dataModel.relations?.filter { it.isNotNativeType() }?.forEach { relation ->
                 layoutRelationList.add(relation.getTemplateRelationFiller(projectEditor.catalogDef))
-                // Check for sub 1-N relations
-//                if (relation.type == RelationType.MANY_TO_ONE) {
-//                    val subTemplateRelationFillerList = relation.checkSubRelations()
-//                    layoutRelationList.addAll(subTemplateRelationFillerList)
-//                }
             }
         }
         data[TABLENAMES_NAVIGATION] = tableNamesForNavigation
@@ -351,6 +344,8 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         }
 
         data[TABLENAMES_LAYOUT] = tableNamesForLayoutType
+
+        getCustomFormatterFields()
 
         customFormatterImages = mutableListOf()
 
@@ -416,9 +411,6 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                 if (relation.type == RelationType.MANY_TO_ONE) {
                     if (relation.path.isEmpty())
                         relationsManyToOne.add(filler)
-                    // Check for sub 1-N relations
-//                    val subTemplateRelationFillerList = relation.checkSubRelations()
-//                    relationsOneToMany.addAll(subTemplateRelationFillerList)
                 } else {
                     relationsOneToMany.add(filler)
                 }
@@ -541,12 +533,6 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                 Log.d("XXX Add Many to one filler = $filler")
                 Log.d("XXX Add Many to one, relation was $relation")
                 relationsManyToOne.add(filler)
-                // Check for sub 1-N relations
-//                val subTemplateRelationFillerList = relation.checkSubRelations()
-//                subTemplateRelationFillerList.forEach {
-//                    Log.d("XXX Add One to many sub filler = $it")
-//                }
-//                relationsOneToMany.addAll(subTemplateRelationFillerList)
             } else {
                 Log.d("XXX Add One to many filler = $filler")
                 relationsOneToMany.add(filler)
@@ -596,9 +582,6 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                     val filler = relation.getTemplateRelationFiller(projectEditor.catalogDef)
                                     if (relation.type == RelationType.MANY_TO_ONE) {
                                         relationsManyToOne.add(filler)
-                                        // Check for sub 1-N relations
-//                                        val subTemplateRelationFillerList = relation.checkSubRelations()
-//                                        relationsOneToMany.addAll(subTemplateRelationFillerList)
                                     } else {
                                         relationsOneToMany.add(filler)
                                     }
@@ -609,15 +592,10 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
                                 var wholeFormHasIcons = false
 
-                                projectEditor.dataModelList.find { it.id == listForm.dataModel.id }?.fields?.forEach {
-                                    if (!it.icon.isNullOrEmpty())
+                                listForm.fields?.forEach { field ->
+                                    val fieldFromDataModel: Field? = getDataModelField(projectEditor.dataModelList, listForm, field)
+                                    if (!fieldFromDataModel?.icon.isNullOrEmpty())
                                         wholeFormHasIcons = true
-                                }
-                                projectEditor.dataModelList.find { it.id  == listForm.dataModel.id }?.relations?.forEach { relation ->
-                                    relation.subFields.forEach {
-                                        if (!it.icon.isNullOrEmpty())
-                                            wholeFormHasIcons = true
-                                    }
                                 }
 
                                 Log.d("wholeFormHasIcons = $wholeFormHasIcons")
@@ -638,8 +616,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                     }
                                 }
 
-                                val newFilePath =
-                                    fileHelper.pathHelper.getRecyclerViewItemPath(listForm.dataModel.name.tableNameAdjustment())
+                                val newFilePath = fileHelper.pathHelper.getRecyclerViewItemPath(listForm.dataModel.name.tableNameAdjustment())
                                 applyTemplate(newFilePath)
 
                                 // cleaning data for other templates
@@ -704,15 +681,10 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
                                     var wholeFormHasIcons = false
 
-                                    projectEditor.dataModelList.find { it.id == detailForm.dataModel.id }?.fields?.forEach {
-                                        if (!it.icon.isNullOrEmpty())
+                                    detailForm.fields?.forEach { field ->
+                                        val fieldFromDataModel: Field? = getDataModelField(projectEditor.dataModelList, detailForm, field)
+                                        if (!fieldFromDataModel?.icon.isNullOrEmpty())
                                             wholeFormHasIcons = true
-                                    }
-                                    projectEditor.dataModelList.find { it.id  == detailForm.dataModel.id }?.relations?.forEach { relation ->
-                                        relation.subFields.forEach {
-                                            if (!it.icon.isNullOrEmpty())
-                                                wholeFormHasIcons = true
-                                        }
                                     }
 
                                     Log.d("wholeFormHasIcons = $wholeFormHasIcons")
@@ -1095,81 +1067,60 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
     }
 
     // <tableName, <fieldName, fieldMapping>>
-    private fun getCustomFormatterFields(): Map<String, Map<String, FieldMapping>> {
+    private fun getCustomFormatterFields() {
 
-        val customFormatMap = mutableMapOf<String, Map<String, FieldMapping>>()
-        val customFormattersImagesMap = mutableMapOf<String, Map<String, Pair<String, String>>>() // <formatName, <imageName, <resourceName, darkModeResourceName>>
-
-        projectEditor.dataModelList.forEach { dataModel ->
-            val map = mutableMapOf<String, FieldMapping>()
-            dataModel.fields?.forEach { field ->
-                getCustomFormatterField(dataModel, field, null, customFormatMap, map, customFormattersImagesMap)
-            }
-            dataModel.relations?.forEach { relation ->
-                relation.subFields.forEach { field ->
-                    getCustomFormatterField(dataModel, field, relation.name, customFormatMap, map, customFormattersImagesMap)
-                }
-            }
+        Log.d("getCustomFormatterFields checking list forms")
+        projectEditor.listFormList.forEach { listForm ->
+            getCustomFormatterField(listForm)
         }
-        this.customFormattersImagesMap = customFormattersImagesMap
-        return customFormatMap
-    }
+        Log.d("getCustomFormatterFields customFormatMap: $customFormattersFields")
 
-    private fun getCustomFormatterField(
-        dataModel: DataModel,
-        field: Field,
-        relationName: String?,
-        customFormatMap: MutableMap<String, Map<String, FieldMapping>>,
-        map: MutableMap<String, FieldMapping>,
-        customFormattersImagesMap: MutableMap<String, Map<String, Pair<String, String>>>
-    ) {
-        if (field.format != null) {
-            val format = field.format as String
-            Log.d("getCustomFormatterFields, format : $format, relationName: $relationName")
-            if (format.startsWith("/")) {
-
-                val formatPath = fileHelper.pathHelper.getCustomFormatterPath(format)
-                getManifestJSONContent(formatPath)?.let {
-
-                    val fieldMapping = getFieldMapping(it, format)
-                    Log.d("fieldMapping :  $fieldMapping")
-                    // Saving any permission for kotlin custom formatters
-                    fieldMapping.capabilities.forEach { permissionName ->
-                        permissionFillerList.add(getTemplatePermissionFiller(permissionName))
-                    }
-
-                    if (fieldMapping.isValidFormatter()) {
-                        extractFormatter(fieldMapping, field, relationName, formatPath, format, map, customFormattersImagesMap)
-                        customFormatMap.put(dataModel.name.tableNameAdjustment(), map)
-                    } else {
-                        Log.d("Not adding this custom formatter as it's not valid")
-                    }
-                }
-
-            } else {
-                customFormatMap[dataModel.name.tableNameAdjustment()] = map
-            }
-        } else {
-            customFormatMap[dataModel.name.tableNameAdjustment()] = map
+        Log.d("\ngetCustomFormatterFields checking detail forms")
+        projectEditor.detailFormList.forEach { detailForm ->
+            getCustomFormatterField(detailForm)
         }
     }
 
-    private fun extractFormatter(
-        fieldMapping: FieldMapping,
-        field: Field,
-        relationName: String?,
-        formatPath: String,
-        format: String,
-        map: MutableMap<String, FieldMapping>,
-        customFormattersImagesMap: MutableMap<String, Map<String, Pair<String, String>>>
-    ) {
-        if (relationName.isNullOrEmpty())
-            map[field.name.fieldAdjustment()] = fieldMapping
-        else
-            map[relationName.fieldAdjustment() + "." + field.name.fieldAdjustment()] = fieldMapping
+    private fun getCustomFormatterField(form: Form) {
+        Log.d("form for ${form.dataModel.name}")
+        form.fields?.forEach { field ->
+            Log.d("field = $field")
+            getDataModelField(projectEditor.dataModelList, form, field)?.let { fieldFromDataModel ->
+                Log.d("fieldFromDataModel = $fieldFromDataModel")
+                val map: MutableMap<String, FieldMapping> = customFormattersFields[form.dataModel.name.tableNameAdjustment()] ?: mutableMapOf()
+                if (map[field.name] == null) {
+
+                    if (fieldFromDataModel.format != null) {
+                        val format = fieldFromDataModel.format as String
+
+                        if (format.startsWith("/")) {
+
+                            val formatPath = fileHelper.pathHelper.getCustomFormatterPath(format)
+                            getManifestJSONContent(formatPath)?.let {
+
+                                val fieldMapping = getFieldMapping(it, format)
+                                Log.d("fieldMapping :  $fieldMapping")
+                                // Saving any permission for kotlin custom formatters
+                                fieldMapping.capabilities.forEach { permissionName ->
+                                    permissionFillerList.add(getTemplatePermissionFiller(permissionName))
+                                }
+
+                                if (fieldMapping.isValidFormatter()) {
+                                    extractFormatter(fieldMapping, formatPath, format)
+                                    map[field.name] = fieldMapping
+                                }
+                            }
+                        }
+                    }
+                }
+                customFormattersFields[form.dataModel.name.tableNameAdjustment()] = map
+            }
+        }
+    }
+
+    private fun extractFormatter(fieldMapping: FieldMapping, formatPath: String, format: String) {
 
         if (fieldMapping.isImageNamed()) {
-
             val imageMap = mutableMapOf<String, Pair<String, String>>()
 
             // choiceList can be Map<String, String> (JSONObject in app_info.json)
@@ -1194,7 +1145,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                     }
                 }
             }
-            customFormattersImagesMap.putIfAbsent(format, imageMap)
+            customFormattersImagesMap[format] = imageMap
         }
     }
 
