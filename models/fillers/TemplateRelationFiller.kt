@@ -96,7 +96,7 @@ fun getKeyName(catalogDef: CatalogDef, relation: Relation): String {
             key = relation.path.fieldAdjustment()
         }
     }
-    return key
+    return key.fieldAdjustment()
 }
 
 data class TemplateRelationForRoomFiller(
@@ -127,7 +127,7 @@ fun Relation.getTemplateRelationForRoomFiller(catalogDef: CatalogDef): TemplateR
             relation_target = target,
             relation_name = name,
             relation_source_camelCase = source.fieldAdjustment(),
-            key_name = key,
+            key_name = key.fieldAdjustment(),
             relation_embedded_return_type = target,
             firstIsToMany = this.type == RelationType.ONE_TO_MANY,
             relation_part_name = name,
@@ -154,7 +154,7 @@ fun Relation.getTemplateRelationForRoomFiller(catalogDef: CatalogDef): TemplateR
                     relation_target = target,
                     relation_name = name,
                     relation_source_camelCase = source.fieldAdjustment(),
-                    key_name = key,
+                    key_name = key.fieldAdjustment(),
                     relation_embedded_return_type = getEmbeddedReturnTypeName(firstRelation.target, this.path.substringAfter(".")),
                     firstIsToMany = firstRelation.type == RelationType.ONE_TO_MANY,
                     relation_part_name = if (this.path.contains(".")) this.path.relationAdjustment() else this.path.fieldAdjustment(),
