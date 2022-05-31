@@ -601,7 +601,9 @@ fun cleanPath(path: String?, source: String, catalogDef: CatalogDef): String {
     var nextTableName = source
     var newPath = ""
     path?.split(".")?.forEach eachPathPart@{
+        Log.d("cleanPath: pathPart: $it")
         val pair = checkPath(it, nextTableName, catalogDef)
+        Log.d("cleanPath: pair: $pair")
         nextTableName = pair.first ?: return@eachPathPart
         newPath = if (newPath.isEmpty())
             pair.second

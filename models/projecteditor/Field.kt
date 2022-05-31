@@ -198,6 +198,12 @@ fun getDataModelField(dataModelList: List<DataModel>, form: Form, field: Field):
                 }
             }
         }
+        Log.d("getDataModelField [${field.name}] not found in fields, going to check fieldAliases in fields")
+        dataModel?.fields?.find { it.path == field.name && field.kind == "alias" }?.let { aliasFieldInFieldList ->
+            Log.d("aliasFieldInFieldList: $aliasFieldInFieldList")
+            return aliasFieldInFieldList
+        }
+
     } else {
         Log.d("getDataModelField field.name doesn't contain '.'")
 

@@ -119,20 +119,18 @@ fun getEmbeddedReturnTypeName(first: String, second: String): String {
  * Returns a Pair of <nextTableSource, path>
  */
 fun checkPath(pathPart: String, source: String, catalogDef: CatalogDef): Pair<String?, String> {
-//    Log.d("checkPath, source: $source, name: $pathPart")
+    Log.d("checkPath, source: $source, name: $pathPart")
 
     val relation = catalogDef.relations.firstOrNull { it.source == source && it.name == pathPart }
-//    Log.d("checkPath, relation: $relation")
+    Log.d("checkPath, relation: $relation")
 
     return when {
         relation == null -> {
             // check if it's a field alias
-            val field =
-                catalogDef.dataModelAliases.find { it.name == source }?.fields?.find { it.name == pathPart && it.kind == "alias" }
+            val field = catalogDef.dataModelAliases.find { it.name == source }?.fields?.find { it.name == pathPart && it.kind == "alias" }
+            Log.d("found field is = $field")
             if (field != null) {
-//                Log.d("found field is = $field")
-                val nextTableName =
-                    catalogDef.dataModelAliases.find { it.tableNumber == field.relatedTableNumber }?.name
+                val nextTableName = catalogDef.dataModelAliases.find { it.tableNumber == field.relatedTableNumber }?.name
                 Pair(nextTableName, unAliasPath(field.path, source, catalogDef))
             } else {
                 Pair(null, pathPart)
