@@ -38,7 +38,7 @@ fun getTemplateRelationFillerForLayout(
         relation_source_camelCase = source.dataBindingAdjustment(),
         relation_target_camelCase = target.dataBindingAdjustment(),
         isAlias = aliasRelation.path.contains("."),
-        path = aliasRelation.path.ifEmpty { aliasRelation.name },
+        path = aliasRelation.path.ifEmpty { aliasRelation.name.fieldAdjustment() },
         pathToOneWithoutFirst = getPathToOneWithoutFirst(aliasRelation, catalogDef),
         pathToManyWithoutFirst = getPathToManyWithoutFirst(aliasRelation, catalogDef)
     )
