@@ -199,6 +199,8 @@ class ProjectEditor(projectEditorFile: File, val catalogDef: CatalogDef, isCreat
                                 parametersArray.getSafeObject(j)?.let { parameter ->
                                     parameter.getSafeString("name")?.let { parameterName ->
                                         val newParameter = ActionParameter(parameterName)
+                                        if (newAction.preset == "edit")
+                                            newParameter.defaultField = parameterName.fieldAdjustment()
                                         parameter.getSafeString("label")?.let { newParameter.label = it }
                                         parameter.getSafeString("shortLabel")?.let { newParameter.shortLabel = it }
                                         parameter.getSafeString("type")?.let { newParameter.type = it }
@@ -206,7 +208,6 @@ class ProjectEditor(projectEditorFile: File, val catalogDef: CatalogDef, isCreat
                                         parameter.getSafeString("placeholder")?.let { newParameter.placeholder = it }
                                         parameter.getSafeString("format")?.let { newParameter.format = it }
                                         actionObject.getSafeInt("fieldNumber")?.let { newParameter.fieldNumber = it }
-                                        actionObject.getSafeString("defaultField")?.let { newParameter.defaultField = it }
                                         parameter.getSafeArray("rules")?.let { rulesArray ->
                                             val rulesList = mutableListOf<Any>()
                                             for (k in 0 until rulesArray.length()) {
