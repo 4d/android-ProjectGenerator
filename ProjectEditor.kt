@@ -199,11 +199,8 @@ class ProjectEditor(projectEditorFile: File, val catalogDef: CatalogDef, isCreat
                                 parametersArray.getSafeObject(j)?.let { parameter ->
                                     parameter.getSafeString("name")?.let { parameterName ->
                                         val newParameter = ActionParameter(parameterName)
-                                        newAction.preset?.let {
-                                            if(it == "edit"){
-                                                newParameter.defaultField = parameterName.fieldAdjustment()
-                                            }
-                                        }
+                                        if (newAction.preset == "edit")
+                                            newParameter.defaultField = parameterName.fieldAdjustment()
                                         parameter.getSafeString("label")?.let { newParameter.label = it }
                                         parameter.getSafeString("shortLabel")?.let { newParameter.shortLabel = it }
                                         parameter.getSafeString("type")?.let { newParameter.type = it }
