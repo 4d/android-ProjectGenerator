@@ -130,7 +130,7 @@ fun Relation.getTemplateRelationForRoomFiller(catalogDef: CatalogDef): TemplateR
             key_name = key.fieldAdjustment(),
             relation_embedded_return_type = target,
             firstIsToMany = this.type == RelationType.ONE_TO_MANY,
-            relation_part_name = name,
+            relation_part_name = name.fieldAdjustment(),
             firstTarget = target
         )
     } else {
