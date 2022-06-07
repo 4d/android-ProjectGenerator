@@ -129,6 +129,7 @@ class CatalogDef(catalogFile: File) {
             fieldCatalog.isToOne == true -> {
                 fieldCatalog.fieldTypeString = fieldCatalog.relatedDataClass
                 fieldCatalog.isToMany = false
+                fieldCatalog.variableType = VariableType.VAR.string
             }
             else -> {
                 fieldCatalog.fieldTypeString = typeStringFromTypeInt(fieldCatalog.fieldType)

@@ -693,6 +693,7 @@ fun MutableList<DataModel>.handleAlias(nextTableName: String?, relationName: Str
                     newList.add(field)
                 } else {
                     getRelation(field, dmAlias.name, listOf())?.let { relation ->
+                        field.variableType = VariableType.VAR.string
                         returnNextTableName = relation.target
                         Log.d("relation.name : ${relation.name}")
                         if (sourceDM.relations?.find { it.name == relation.name && it.source == relation.source } == null) {
@@ -713,7 +714,6 @@ fun MutableList<DataModel>.handleAlias(nextTableName: String?, relationName: Str
                         if (relation.type == RelationType.MANY_TO_ONE) {
                             val relationKeyField = buildNewKeyField(relation.name)
                             newList.takeIf { newList.find { it.name == relationKeyField.name } == null }?.add(relationKeyField)
-                            field.variableType = VariableType.VAR.string
                             newList.add(field)
                         } else {
                             newList.add(field)
@@ -764,7 +764,7 @@ fun JSONObject?.getDataModelField(keyField: String, dataModelId: String?, dataMo
     }
     this?.getSafeString(KIND_KEY)?.let {
         field.kind = it
-        if (field.kind == "alias") {
+        if (field.kind == "alias" || field.kind == "calculated") {
             field.name = keyField
             field.fieldTypeString = typeStringFromTypeInt(field.fieldType)
         }
@@ -779,6 +779,7 @@ fun JSONObject?.getDataModelField(keyField: String, dataModelId: String?, dataMo
     }
     this?.getSafeBoolean(ISTOMANY_KEY)?.let { isToMany -> // Slave table defined in another table will have isToMany key
         field.name = keyField
+        field.variableType = VariableType.VAR.string
         this.getSafeString(RELATEDDATACLASS_KEY)?.let { relatedDataClass ->
             if (isToMany) {
                 field.isToMany = true
@@ -803,6 +804,7 @@ fun JSONObject?.getDataModelField(keyField: String, dataModelId: String?, dataMo
             field.name = keyField
             field.relatedEntities = relatedEntities
             field.fieldTypeString = "Entities<${relatedEntities.tableNameAdjustment()}>"
+            field.variableType = VariableType.VAR.string
         }
     }
     dataModelId?.let { field.dataModelId = it }
@@ -826,14 +828,13 @@ fun JSONObject?.getDataModelField(keyField: String, dataModelId: String?, dataMo
                     field.relatedDataClass = relation.target
                     field.inverseName = relation.inverseName
                     field.fieldType = null
+                    field.variableType = VariableType.VAR.string
 
                     if (relation.type == RelationType.MANY_TO_ONE) {
                         field.fieldTypeString = relation.target
-                        field.variableType = VariableType.VAR.string
                         field.isToMany = false
                     } else {
                         field.fieldTypeString = "Entities<${relation.target.tableNameAdjustment()}>"
-                        field.variableType = VariableType.VAL.string
                         field.isToMany = true
                     }
                 }

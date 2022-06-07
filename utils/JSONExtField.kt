@@ -64,14 +64,13 @@ fun JSONObject?.getFormField(dataModelName: String, catalogDef: CatalogDef): Fie
                 field.relatedDataClass = relation.target
                 field.inverseName = relation.inverseName
                 field.fieldType = null
+                field.variableType = VariableType.VAR.string
 
                 if (relation.type == RelationType.MANY_TO_ONE) {
                     field.fieldTypeString = relation.target
-                    field.variableType = VariableType.VAR.string
                     field.isToMany = false
                 } else {
                     field.fieldTypeString = "Entities<${relation.target.tableNameAdjustment()}>"
-                    field.variableType = VariableType.VAL.string
                     field.isToMany = true
                 }
             }

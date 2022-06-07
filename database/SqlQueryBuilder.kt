@@ -70,8 +70,8 @@ class SqlQueryBuilder(entry: Any, private val fields: List<FieldData>) {
                             val neededObject = hashMap[key.fieldAdjustment()]
 
                             if (neededObject is JSONObject) {
-                                hashMap["__${key.fieldAdjustment()}Key"] =
-                                    neededObject.getSafeString("__KEY")
+                                hashMap["__${key.fieldAdjustment()}Key"] = neededObject.getSafeString("__KEY")
+                                hashMap[key.fieldAdjustment()] = null
 
                                 // add the relation in a new SqlQuery
                                 field.relatedOriginalTableName?.let { originalTableName ->
@@ -85,6 +85,9 @@ class SqlQueryBuilder(entry: Any, private val fields: List<FieldData>) {
                         field.isOneToManyRelation -> {
                             val neededObject = hashMap[key.fieldAdjustment()]
                             if (neededObject is JSONObject) {
+
+                                hashMap[key.fieldAdjustment()] = null
+
                                 neededObject.getSafeArray("__ENTITIES")?.let { entities ->
 
                                     for (i in 0 until entities.length()) {
