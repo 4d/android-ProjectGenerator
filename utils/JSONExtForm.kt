@@ -55,8 +55,11 @@ fun JSONObject.getFormList(dataModelList: List<DataModel>, formType: FormType, n
         }
     }
 
-    formList.find { it.dataModel.name == "Off" }?.fields?.forEach {
-        Log.d("XX: Name: ${it.name}, path: ${it.path}, field: $it")
+    Log.d("Form list extraction :")
+    formList.forEach { form ->
+        form.fields?.forEach {
+            Log.d("XX: DM [${form.dataModel.name}], fieldName: ${it.name}, path: ${it.path}, field: $it")
+        }
     }
 
     return formList
