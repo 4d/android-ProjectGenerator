@@ -36,6 +36,7 @@ object MustacheConstants {
     const val RELATIONS_ONE_TO_MANY = "relations_one_to_many"
     const val RELATIONS_EMBEDDED_RETURN_TYPE = "relations_embedded_return_type"
     const val RELATIONS = "relations"
+    const val RELATIONS_WITHOUT_ALIAS = "relations_without_alias"
     const val RELATIONS_ID = "relations_id"
     const val TABLE_HAS_ANY_RELATION = "table_has_any_relation"
     const val HAS_ANY_MANY_TO_ONE_RELATION = "has_any_many_to_one_relation"

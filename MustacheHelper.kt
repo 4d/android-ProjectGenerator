@@ -48,6 +48,7 @@ import MustacheConstants.RELATIONS_MANY_TO_ONE_FOR_LIST
 import MustacheConstants.RELATIONS_ONE_TO_MANY
 import MustacheConstants.RELATIONS_ONE_TO_MANY_FOR_DETAIL
 import MustacheConstants.RELATIONS_ONE_TO_MANY_FOR_LIST
+import MustacheConstants.RELATIONS_WITHOUT_ALIAS
 import MustacheConstants.REMOTE_ADDRESS
 import MustacheConstants.TABLENAME
 import MustacheConstants.TABLENAMES
@@ -292,6 +293,8 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
             relations.add(it.getTemplateRelationDefFiller(RelationType.ONE_TO_MANY))
         }
         data[RELATIONS] = relations.distinctBy { it.relation_source to it.relation_target to it.relation_name }
+        data[RELATIONS_WITHOUT_ALIAS] = relations.distinctBy { it.relation_source to it.relation_target to it.relation_name }.filter { it.path.isNullOrEmpty() }
+
         data[RELATIONS_ID] = relationsId.distinctBy { it.relation_source to it.relation_target to it.relation_name }
 
         data[HAS_ANY_MANY_TO_ONE_RELATION] = relationsManyToOne.isNotEmpty()
@@ -430,7 +433,6 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         Log.d("RELATIONS_ONE_TO_MANY --------------------")
         relationsOneToMany.distinctBy { it.relation_source to it.relation_target to it.relation_name to it.path }.forEach {
             Log.d("Source [${it.relation_source}] Target [${it.relation_target}] Name [${it.relation_name}] Path [${it.path}]")
-
         }
 
         projectEditor.dataModelList.forEach { dataModel ->
