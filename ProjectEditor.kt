@@ -151,7 +151,6 @@ class ProjectEditor(projectEditorFile: File, val catalogDef: CatalogDef, isCreat
             remoteUrl = findJsonString("remoteUrl")
         if (remoteUrl.isNullOrEmpty())
             remoteUrl = DEFAULT_REMOTE_URL
-        val teamId = findJsonString("teamId") ?: ""
         val debugMode = findJsonBoolean("debugMode") ?: false
         return AppInfo(
                 appData = appData,
@@ -165,18 +164,32 @@ class ProjectEditor(projectEditorFile: File, val catalogDef: CatalogDef, isCreat
         )
     }
 
-    fun getQueries(queriesFile: File): Map<String, String> {
-        val queryMap = mutableMapOf<String, String>()
-        dataModelList.forEach { dataModel ->
-            dataModel.query?.let { query ->
-                queryMap[dataModel.name.tableNameAdjustment()] = query
-            }
+    fun buildTableInfo(tableFieldsMap: Map<String, List<Field>>): Map<String, TableInfo> {
+        Log.d("tableFieldsMap = $tableFieldsMap")
+        val map = mutableMapOf<String, TableInfo>()
+
+        for ((originalTableName, fields) in tableFieldsMap) {
+            Log.d("buildBodyJsonQueries, originalTableName: $originalTableName")
+            Log.d("buildBodyJsonQueries, fields names: ${fields.map { it.name }}")
+
+            val tableName = originalTableName.tableNameAdjustment()
+
+            val query = dataModelList.find { it.name == tableName }?.query ?: ""
+
+            val fieldsConcat = fields
+                .filter { it.kind != "alias" }
+                .filter { !(it.name.startsWith("__") && it.name.endsWith("Key")) }
+                .joinToString { if (it.isNativeType(dataModelList)) it.name else it.name + ".*" }
+
+            val queryAndFields = TableInfo(
+                originalName = originalTableName,
+                query = query,
+                fields = fieldsConcat,
+            )
+
+            map[tableName] = queryAndFields
         }
-        queriesFile.parentFile.mkdirs()
-        if (!queriesFile.createNewFile()) {
-            throw Exception("An error occurred while creating new file : $queriesFile")
-        }
-        return queryMap
+        return map
     }
 
     fun getActions(): Actions {

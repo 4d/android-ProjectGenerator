@@ -45,14 +45,13 @@ private fun String.lowerCustomProperties() =
         this
     else
         when {
-//            this.startsWith("__") && this.endsWith("Key") -> this.removeSuffix("Key").toLowerCase(Locale.getDefault()) + "Key"
             this.startsWith("__") && this.endsWith("Key") -> this.removeSuffix("Key").decapitalize(Locale.getDefault()) + "Key"
-//            else -> this.toLowerCase(Locale.getDefault())
+            this == "ID" -> this
             else -> this.decapitalize(Locale.getDefault())
         }
 
 private fun String.decapitalizeExceptID() =
-    if (this == "ID") this.toLowerCase(Locale.getDefault()) else this.decapitalize(Locale.getDefault())
+    if (this == "ID") this else this.decapitalize(Locale.getDefault())
 
 private fun String.firstCharForTable(): String =
     if (this.startsWith("_"))
@@ -75,7 +74,11 @@ fun String.validateWord(): String {
 
 fun String.validateWordDecapitalized(): String {
     return this.decapitalizeExceptID().split(".").joinToString(".") {
-        if (reservedKeywords.contains(it)) "qmobile_$it" else it
+        when {
+            reservedKeywords.contains(it) -> "qmobile_$it"
+            it == "ID" -> "__ID"
+            else -> it
+        }
     }
 }
 

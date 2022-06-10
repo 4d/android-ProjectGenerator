@@ -43,6 +43,7 @@
 //INCLUDE models/projecteditor/Relation.kt
 //INCLUDE models/projecteditor/RelationType.kt
 //INCLUDE models/projecteditor/VariableType.kt
+//INCLUDE models/TableInfo.kt
 //INCLUDE utils/Color.kt
 //INCLUDE utils/FeatureChecker.kt
 //INCLUDE utils/Formatters.kt

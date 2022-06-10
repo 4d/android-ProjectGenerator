@@ -141,9 +141,9 @@ class GenerateCommand : CliktCommand(name = "generate") {
         Log.i("Mustache templating done.")
         Log.i("-------------------------")
 
-        mustacheHelper.makeQueries()
+        mustacheHelper.makeTableInfo()
 
-        Log.i("\"queries.json\" file successfully generated.")
+        Log.i("\"tableInfo.json\" file successfully generated.")
 
         mustacheHelper.makeAppInfo()
 

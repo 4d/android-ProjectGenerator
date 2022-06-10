@@ -6,7 +6,7 @@ import FileHelperConstants.ACTIONS_FILENAME
 import FileHelperConstants.APP_INFO_FILENAME
 import FileHelperConstants.CUSTOM_FORMATTERS_FILENAME
 import FileHelperConstants.DS_STORE
-import FileHelperConstants.QUERIES_FILENAME
+import FileHelperConstants.TABLE_INFO_FILENAME
 import FileHelperConstants.SEARCHABLE_FIELDS_FILENAME
 import MustacheConstants.ANDROID_SDK_PATH
 import MustacheConstants.APP_NAME_WITH_CAPS
@@ -114,6 +114,8 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
     // <tableName, <fieldName, fieldMapping>>
     private val customFormattersFields: MutableMap<String, MutableMap<String, FieldMapping>> = mutableMapOf()
 
+    // <tableName, List<Fields>>
+    private val tableFieldsMap = mutableMapOf<String, List<Field>>()
 
     init {
         Log.d("==================================\n" +
@@ -506,14 +508,13 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
             fields.filter { it.kind != "alias" }.forEach { field ->
                 Log.d("> Field [${field.name}] : $field")
                 field.fieldTypeString?.let { fieldTypeString ->
-                    if (tableName.name == "Emp")
-                        Log.d("TEMPLATEFIELDFILLER, field: $field")
                     fieldList.add(field.getTemplateFieldFiller(fieldTypeString))
-
                 } ?: kotlin.run {
                     throw Exception("An error occurred while parsing the fieldType of field : $field")
                 }
             }
+
+            tableFieldsMap[tableName.name_original] = fields
 
             data[FIELDS] = fieldList
             data[TABLE_HAS_DATE_FIELD] = fieldList.map { it.fieldTypeString }.contains("Date")
@@ -1004,10 +1005,8 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         newFile.writeText(template.execute(data))
     }
 
-    fun makeQueries() {
-        val queriesFile = File(fileHelper.pathHelper.assetsPath(), QUERIES_FILENAME)
-        val queryMap = projectEditor.getQueries(queriesFile)
-        queriesFile.writeText(gson.toJson(queryMap))
+    fun makeTableInfo() {
+        makeJsonFile(TABLE_INFO_FILENAME, projectEditor.buildTableInfo(tableFieldsMap))
     }
 
     fun makeAppInfo() {
