@@ -709,7 +709,8 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                                         imageWidth = getImageSize(detailForm, field.name, "width"),
                                                         imageHeight = getImageSize(detailForm, field.name, "height"),
                                                         wholeFormHasIcons = wholeFormHasIcons,
-                                                        pathHelper = fileHelper.pathHelper
+                                                        pathHelper = fileHelper.pathHelper,
+                                                        catalogDef = projectEditor.catalogDef
                                                     )
 
                                                     formFieldList.add(formField)
@@ -758,7 +759,8 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                                             imageWidth = getImageSize(detailForm, field.name, "width"),
                                                             imageHeight = getImageSize(detailForm, field.name, "height"),
                                                             wholeFormHasIcons = wholeFormHasIcons,
-                                                            pathHelper = fileHelper.pathHelper
+                                                            pathHelper = fileHelper.pathHelper,
+                                                            catalogDef = projectEditor.catalogDef
                                                         )
 
                                                         fillRelationFillerForEachLayout(field, detailForm, FormType.DETAIL, k + 1)
@@ -851,8 +853,8 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         data.remove("field_${i}_custom_formatted_imageNamed")
         data.remove("field_${i}_format_type")
         data.remove("field_${i}_accessor")
-        data.remove("field_${i}_field_name")
-        data.remove("field_${i}_source_table_name")
+        data.remove("field_${i}_image_field_name")
+        data.remove("field_${i}_image_source_table_name")
         data.remove("field_${i}_image_key_accessor")
         data.remove("field_${i}_format_field_name")
         data.remove("field_${i}_field_table_name")
@@ -879,8 +881,8 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         data["field_${i}_custom_formatted_imageNamed"] = false
         data["field_${i}_format_type"] = ""
         data["field_${i}_accessor"] = ""
-        data["field_${i}_field_name"] = ""
-        data["field_${i}_source_table_name"] = ""
+        data["field_${i}_image_field_name"] = ""
+        data["field_${i}_image_source_table_name"] = ""
         data["field_${i}_image_key_accessor"] = ""
         data["field_${i}_format_field_name"] = ""
         data["field_${i}_field_table_name"] = ""
@@ -905,9 +907,9 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         data["field_${i}_custom_formatted"] = false
         data["field_${i}_custom_formatted_imageNamed"] = false
         data["field_${i}_format_type"] = ""
-        data["field_${i}_accessor"] = field.getLayoutVariableAccessor(projectEditor.dataModelList)
-        data["field_${i}_field_name"] = field.getFieldName()
-        data["field_${i}_source_table_name"] = field.getSourceTableName(projectEditor.dataModelList, form)
+        data["field_${i}_accessor"] = field.getLayoutVariableAccessor()
+        data["field_${i}_image_field_name"] = field.getImageFieldName()
+        data["field_${i}_image_source_table_name"] = destBeforeField(projectEditor.catalogDef, form.dataModel.name, field.path)
 
         val isRelation = isRelationWithFixes(projectEditor.dataModelList, form, field)
         Log.d("field ${field.name}, isRelation ? : $isRelation")
@@ -927,7 +929,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         }
 
         if (field.isImage()) {
-            data["field_${i}_image_key_accessor"] = field.getFieldKeyAccessor()
+            data["field_${i}_image_key_accessor"] = field.getFieldKeyAccessor(projectEditor.dataModelList)
         }
 
         if (wholeFormHasIcons) {

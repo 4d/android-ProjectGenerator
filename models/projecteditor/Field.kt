@@ -34,19 +34,34 @@ fun isPrivateRelationField(fieldName: String): Boolean = fieldName.startsWith("_
 
 fun Field.isImage() = this.fieldType == 3
 
-fun Field.getFieldName() =
-    if (this.name.contains("."))
-        this.name.split(".")[1]
-    else
-        this.name
+fun Field.getImageFieldName() = this.path?.substringAfterLast(".") ?: ""
 
-fun Field.getFieldKeyAccessor() =
-    if (this.name.fieldAdjustment().contains("."))
-        this.name.fieldAdjustment().split(".")[0] + ".__KEY"
-    else
-        "__KEY"
+fun Field.getFieldKeyAccessor(dataModelList: List<DataModel>): String {
+    if (this.isFieldAlias(dataModelList)) {
+        Log.d("getFieldKeyAccessor, aliasField here, field is $this")
+        val path = this.path ?: ""
+        if (path.contains(".")) {
+            var name = ""
+            var nextPath = path.substringBeforeLast(".")
+            while (nextPath.contains(".")) {
 
-fun Field.getLayoutVariableAccessor(dataModelList: List<DataModel>): String {
+                name += nextPath.relationAdjustment() + "."
+                Log.d("building name = $name")
+
+                nextPath = nextPath.substringAfter(".")
+            }
+            val returnName = name + nextPath.relationAdjustment() + "." + path.substringAfterLast(".").fieldAdjustment()
+            Log.d("getFieldKeyAccessor returnName: $returnName")
+            return returnName.substringBeforeLast(".") + ".__KEY"
+        } else {
+            return "__KEY"
+        }
+    } else {
+        return "__KEY"
+    }
+}
+
+fun Field.getLayoutVariableAccessor(): String {
     Log.d("getLayoutVariableAccessor: this = $this")
     return if (this.name.fieldAdjustment().contains(".") || (this.kind == "alias" /*&& this.isNotNativeType(dataModelList)*/ && this.path?.contains(".") == true))
         "entityData."
@@ -57,21 +72,6 @@ fun Field.getLayoutVariableAccessor(dataModelList: List<DataModel>): String {
 fun Field.isNotNativeType(dataModelList: List<DataModel>): Boolean = dataModelList.map { it.name }.contains(this.fieldTypeString) || this.fieldTypeString?.startsWith("Entities<") == true
 
 fun Field.isNativeType(dataModelList: List<DataModel>): Boolean = this.isNotNativeType(dataModelList).not()
-
-fun Field.getSourceTableName(dataModelList: List<DataModel>, form: Form): String {
-    if (this.name.contains(".")) {
-
-        val fieldFromDataModel: Field? =
-            form.dataModel.fields?.find { it.name == this.name.split(".")[0] }
-
-        fieldFromDataModel?.let { field ->
-            return dataModelList.find { it.id == "${field.relatedTableNumber}" }?.name ?: ""
-        }
-        return ""
-    } else {
-        return form.dataModel.name
-    }
-}
 
 fun Field.getLabel(): String {
     return label?.encode() ?: ""
