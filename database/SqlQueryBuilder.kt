@@ -1,7 +1,7 @@
 import org.json.JSONArray
 import org.json.JSONObject
 
-class SqlQueryBuilder(entry: Any, private val fields: List<FieldData>) {
+class SqlQueryBuilder(entry: Any, private val fields: List<Field>) {
     /**
      * inputEntities can be a JSONArray, or a JSONObject.
      * It is a JSONArray when it receives a list of entities
@@ -25,7 +25,7 @@ class SqlQueryBuilder(entry: Any, private val fields: List<FieldData>) {
                     hashMap["__STAMP"] = null
                     fields.forEach { field ->
                         hashMap[field.name.fieldAdjustment()] = null
-                        if (field.isManyToOneRelation)
+                        if (field.kind == "relatedEntity")
                             hashMap["__${field.name.fieldAdjustment()}Key"] = null
                     }
 
@@ -40,7 +40,7 @@ class SqlQueryBuilder(entry: Any, private val fields: List<FieldData>) {
                 hashMap["__STAMP"] = null
                 fields.forEach { field ->
                     hashMap[field.name.fieldAdjustment()] = null
-                    if (field.isManyToOneRelation)
+                    if (field.kind == "relatedEntity")
                         hashMap["__${field.name.fieldAdjustment()}Key"] = null
                 }
 
@@ -60,13 +60,13 @@ class SqlQueryBuilder(entry: Any, private val fields: List<FieldData>) {
                 hashMap[key.fieldAdjustment()] = inputEntity[key]
                 Log.d("inputEntity de Key is :")
                 Log.d("${inputEntity[key]}")
-
                 fields.find { f -> f.name.fieldAdjustment() == key.fieldAdjustment() }?.let { field ->
+                    Log.d("field is $field")
                     when {
-                        field.isImage -> {
-                            // Nothing to do
-                        }
-                        field.isManyToOneRelation -> {
+//                        field.isImage -> {
+//                            // Nothing to do
+//                        }
+                        field.kind == "relatedEntity" -> {
                             val neededObject = hashMap[key.fieldAdjustment()]
 
                             if (neededObject is JSONObject) {
@@ -74,15 +74,16 @@ class SqlQueryBuilder(entry: Any, private val fields: List<FieldData>) {
                                 hashMap[key.fieldAdjustment()] = null
 
                                 // add the relation in a new SqlQuery
-                                field.relatedOriginalTableName?.let { originalTableName ->
+                                field.fieldTypeString?.let { originalTableName ->
                                     if (!relatedEntitiesMap.containsKey(originalTableName)) {
                                         relatedEntitiesMap[originalTableName] = mutableListOf()
                                     }
                                     relatedEntitiesMap[originalTableName]?.add(neededObject)
+                                    Log.d("relatedEntitiesMap[originalTableName] = ${relatedEntitiesMap[originalTableName]}")
                                 }
                             }
                         }
-                        field.isOneToManyRelation -> {
+                        field.kind == "relatedEntities" -> {
                             val neededObject = hashMap[key.fieldAdjustment()]
                             if (neededObject is JSONObject) {
 

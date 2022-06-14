@@ -72,11 +72,6 @@ fun getProjectDataSetAndroidPath(assetsPath: String): String {
     return projectDataSetDirPath + File.separator + "android"
 }
 
-fun getCatalogPath(assetsPath: String, tableName: String): String = assetsPath +
-        File.separator + CATALOG_PATH_KEY + File.separator +
-        "$tableName.${CATALOG_DATASET_SUFFIX}" + File.separator +
-        "$tableName.${CATALOG_JSON_SUFFIX}"
-
 fun getDataPath(assetsPath: String, tableName: String, index: Int? = null): String {
     val path = assetsPath + File.separator + DATA_PATH_KEY + File.separator +
             "$tableName.$DATA_DATASET_SUFFIX" + File.separator +

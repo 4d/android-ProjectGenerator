@@ -13,11 +13,8 @@
 //INCLUDE constants/PathHelperConstants.kt
 //INCLUDE constants/ProjectEditorConstants.kt
 //INCLUDE database/AppInfoHelper.kt
-//INCLUDE database/CatalogExtractor.kt
 //INCLUDE database/CreateDatabaseTask.kt
-//INCLUDE database/DataClass.kt
 //INCLUDE database/DbConstants.kt
-//INCLUDE database/FieldData.kt
 //INCLUDE database/GroovyInteroperability.kt
 //INCLUDE database/SqlQueryBuilder.kt
 //INCLUDE database/StaticDatabase.kt
