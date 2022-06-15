@@ -22,7 +22,24 @@ fun replaceTemplateText(oldFormText: String, formType: FormType): String {
         .replace("___VALUE_ID___", "{{tableName_lowercase}}_field_value_{{viewId}}")
         .replace("___BUTTON_ID___", "{{tableName_lowercase}}_field_value_{{viewId}}")
 
-    var regex = ("(\\h*)app:imageUrl=\"___IMAGE___\"").toRegex()
+    var regex = ("(\\h*)<!--ENTITY_VARIABLE-->").toRegex()
+    newFormText = regex.replace(newFormText) { matchResult ->
+        val indent = matchResult.destructured.component1()
+        if (formType == FormType.LIST)
+            "${indent}<variable\n" +
+                    "${indent}\tname=\"${variableName}\"\n" +
+                    "${indent}\ttype=\"${variableType}\"/>"
+        else
+            "${indent}<variable\n" +
+                    "${indent}\tname=\"${variableName}\"\n" +
+                    "${indent}\ttype=\"${variableType}\"/>"
+    }
+
+    /**
+     * DETAIL FORMS
+     */
+
+    regex = ("(\\h*)app:imageUrl=\"___IMAGE___\"").toRegex()
     newFormText = regex.replace(newFormText) { matchResult ->
         val indent = matchResult.destructured.component1()
         if (formType == FormType.LIST) // should never come here (free field in list form)
@@ -66,7 +83,7 @@ fun replaceTemplateText(oldFormText: String, formType: FormType): String {
         val indent = matchResult.destructured.component1()
         "${indent}{{#labelHasPercentPlaceholder}}\n" +
                 "${indent}app:buttonText='@{ {{labelWithPercentPlaceholder}} }'\n" +
-                "${indent}app:entryRelation='@{ viewModel.{{entryRelation}} }'\n" +
+                "${indent}app:entryRelation='@{ {{entryRelation}} }'\n" +
                 "${indent}app:altButtonText='@{ \"{{altButtonText}}\" }'\n" +
                 "${indent}{{/labelHasPercentPlaceholder}}\n" +
                 "${indent}{{^labelHasPercentPlaceholder}}\n" +
@@ -101,18 +118,9 @@ fun replaceTemplateText(oldFormText: String, formType: FormType): String {
                     "${indent}{{/hasIcon}}"
     }
 
-    regex = ("(\\h*)<!--ENTITY_VARIABLE-->").toRegex()
-    newFormText = regex.replace(newFormText) { matchResult ->
-        val indent = matchResult.destructured.component1()
-        if (formType == FormType.LIST)
-            "${indent}<variable\n" +
-                    "${indent}\tname=\"${variableName}\"\n" +
-                    "${indent}\ttype=\"${variableType}\"/>"
-        else
-            "${indent}<variable\n" +
-                    "${indent}\tname=\"${variableName}\"\n" +
-                    "${indent}\ttype=\"${variableType}\"/>"
-    }
+    /**
+     * LIST FORMS
+     */
 
     regex = ("___SPECIFIC_ID_(\\d+)___").toRegex()
     newFormText = regex.replace(newFormText) { matchResult ->

@@ -220,7 +220,7 @@ class ProjectEditor(projectEditorFile: File, val catalogDef: CatalogDef, isCreat
                                         parameter.getSafeString("format")?.let { newParameter.format = it }
                                         actionObject.getSafeInt("fieldNumber")?.let { newParameter.fieldNumber = it }
                                         parameter.getSafeString("defaultField")?.let {
-                                                newParameter.defaultField = parameterName.fieldAdjustment()
+                                            newParameter.defaultField = parameterName.fieldAdjustment()
                                         }
                                         parameter.getSafeArray("rules")?.let { rulesArray ->
                                             val rulesList = mutableListOf<Any>()

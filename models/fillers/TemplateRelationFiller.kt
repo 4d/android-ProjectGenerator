@@ -84,7 +84,6 @@ fun getKeyName(catalogDef: CatalogDef, relation: Relation): String {
             val firstRelationName = relation.path.split(".")[0]
             // la relation du premier element avant "."
             catalogDef.relations.find { it.source == relation.source && it.name == firstRelationName }?.let { firstRelation ->
-//                Log.d("firstRelation = $firstRelation")
 
                 key = if (firstRelation.type == RelationType.ONE_TO_MANY)
                     firstRelation.inverseName

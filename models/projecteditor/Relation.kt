@@ -25,7 +25,6 @@ fun destWithField(catalogDef: CatalogDef, source: String, path: String): String 
     var nextSource = source
     path.split(".").forEach { part ->
         val relation = catalogDef.relations.find { it.source == nextSource && it.name == part }
-//        Log.d("destWithField, relation = $relation")
         relation?.let {
             nextSource = relation.target
         } ?: run {
@@ -37,12 +36,52 @@ fun destWithField(catalogDef: CatalogDef, source: String, path: String): String 
     return nextSource
 }
 
+fun Relation.isNotNativeType(dataModelList: List<DataModel>): Boolean = dataModelList.map { it.name }.contains(this.target)
+
+fun findRelation(dataModelList: List<DataModel>, source: String, field: Field): Relation? {
+    dataModelList.find { it.name == source }?.relations?.filter { it.isNotNativeType(dataModelList) }?.find { it.name == field.name }?.let { relation ->
+        Log.d("Found relation from name $relation")
+        return relation
+    } ?: kotlin.run {
+        Log.d("No relation found with same name")
+
+        // If simple relation -> path will be null
+        dataModelList.find { it.name == source }?.relations?.filter { it.isNotNativeType(dataModelList) }?.find { it.path == field.path }?.let { relation ->
+            Log.d("Found relation from path $relation")
+            return relation
+        } ?: kotlin.run {
+            Log.d("No relation found with same path")
+
+            dataModelList.find { it.name == source }?.relations?.filter { it.isNotNativeType(dataModelList) }?.find { it.name == field.path }?.let { relation ->
+                Log.d("Found relation from name with path $relation")
+                return relation
+            }
+        }
+    }
+    return null
+}
+
+fun findRelationFromPath(dataModelList: List<DataModel>, source: String, path: String): Relation? {
+    dataModelList.find { it.name == source }?.relations?.filter { it.isNotNativeType(dataModelList) }?.find { it.name == path }?.let { relation ->
+        Log.d("Found relation from name $relation")
+        return relation
+    } ?: kotlin.run {
+        Log.d("No relation found with same name")
+
+        // If simple relation -> path will be null
+        dataModelList.find { it.name == source }?.relations?.filter { it.isNotNativeType(dataModelList) }?.find { it.path == path }?.let { relation ->
+            Log.d("Found relation from path $relation")
+            return relation
+        }
+    }
+    return null
+}
+
 fun getRelationType(catalogDef: CatalogDef, source: String, path: String): RelationType {
     Log.d("getRelationType, source: $source, path: $path")
     var nextSource = source
     path.split(".").forEach { part ->
         val relation = catalogDef.relations.find { it.source == nextSource && it.name == part }
-//        Log.d("getRelationType, relation = $relation")
         nextSource = relation?.target ?: ""
         if (relation?.type == RelationType.ONE_TO_MANY)
             return RelationType.ONE_TO_MANY
@@ -195,8 +234,9 @@ fun unAliasPath(path: String?, source: String, catalogDef: CatalogDef): String {
 
 // REMINDER : kind == "alias" condition removed because alias.FirstName is not an alias kind
 fun Field.isFieldAlias(dataModelList: List<DataModel>): Boolean {
-    Log.d("isFieldAlias [${this.name}]: ${path?.isNotEmpty() == true /*&& kind == "alias"*/ && this.isNativeType(dataModelList)}, field : $this")
-    return path?.isNotEmpty() == true /*&& kind == "alias"*/ && this.isNativeType(dataModelList)
+    val isFieldAlias = path?.isNotEmpty() == true /*&& kind == "alias"*/ && this.isNativeType(dataModelList)
+    Log.d("isFieldAlias [${this.name}]: $isFieldAlias, field : $this")
+    return isFieldAlias
 }
 
 fun getRelation(field: Field, tableName: String, subFields: List<Field>): Relation? {

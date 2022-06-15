@@ -19,28 +19,26 @@ data class TemplateRelationFillerForEachLayout(
 
 fun getTemplateRelationFillerForLayout(
     source: String,
-    target: String,
-    relationName: String,
     viewId: Int,
     navbarTitle: String,
-    aliasRelation: Relation,
+    relation: Relation,
     catalogDef: CatalogDef
 ): TemplateRelationFillerForEachLayout =
     TemplateRelationFillerForEachLayout(
         relation_source = source.tableNameAdjustment(),
-        relation_target = target.tableNameAdjustment(),
-        relation_name = relationName.relationAdjustment(),
+        relation_target = relation.target.tableNameAdjustment(),
+        relation_name = relation.name.relationAdjustment(),
         tableNameLowercase = source.dataBindingAdjustment().decapitalize(Locale.getDefault()),
         associatedViewId = viewId,
-        isSubRelation = relationName.fieldAdjustment().contains("."),
-        subRelation_inverse_name = getSubRelationInverseName(relationName),
+        isSubRelation = relation.name.fieldAdjustment().contains("."),
+        subRelation_inverse_name = getSubRelationInverseName(relation.name),
         navbarTitle = navbarTitle,
         relation_source_camelCase = source.dataBindingAdjustment(),
-        relation_target_camelCase = target.dataBindingAdjustment(),
-        isAlias = aliasRelation.path.contains("."),
-        path = aliasRelation.path.ifEmpty { aliasRelation.name.fieldAdjustment() },
-        pathToOneWithoutFirst = getPathToOneWithoutFirst(aliasRelation, catalogDef),
-        pathToManyWithoutFirst = getPathToManyWithoutFirst(aliasRelation, catalogDef)
+        relation_target_camelCase = relation.target.dataBindingAdjustment(),
+        isAlias = relation.path.contains("."),
+        path = relation.path.ifEmpty { relation.name.fieldAdjustment() },
+        pathToOneWithoutFirst = getPathToOneWithoutFirst(relation, catalogDef),
+        pathToManyWithoutFirst = getPathToManyWithoutFirst(relation, catalogDef)
     )
 
 
@@ -53,7 +51,6 @@ fun getPathToOneWithoutFirst(aliasRelation: Relation, catalogDef: CatalogDef): S
     pathList.forEachIndexed { index, pathPart ->
         Log.d("getPathToOneWithoutFirst, pathPart = $pathPart")
         catalogDef.relations.find { it.source == nextSource && it.name == pathPart }?.let { relation ->
-//            Log.d("getPathToOneWithoutFirst, relation = $relation")
             if (index > 0) {
                 if (path.isNotEmpty())
                     path += "?."
@@ -80,7 +77,6 @@ fun getPathToManyWithoutFirst(aliasRelation: Relation, catalogDef: CatalogDef): 
     pathList.forEachIndexed { index, pathPart ->
         Log.d("getPathToManyWithoutFirst, pathPart = $pathPart")
         catalogDef.relations.find { it.source == nextSource && it.name == pathPart }?.let { relation ->
-//            Log.d("getPathToManyWithoutFirst, relation = $relation")
             if (index > 0) {
                 if (path.isNotEmpty())
                     path += "?."
