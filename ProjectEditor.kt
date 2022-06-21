@@ -221,6 +221,10 @@ class ProjectEditor(projectEditorFile: File, val catalogDef: CatalogDef, isCreat
                                         actionObject.getSafeInt("fieldNumber")?.let { newParameter.fieldNumber = it }
                                         parameter.getSafeString("defaultField")?.let {
                                             newParameter.defaultField = parameterName.fieldAdjustment()
+                                            // If field is an alias, set target field as defaultField
+                                            getDefaultFieldForAlias(newAction.tableNumber, parameterName)?.let { defaultField ->
+                                                newParameter.defaultField = defaultField
+                                            }
                                         }
                                         parameter.getSafeArray("rules")?.let { rulesArray ->
                                             val rulesList = mutableListOf<Any>()
@@ -246,6 +250,31 @@ class ProjectEditor(projectEditorFile: File, val catalogDef: CatalogDef, isCreat
         val currentRecordActions = formatMap(scopedActions, "currentRecord")
         val tableActions = formatMap(scopedActions, "table")
         return Actions(table = tableActions, currentRecord = currentRecordActions)
+    }
+
+    private fun getDefaultFieldForAlias(tableNumber: Int?, parameterName: String): String? {
+        dataModelList.find { it.id == tableNumber.toString() }?.let { dataModel ->
+
+            dataModel.fields?.find { it.name == parameterName }?.takeIf { it.kind == "alias" && it.path?.isNotEmpty() == true }?.let { alias ->
+                
+                val path = alias.path ?: ""
+
+                if (path.contains(".")) {
+
+                    findRelationFromPath(dataModelList, dataModel.name, path.substringBeforeLast("."))?.let { relation ->
+
+                        val endFieldName = path.substringAfterLast(".").fieldAdjustment()
+                        return if (path.count { it == '.' } > 1)
+                            relation.name.relationAdjustment() + "?." + getPathToOneWithoutFirst(relation, catalogDef) + "?." + endFieldName
+                        else
+                            relation.name.relationAdjustment() + "?." + endFieldName
+                    }
+                } else {
+                    return path.fieldAdjustment()
+                }
+            }
+        }
+        return null
     }
 
     private fun formatMap(scopedActions:  Map<String?, List<Action>>, scope: String):  Map<String, List<Action>> {
