@@ -224,6 +224,8 @@ class ProjectEditor(projectEditorFile: File, val catalogDef: CatalogDef, isCreat
                                             // If field is an alias, set target field as defaultField
                                             getDefaultFieldForAlias(newAction.tableNumber, parameterName)?.let { defaultField ->
                                                 newParameter.defaultField = defaultField
+                                                getFieldName(newAction.tableNumber, parameterName)?.let { newParameter.fieldName = it }
+                                                getTableName(newAction.tableNumber, parameterName)?.let { newParameter.tableName = it }
                                             }
                                         }
                                         parameter.getSafeArray("rules")?.let { rulesArray ->
@@ -256,7 +258,7 @@ class ProjectEditor(projectEditorFile: File, val catalogDef: CatalogDef, isCreat
         dataModelList.find { it.id == tableNumber.toString() }?.let { dataModel ->
 
             dataModel.fields?.find { it.name == parameterName }?.takeIf { it.kind == "alias" && it.path?.isNotEmpty() == true }?.let { alias ->
-                
+
                 val path = alias.path ?: ""
 
                 if (path.contains(".")) {
@@ -272,6 +274,18 @@ class ProjectEditor(projectEditorFile: File, val catalogDef: CatalogDef, isCreat
                 } else {
                     return path.fieldAdjustment()
                 }
+            }
+        }
+        return null
+    }
+
+    private fun getFieldName(tableNumber: Int?, parameterName: String): String? =
+        catalogDef.dataModelAliases.find { it.tableNumber == tableNumber }?.fields?.find { it.name == parameterName }?.path?.substringAfterLast(".")
+
+    private fun getTableName(tableNumber: Int?, parameterName: String): String? {
+        catalogDef.dataModelAliases.find { it.tableNumber == tableNumber }?.let { dataModelAlias ->
+            dataModelAlias.fields.find { it.name == parameterName }?.path?.substringBeforeLast(".")?.let {
+                return destBeforeField(catalogDef, dataModelAlias.name, it)
             }
         }
         return null

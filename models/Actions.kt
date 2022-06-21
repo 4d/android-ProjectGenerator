@@ -24,6 +24,8 @@ data class ActionParameter(
     var placeholder: String? = null,
     var format: String? = null,
     var fieldNumber: Int? = null,
+    var fieldName: String? = null,
+    var tableName: String? = null,
     var defaultField: String? = null,
     var rules: List<Any>? = null
 )
