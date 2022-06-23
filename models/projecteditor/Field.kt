@@ -83,7 +83,8 @@ fun Field.getShortLabel(): String {
 
 fun getIcon(dataModelList: List<DataModel>, form: Form, formField: Field): String {
     val fieldFromDataModel: Field = getDataModelField(dataModelList, form, formField) ?: return ""
-    Log.d("getIcon, field $fieldFromDataModel")
+    Log.d("getIcon, formField $formField")
+    Log.d("getIcon, fieldFromDataModel $fieldFromDataModel")
     if (fieldFromDataModel.icon.isNullOrEmpty()) {
         fieldFromDataModel.id = when {
             fieldFromDataModel.isSlave == true -> formField.name
@@ -91,22 +92,35 @@ fun getIcon(dataModelList: List<DataModel>, form: Form, formField: Field): Strin
             else -> fieldFromDataModel.id
         }
         fieldFromDataModel.id?.let { fieldFromDataModel.id = it.toLowerCase().replace("[^a-z0-9]+".toRegex(), "_") }
+        val dmKey = dataModelList.find { it.name == form.dataModel.name }?.id
+        // Getting first relation
+        var relatedDmKey = ""
+        fieldFromDataModel.relatedTableNumber?.let { relatedTableNumber ->
+            relatedDmKey = relatedTableNumber.toString()
+        } ?: run {
+            formField.path?.substringBefore(".")?.let { firstPart ->
+                findRelationFromPath(dataModelList, form.dataModel.name, firstPart)?.let { firstRelation ->
+                    relatedDmKey = dataModelList.find { it.name == firstRelation.target }?.id ?: ""
+                }
+            }
+        }
         return if (fieldFromDataModel.isSlave == true)
-            "related_field_icon_${form.dataModel.name}_${fieldFromDataModel.relatedTableNumber}_${fieldFromDataModel.id}"
+            "related_field_icon_${dmKey}_${relatedDmKey}_${fieldFromDataModel.id}"
         else
-            "field_icon_${form.dataModel.name}_${fieldFromDataModel.id}"
+            "field_icon_${dmKey}_${fieldFromDataModel.id}"
     }
     return fieldFromDataModel.icon ?: ""
 }
 
-fun Field.isRelation(dataModelList: List<DataModel>): Boolean {
-    val isRelation = !this.inverseName.isNullOrEmpty() || (this.kind == "alias" && !isFieldAlias(dataModelList) )
-    return isRelation
-}
 
-fun Field.isOneToManyRelation(dataModelList: List<DataModel>): Boolean = this.relatedEntities != null && this.isRelation(dataModelList)
+fun Field.isRelation(dataModelList: List<DataModel>): Boolean =
+    !this.inverseName.isNullOrEmpty() || (this.kind == "alias" && !isFieldAlias(dataModelList) )
 
-fun Field.isManyToOneRelation(dataModelList: List<DataModel>): Boolean = this.relatedEntities == null && this.isRelation(dataModelList)
+fun Field.isOneToManyRelation(dataModelList: List<DataModel>): Boolean =
+    this.relatedEntities != null && this.isRelation(dataModelList)
+
+fun Field.isManyToOneRelation(dataModelList: List<DataModel>): Boolean =
+    this.relatedEntities == null && this.isRelation(dataModelList)
 
 fun correctIconPath(iconPath: String): String {
     val correctedIconPath = iconPath

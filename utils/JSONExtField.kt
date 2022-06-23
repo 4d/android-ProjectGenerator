@@ -21,7 +21,6 @@ fun JSONObject?.getFormField(dataModelName: String, catalogDef: CatalogDef): Fie
 //    this?.getSafeString(SHORTLABEL_KEY)?.let { field.shortLabel = it }
     this?.getSafeInt(FIELDTYPE_KEY)?.let { field.fieldType = it }
 //    this?.getSafeInt(ID_KEY).let { field.id = it.toString() }
-    this?.getSafeInt(RELATEDTABLENUMBER_KEY)?.let { field.relatedTableNumber = it }
     this?.getSafeString(INVERSENAME_KEY)?.let { field.inverseName = it }
     this?.getSafeString(NAME_KEY)?.let {
         field.name = it
