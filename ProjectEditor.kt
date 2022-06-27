@@ -142,7 +142,7 @@ class ProjectEditor(projectEditorFile: File, val catalogDef: CatalogDef, isCreat
 
     fun getAppInfo(): AppInfo {
         val appId = findJsonString("bundleIdentifier") ?: ""
-        val appName = findJsonString("companyWithCaps") ?: ""
+        val appName = findJsonString("appNameWithCaps") ?: ""
         val appVersion = findJsonString("version") ?: ""
         val appData = AppData(appId, appName, appVersion)
         val mailAuth = findJsonBoolean("mailAuth") ?: false
