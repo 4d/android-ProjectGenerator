@@ -48,6 +48,7 @@ class ProjectEditor(projectEditorFile: File, val catalogDef: CatalogDef, isCreat
     lateinit var navigationTableList: List<String>
     lateinit var searchableFields: HashMap<String, List<String>>
 
+    lateinit var defaultSortFields: JSONObject
     lateinit var jsonObj: JSONObject
 
     init {
@@ -83,6 +84,8 @@ class ProjectEditor(projectEditorFile: File, val catalogDef: CatalogDef, isCreat
 
                 detailFormList = jsonObj.getFormList(dataModelList, FormType.DETAIL, navigationTableList, catalogDef)
                 Log.d("> Detail forms list successfully read.")
+
+                defaultSortFields = jsonObj.getDefaultSortFields(dataModelList)
             }
 
         } ?: kotlin.run {
