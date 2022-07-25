@@ -1018,6 +1018,9 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         }
     }
 
+    fun makeDefaultSortFieldList(){
+        makeJsonFile("default_sort_fields.json", projectEditor.defaultSortFields)
+    }
     private fun makeJsonFile(fileName: String, content: Any) {
         val file = File(fileHelper.pathHelper.assetsPath(), fileName)
         file.parentFile.mkdirs()

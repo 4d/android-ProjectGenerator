@@ -877,6 +877,36 @@ fun JSONObject?.getSubFields(dataModelName: String, catalogDef: CatalogDef): Lis
     return subList
 }
 
+fun JSONObject?.getDefaultSortFields(dataModelList: List<DataModel>): JSONObject {
+    val list = this?.getSafeObject(PROJECT_KEY)?.getSafeObject("list")
+    val jsonObject = JSONObject()
+    list?.names()?.forEach {
+
+        val item = list.getSafeObject(it as String) as JSONObject
+        val fields = item.getSafeArray("fields")
+
+        val defaultSortField = // skip if photo 'filetype = 3
+                fields?.filter { it1 -> it1.toString() != "null" }?.firstOrNull {
+                    // skip if photo 'filetype = 3
+                    it3 ->
+                    (it3 as JSONObject).getSafeInt("fieldType") != 3
+                }
+
+        if (defaultSortField != null) {
+            val tableName = dataModelList.find { model ->
+                model.id == it
+            }?.name
+
+            val name = (defaultSortField as JSONObject).getSafeString("name")?.fieldAdjustment()
+            Log.e(":::::::::: $tableName  $name ")
+            jsonObject.put(tableName, name)
+        }
+    }
+
+    return jsonObject
+}
+
+
 fun buildNewKeyField(name: String): Field {
     val newKeyField =
         Field(name = "__${name.validateWordDecapitalized()}Key")
