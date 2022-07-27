@@ -12,14 +12,6 @@ import MustacheConstants.ANDROID_SDK_PATH
 import MustacheConstants.APP_NAME_WITH_CAPS
 import MustacheConstants.AUTHOR
 import MustacheConstants.CACHE_4D_SDK_PATH
-import MustacheConstants.COLORS_DEFINED
-import MustacheConstants.COLOR_PRIMARY_DARKER
-import MustacheConstants.COLOR_PRIMARY_DARKER_PLUS
-import MustacheConstants.COLOR_PRIMARY_DARKER_PLUS_PLUS
-import MustacheConstants.COLOR_PRIMARY_LIGHTER
-import MustacheConstants.COLOR_PRIMARY_LIGHTER_PLUS
-import MustacheConstants.COLOR_PRIMARY_LIGHTER_PLUS_PLUS
-import MustacheConstants.COLOR_PRIMARY_NEUTRAL
 import MustacheConstants.COMPANY_HEADER
 import MustacheConstants.CUSTOM_FORMATTER_IMAGES
 import MustacheConstants.DATE_DAY
@@ -65,10 +57,6 @@ import MustacheConstants.TABLE_HAS_ANY_RELATION
 import MustacheConstants.TABLE_HAS_DATE_FIELD
 import MustacheConstants.TABLE_HAS_ONE_TO_MANY_FIELD
 import MustacheConstants.TABLE_HAS_TIME_FIELD
-import MustacheConstants.THEME_COLOR_ON_PRIMARY
-import MustacheConstants.THEME_COLOR_PRIMARY
-import MustacheConstants.THEME_COLOR_PRIMARY_DARKER
-import MustacheConstants.THEME_COLOR_PRIMARY_LIGHTER
 import MustacheConstants.TYPES_AND_TABLES
 import PathHelperConstants.TEMPLATE_PLACEHOLDER
 import com.google.gson.Gson
@@ -194,58 +182,34 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
             throw Exception("Cache 4D SDK path do not exists. Define it correctly.")
         }
 
-        data[COLORS_DEFINED] = false
-        data[THEME_COLOR_PRIMARY] = "@color/cyan_900"
-        data[THEME_COLOR_PRIMARY_DARKER] = "@color/cyan_dark"
-        data[THEME_COLOR_PRIMARY_LIGHTER] = "@color/cyan_light"
-        data[THEME_COLOR_ON_PRIMARY] = "@android:color/white"
+        val defaultSeed = "rgb(103,80,164)" // #6750A4
 
-        projectEditor.findJsonString("dominantColor")?.let {  // "rgb(0,75,145)"
+        val seed = projectEditor.findJsonString("dominantColor") ?: defaultSeed
 
-            Log.i("dominantColor = $it")
+        Log.i("seed = $seed")
 
-            val rgbString = it.removePrefix("rgb(").removeSuffix(")") // 0,75,145
-            val red = rgbString.split(",").getOrNull(0)?.toIntOrNull()
-            val green = rgbString.split(",").getOrNull(1)?.toIntOrNull()
-            val blue = rgbString.split(",").getOrNull(2)?.toIntOrNull()
+        val rgbString = seed.removePrefix("rgb(").removeSuffix(")") // 103,80,164
+        val red = rgbString.split(",")[0].toInt()
+        val green = rgbString.split(",")[1].toInt()
+        val blue = rgbString.split(",")[2].toInt()
 
-            if (red != null && green != null && blue != null) {
+        val primaryContrast = getContrast(red, green, blue)
+        val hexStringSeedColor = getHexStringColor(red, green, blue)
+        val seedColor: Int = Color.parseColor(hexStringSeedColor)
+        Log.i("backgroundColor = $hexStringSeedColor")
+        data["seed"] = hexStringSeedColor
 
-                val hexStringBackgroundColor = getHexStringColor(red, green, blue)
-
-                data[COLORS_DEFINED] = true
-                data[COLOR_PRIMARY_NEUTRAL] = hexStringBackgroundColor
-
-                Log.i("backgroundColor = $hexStringBackgroundColor")
-
-                val backgroundColor: Int = Color.parseColor(hexStringBackgroundColor)
-                data[COLOR_PRIMARY_DARKER] =
-                    "#" + toHexString(manipulateColor(backgroundColor, 0.8f)).toUpperCase() // darker +
-                data[COLOR_PRIMARY_DARKER_PLUS] =
-                    "#" + toHexString(manipulateColor(backgroundColor, 0.6f)).toUpperCase() // darker ++
-                data[COLOR_PRIMARY_DARKER_PLUS_PLUS] =
-                    "#" + toHexString(manipulateColor(backgroundColor, 0.4f)).toUpperCase() // darker +++
-                data[COLOR_PRIMARY_LIGHTER] =
-                    "#" + toHexString(manipulateColor(backgroundColor, 1.2f)).toUpperCase() // lighter +
-                data[COLOR_PRIMARY_LIGHTER_PLUS] =
-                    "#" + toHexString(manipulateColor(backgroundColor, 1.4f)).toUpperCase() // lighter ++
-                data[COLOR_PRIMARY_LIGHTER_PLUS_PLUS] =
-                    "#" + toHexString(manipulateColor(backgroundColor, 1.6f)).toUpperCase() // lighter +++
-
-                data[THEME_COLOR_PRIMARY] = "@color/primary_neutral"
-                data[THEME_COLOR_PRIMARY_DARKER] = "@color/primary_darker_3"
-                data[THEME_COLOR_PRIMARY_LIGHTER] = "@color/primary_lighter_3"
-
-                val contrast = 1 - (((0.299 * red) + (0.587 * green) + (0.114 * blue)) / 255)
-                data[THEME_COLOR_ON_PRIMARY] = if (contrast < 0.5) "@android:color/black" else "@android:color/white"
-            }
+        if (primaryContrast < 0.5) { // LIGHT COLOR
+            fillLightColorLightTheme(seedColor)
+            fillLightColorDarkTheme(seedColor)
+        } else { // DARK COLOR
+            fillDarkColorLightTheme(seedColor)
+            fillDarkColorDarkTheme(seedColor)
         }
 
-        Log.i("data[THEME_COLOR_ON_PRIMARY] = ${data[THEME_COLOR_ON_PRIMARY]}")
-
-        var entityClassesString = ""
 
         val layoutRelationList = mutableListOf<TemplateRelationFiller>()
+        var entityClassesString = ""
 
         projectEditor.dataModelList.forEach { dataModel ->
 
@@ -1185,5 +1149,207 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         if (blueHexString.length == 1) blueHexString = "0$blueHexString"
 
         return "#$redHexString$greenHexString$blueHexString"
+    }
+
+    private fun fillLightColorLightTheme(seedColor: Int) {
+        val hexStringPrimaryColor = "#" + toHexString(manipulate(seedColor, 1.0f, 1.0, 0.33)).toUpperCase()
+        data["theme_light_primary"] = hexStringPrimaryColor
+        val primaryColor: Int = Color.parseColor(hexStringPrimaryColor)
+        data["theme_light_onPrimary"] = "@android:color/white"
+        data["theme_light_primaryContainer"] = "#" + toHexString(manipulate(primaryColor, 1.0f, 1.0, 0.93)).toUpperCase()
+        data["theme_light_onPrimaryContainer"] = "#" + toHexString(manipulate(primaryColor, 1.0f, 1.0, 0.12)).toUpperCase()
+
+        val hexStringSecondaryColor = "#" + toHexString(manipulate(primaryColor, 1.0f, 0.19, 0.37)).toUpperCase()
+        data["theme_light_secondary"] = hexStringSecondaryColor
+        val secondaryColor: Int = Color.parseColor(hexStringSecondaryColor)
+        data["theme_light_onSecondary"] = "@android:color/white"
+        data["theme_light_secondaryContainer"] = "#" + toHexString(manipulate(secondaryColor, 1.0f, 1.0, 0.93)).toUpperCase()
+        data["theme_light_onSecondaryContainer"] = "#" + toHexString(manipulate(secondaryColor, 1.0f, 1.0, 0.12)).toUpperCase()
+
+        val blendColors = ColorUtils.blendARGB(primaryColor, secondaryColor, 0.5f)
+        val analogousRightColor = analogousRightColor(blendColors, 50.0f)
+        val hexStringTertiaryColor = "#" + toHexString(manipulate(analogousRightColor, l = 0.40)).toUpperCase()
+        data["theme_light_tertiary"] = hexStringTertiaryColor
+        val tertiaryColor: Int = Color.parseColor(hexStringTertiaryColor)
+        data["theme_light_onTertiary"] = "@android:color/white"
+        data["theme_light_tertiaryContainer"] = "#" + toHexString(manipulate(tertiaryColor, 1.0f, 1.0, 0.93)).toUpperCase()
+        data["theme_light_onTertiaryContainer"] = "#" + toHexString(manipulate(tertiaryColor, 1.0f, 1.0, 0.12)).toUpperCase()
+
+        val hexStringErrorColor = "#BA1A1A"
+        data["theme_light_error"] = hexStringErrorColor
+        val errorColor: Int = Color.parseColor(hexStringErrorColor)
+        data["theme_light_onError"] = "@android:color/white"
+        data["theme_light_errorContainer"] = "#" + toHexString(manipulate(errorColor, 1.0f, 1.0, 0.93)).toUpperCase()
+        data["theme_light_onErrorContainer"] = "#" + toHexString(manipulate(errorColor, 1.0f, 1.0, 0.12)).toUpperCase()
+
+        data["theme_light_background"] = "#" + toHexString(manipulate(primaryColor, 1.0f, 1.0, 0.99)).toUpperCase()
+        data["theme_light_onBackground"] = "#" + toHexString(manipulate(primaryColor, 1.0f, 0.1, 0.11)).toUpperCase()
+        val hexStringSurfaceColor = "#" + toHexString(manipulate(primaryColor, 1.0f, 1.0, 0.99)).toUpperCase()
+        data["theme_light_surface"] = hexStringSurfaceColor
+        val hexStringOnSurfaceColor = "#" + toHexString(manipulate(primaryColor, 1.0f, 0.1, 0.11)).toUpperCase()
+        data["theme_light_onSurface"] = hexStringOnSurfaceColor
+        data["theme_light_surfaceVariant"] = "#" + toHexString(manipulate(primaryColor, 1.0f, 0.45, 0.91)).toUpperCase()
+        data["theme_light_onSurfaceVariant"] = "#" + toHexString(manipulate(primaryColor, 1.0f, 0.09, 0.29)).toUpperCase()
+        data["theme_light_outline"] = "#" + toHexString(manipulate(primaryColor, 1.0f, 0.07, 0.48)).toUpperCase()
+
+        val onSurfaceColor: Int = Color.parseColor(hexStringOnSurfaceColor)
+        data["theme_light_inverseOnSurface"] = "#" + toHexString(oppositeColor(onSurfaceColor)).toUpperCase()
+        val surfaceColor: Int = Color.parseColor(hexStringSurfaceColor)
+        data["theme_light_inverseSurface"] = "#" + toHexString(oppositeColor(surfaceColor)).toUpperCase()
+        data["theme_light_inversePrimary"] = "#" + toHexString(manipulate(seedColor, 1.0f, 1.0, 0.85)).toUpperCase()
+
+        data["theme_light_shadow"] = "@android:color/black"
+        data["theme_light_surfaceTint"] = hexStringPrimaryColor
+        data["theme_light_surfaceTintColor"] = hexStringPrimaryColor
+    }
+
+    private fun fillLightColorDarkTheme(seedColor: Int) {
+        val hexStringPrimaryColor = "#" + toHexString(manipulate(seedColor, 1.0f, 1.0, 0.68)).toUpperCase()
+        data["theme_dark_primary"] = hexStringPrimaryColor
+        val primaryColor: Int = Color.parseColor(hexStringPrimaryColor)
+        data["theme_dark_onPrimary"] = "#" + toHexString(manipulate(primaryColor, 1.0f, 1.0, 0.2)).toUpperCase()
+        data["theme_dark_primaryContainer"] = "#" + toHexString(manipulate(primaryColor, 1.0f, 1.0, 0.27)).toUpperCase()
+        data["theme_dark_onPrimaryContainer"] = "#" + toHexString(manipulate(primaryColor, 1.0f, 1.0, 0.93)).toUpperCase()
+
+        val hexStringSecondaryColor = "#" + toHexString(manipulate(primaryColor, 1.0f, 0.35, 0.77)).toUpperCase()
+        data["theme_dark_secondary"] = hexStringSecondaryColor
+        val secondaryColor: Int = Color.parseColor(hexStringSecondaryColor)
+        data["theme_dark_onSecondary"] = "#" + toHexString(manipulate(secondaryColor, 1.0f, 0.20, 0.21)).toUpperCase()
+        data["theme_dark_secondaryContainer"] = "#" + toHexString(manipulate(secondaryColor, 1.0f, 0.13, 0.31)).toUpperCase()
+        data["theme_dark_onSecondaryContainer"] = "#" + toHexString(manipulate(secondaryColor, 1.0f, 0.65, 0.92)).toUpperCase()
+
+        val blendColors = ColorUtils.blendARGB(primaryColor, secondaryColor, 0.5f)
+        val analogousRightColor = analogousRightColor(blendColors, 50.0f)
+        val hexStringTertiaryColor = "#" + toHexString(manipulate(analogousRightColor, l = 0.80)).toUpperCase()
+        data["theme_dark_tertiary"] = hexStringTertiaryColor
+        val tertiaryColor: Int = Color.parseColor(hexStringTertiaryColor)
+        data["theme_dark_onTertiary"] = "#" + toHexString(manipulate(tertiaryColor, 1.0f, 0.3, 0.21)).toUpperCase()
+        data["theme_dark_tertiaryContainer"] = "#" + toHexString(manipulate(tertiaryColor, 1.0f, 0.23, 0.3)).toUpperCase()
+        data["theme_dark_onTertiaryContainer"] = "#" + toHexString(manipulate(tertiaryColor, 1.0f, 1.0, 0.92)).toUpperCase()
+
+        val hexStringErrorColor = "#FFB4AB"
+        data["theme_dark_error"] = hexStringErrorColor
+        data["theme_dark_onError"] = "#690005"
+        data["theme_dark_errorContainer"] = "#93000A"
+        data["theme_dark_onErrorContainer"] = "#FFDAD6"
+
+        data["theme_dark_background"] = "#" + toHexString(manipulate(primaryColor, 1.0f, 0.1, 0.11)).toUpperCase()
+        data["theme_dark_onBackground"] = "#" + toHexString(manipulate(primaryColor, 1.0f, 0.09, 0.89)).toUpperCase()
+        val hexStringSurfaceColor = "#" + toHexString(manipulate(primaryColor, 1.0f, 0.1, 0.11)).toUpperCase()
+        data["theme_dark_surface"] = hexStringSurfaceColor
+        val hexStringOnSurfaceColor = "#" + toHexString(manipulate(primaryColor, 1.0f, 0.09, 0.89)).toUpperCase()
+        data["theme_dark_onSurface"] = hexStringOnSurfaceColor
+        data["theme_dark_surfaceVariant"] = "#" + toHexString(manipulate(primaryColor, 1.0f, 0.09, 0.29)).toUpperCase()
+        data["theme_dark_onSurfaceVariant"] = "#" + toHexString(manipulate(primaryColor, 1.0f, 0.1, 0.79)).toUpperCase()
+        data["theme_dark_outline"] = "#" + toHexString(manipulate(primaryColor, 1.0f, 0.05, 0.58)).toUpperCase()
+
+        data["theme_dark_inverseOnSurface"] = "#" + toHexString(manipulate(primaryColor, 1.0f, 0.1, 0.11)).toUpperCase()
+        data["theme_dark_inverseSurface"] = "#" + toHexString(manipulate(primaryColor, 1.0f, 0.09, 0.89)).toUpperCase()
+        data["theme_dark_inversePrimary"] = "#" + toHexString(manipulate(seedColor, 1.0f, 0.39, 0.42)).toUpperCase()
+
+        data["theme_dark_shadow"] = "@android:color/black"
+        data["theme_dark_surfaceTint"] = hexStringPrimaryColor
+        data["theme_dark_surfaceTintColor"] = hexStringPrimaryColor
+    }
+
+    private fun fillDarkColorLightTheme(seedColor: Int) {
+        val hexStringPrimaryColor = "#" + toHexString(manipulate(seedColor, 1.0f, 1.0, 0.33)).toUpperCase()
+        data["theme_light_primary"] = hexStringPrimaryColor
+        val primaryColor: Int = Color.parseColor(hexStringPrimaryColor)
+        data["theme_light_onPrimary"] = "@android:color/white"
+        data["theme_light_primaryContainer"] = "#" + toHexString(manipulate(primaryColor, 1.0f, 1.0, 0.87)).toUpperCase()
+        data["theme_light_onPrimaryContainer"] = "#" + toHexString(manipulate(primaryColor, 1.0f, 1.0, 0.09)).toUpperCase()
+
+        val hexStringSecondaryColor = "#" + toHexString(manipulate(primaryColor, 1.0f, 0.19, 0.37)).toUpperCase()
+        data["theme_light_secondary"] = hexStringSecondaryColor
+        val secondaryColor: Int = Color.parseColor(hexStringSecondaryColor)
+        data["theme_light_onSecondary"] = "@android:color/white"
+        data["theme_light_secondaryContainer"] = "#" + toHexString(manipulate(secondaryColor, 1.0f, 0.65, 0.87)).toUpperCase()
+        data["theme_light_onSecondaryContainer"] = "#" + toHexString(manipulate(secondaryColor, 1.0f, 0.56, 0.09)).toUpperCase()
+
+        val blendColors = ColorUtils.blendARGB(primaryColor, secondaryColor, 0.5f)
+        val analogousRightColor = analogousRightColor(blendColors, 50.0f)
+        val hexStringTertiaryColor = "#" + toHexString(manipulate(analogousRightColor, l = 0.40)).toUpperCase()
+        data["theme_light_tertiary"] = hexStringTertiaryColor
+        val tertiaryColor: Int = Color.parseColor(hexStringTertiaryColor)
+        data["theme_light_onTertiary"] = "@android:color/white"
+        data["theme_light_tertiaryContainer"] = "#" + toHexString(manipulate(tertiaryColor, 1.0f, 0.91, 0.87)).toUpperCase()
+        data["theme_light_onTertiaryContainer"] = "#" + toHexString(manipulate(tertiaryColor, 1.0f, 1.0, 0.08)).toUpperCase()
+
+        val hexStringErrorColor = "#BA1A1A"
+        data["theme_light_error"] = hexStringErrorColor
+        val errorColor: Int = Color.parseColor(hexStringErrorColor)
+        data["theme_light_onError"] = "@android:color/white"
+        data["theme_light_errorContainer"] = "#" + toHexString(manipulate(errorColor, 1.0f, 1.0, 0.93)).toUpperCase()
+        data["theme_light_onErrorContainer"] = "#" + toHexString(manipulate(errorColor, 1.0f, 1.0, 0.12)).toUpperCase()
+
+        data["theme_light_background"] = "#" + toHexString(manipulate(primaryColor, 1.0f, 1.0, 0.99)).toUpperCase()
+        data["theme_light_onBackground"] = "#" + toHexString(manipulate(primaryColor, 1.0f, 0.1, 0.11)).toUpperCase()
+        val hexStringSurfaceColor = "#" + toHexString(manipulate(primaryColor, 1.0f, 1.0, 0.99)).toUpperCase()
+        data["theme_light_surface"] = hexStringSurfaceColor
+        val hexStringOnSurfaceColor = "#" + toHexString(manipulate(primaryColor, 1.0f, 0.1, 0.11)).toUpperCase()
+        data["theme_light_onSurface"] = hexStringOnSurfaceColor
+        data["theme_light_surfaceVariant"] = "#" + toHexString(manipulate(primaryColor, 1.0f, 0.45, 0.91)).toUpperCase()
+        data["theme_light_onSurfaceVariant"] = "#" + toHexString(manipulate(primaryColor, 1.0f, 0.09, 0.29)).toUpperCase()
+        data["theme_light_outline"] = "#" + toHexString(manipulate(primaryColor, 1.0f, 0.07, 0.48)).toUpperCase()
+
+        val onSurfaceColor: Int = Color.parseColor(hexStringOnSurfaceColor)
+        data["theme_light_inverseOnSurface"] = "#" + toHexString(oppositeColor(onSurfaceColor)).toUpperCase()
+        val surfaceColor: Int = Color.parseColor(hexStringSurfaceColor)
+        data["theme_light_inverseSurface"] = "#" + toHexString(oppositeColor(surfaceColor)).toUpperCase()
+        data["theme_light_inversePrimary"] = "#" + toHexString(manipulate(seedColor, 1.0f, 1.0, 0.73)).toUpperCase()
+
+        data["theme_light_shadow"] = "@android:color/black"
+        data["theme_light_surfaceTint"] = hexStringPrimaryColor
+        data["theme_light_surfaceTintColor"] = hexStringPrimaryColor
+    }
+
+    private fun fillDarkColorDarkTheme(seedColor: Int) {
+        val hexStringPrimaryColor = "#" + toHexString(manipulate(seedColor, 1.0f, 1.0, 0.68)).toUpperCase()
+        data["theme_dark_primary"] = hexStringPrimaryColor
+        val primaryColor: Int = Color.parseColor(hexStringPrimaryColor)
+        data["theme_dark_onPrimary"] = "#" + toHexString(manipulate(primaryColor, 1.0f, 1.0, 0.15)).toUpperCase()
+        data["theme_dark_primaryContainer"] = "#" + toHexString(manipulate(primaryColor, 1.0f, 1.0, 0.21)).toUpperCase()
+        data["theme_dark_onPrimaryContainer"] = "#" + toHexString(manipulate(primaryColor, 1.0f, 1.0, 0.87)).toUpperCase()
+
+        val hexStringSecondaryColor = "#" + toHexString(manipulate(primaryColor, 1.0f, 0.35, 0.77)).toUpperCase()
+        data["theme_dark_secondary"] = hexStringSecondaryColor
+        val secondaryColor: Int = Color.parseColor(hexStringSecondaryColor)
+        data["theme_dark_onSecondary"] = "#" + toHexString(manipulate(secondaryColor, 1.0f, 0.26, 0.17)).toUpperCase()
+        data["theme_dark_secondaryContainer"] = "#" + toHexString(manipulate(secondaryColor, 1.0f, 0.17, 0.26)).toUpperCase()
+        data["theme_dark_onSecondaryContainer"] = "#" + toHexString(manipulate(secondaryColor, 1.0f, 0.65, 0.87)).toUpperCase()
+
+        val blendColors = ColorUtils.blendARGB(primaryColor, secondaryColor, 0.5f)
+        val analogousRightColor = analogousRightColor(blendColors, 50.0f)
+        val hexStringTertiaryColor = "#" + toHexString(manipulate(analogousRightColor, l = 0.80)).toUpperCase()
+        data["theme_dark_tertiary"] = hexStringTertiaryColor
+        val tertiaryColor: Int = Color.parseColor(hexStringTertiaryColor)
+        data["theme_dark_onTertiary"] = "#" + toHexString(manipulate(tertiaryColor, 1.0f, 0.55, 0.15)).toUpperCase()
+        data["theme_dark_tertiaryContainer"] = "#" + toHexString(manipulate(tertiaryColor, 1.0f, 0.35, 0.25)).toUpperCase()
+        data["theme_dark_onTertiaryContainer"] = "#" + toHexString(manipulate(tertiaryColor, 1.0f, 0.91, 0.87)).toUpperCase()
+
+        val hexStringErrorColor = "#FFB4AB"
+        data["theme_dark_error"] = hexStringErrorColor
+        data["theme_dark_onError"] = "#690005"
+        data["theme_dark_errorContainer"] = "#93000A"
+        data["theme_dark_onErrorContainer"] = "#FFDAD6"
+
+        data["theme_dark_background"] = "#" + toHexString(manipulate(primaryColor, 1.0f, 0.1, 0.11)).toUpperCase()
+        data["theme_dark_onBackground"] = "#" + toHexString(manipulate(primaryColor, 1.0f, 0.09, 0.89)).toUpperCase()
+        val hexStringSurfaceColor = "#" + toHexString(manipulate(primaryColor, 1.0f, 0.1, 0.11)).toUpperCase()
+        data["theme_dark_surface"] = hexStringSurfaceColor
+        val hexStringOnSurfaceColor = "#" + toHexString(manipulate(primaryColor, 1.0f, 0.09, 0.89)).toUpperCase()
+        data["theme_dark_onSurface"] = hexStringOnSurfaceColor
+        data["theme_dark_surfaceVariant"] = "#" + toHexString(manipulate(primaryColor, 1.0f, 0.09, 0.29)).toUpperCase()
+        data["theme_dark_onSurfaceVariant"] = "#" + toHexString(manipulate(primaryColor, 1.0f, 0.1, 0.79)).toUpperCase()
+        data["theme_dark_outline"] = "#" + toHexString(manipulate(primaryColor, 1.0f, 0.05, 0.58)).toUpperCase()
+
+        data["theme_dark_inverseOnSurface"] = "#" + toHexString(manipulate(primaryColor, 1.0f, 0.1, 0.11)).toUpperCase()
+        data["theme_dark_inverseSurface"] = "#" + toHexString(manipulate(primaryColor, 1.0f, 0.09, 0.89)).toUpperCase()
+        data["theme_dark_inversePrimary"] = "#" + toHexString(manipulate(seedColor, 1.0f, 1.0, 0.27)).toUpperCase()
+
+        data["theme_dark_shadow"] = "@android:color/black"
+        data["theme_dark_surfaceTint"] = hexStringPrimaryColor
+        data["theme_dark_surfaceTintColor"] = hexStringPrimaryColor
     }
 }
