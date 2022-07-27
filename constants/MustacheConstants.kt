@@ -54,18 +54,4 @@ object MustacheConstants {
     const val HAS_DATASET = "hasDataSet"
     const val PERMISSIONS = "permissions"
     const val DEBUG_MODE = "debug_mode"
-
-    const val COLORS_DEFINED = "logo_colors_defined"
-    const val COLOR_PRIMARY_NEUTRAL = "color_primary_neutral"
-    const val COLOR_PRIMARY_DARKER = "color_primary_darker_08"
-    const val COLOR_PRIMARY_DARKER_PLUS = "color_primary_darker_06"
-    const val COLOR_PRIMARY_DARKER_PLUS_PLUS = "color_primary_darker_04"
-    const val COLOR_PRIMARY_LIGHTER = "color_primary_lighter_12"
-    const val COLOR_PRIMARY_LIGHTER_PLUS = "color_primary_lighter_14"
-    const val COLOR_PRIMARY_LIGHTER_PLUS_PLUS = "color_primary_lighter_16"
-
-    const val THEME_COLOR_PRIMARY = "theme_color_primary"
-    const val THEME_COLOR_PRIMARY_DARKER = "theme_color_primary_darker"
-    const val THEME_COLOR_PRIMARY_LIGHTER = "theme_color_primary_lighter"
-    const val THEME_COLOR_ON_PRIMARY = "theme_color_on_primary"
 }

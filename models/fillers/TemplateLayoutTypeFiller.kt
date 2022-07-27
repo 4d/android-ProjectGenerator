@@ -10,9 +10,9 @@ fun getLayoutManagerType(formPath: String): String {
         type = it.getSafeObject("tags")?.getSafeString("___LISTFORMTYPE___") ?: "Collection"
     }
     return when (type) {
-        "Collection" -> "GRID"
-        "Table" -> "LINEAR"
-        else -> "LINEAR"
+        "Collection" -> "LayoutType.GRID"
+        "Table" -> "LayoutType.LINEAR"
+        else -> "LayoutType.LINEAR"
     }
 }
 
@@ -24,8 +24,8 @@ fun isSwipeAllowed(formPath: String): Boolean {
         }
     }
     return when (getLayoutManagerType(formPath)) {
-        "GRID" -> false
-        "LINEAR" -> true
+        "LayoutType.GRID" -> false
+        "LayoutType.LINEAR" -> true
         else -> true
     }
 }
