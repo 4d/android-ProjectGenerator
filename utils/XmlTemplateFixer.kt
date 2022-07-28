@@ -224,7 +224,7 @@ fun replaceTemplateText(oldFormText: String, formType: FormType): String {
                 "${indent}{{/field_${id}_is_image}}\n" +
                 "${indent}{{/field_${id}_defined}}\n" +
                 "${indent}{{^field_${id}_defined}}\n" +
-                "${indent}app:imageDrawable=\"@{@drawable/ic_placeholder}\"\n" +
+                "${indent}app:imageDrawable=\"@{@drawable/image_not_supported}\"\n" +
                 "${indent}{{/field_${id}_defined}}"
     }
 
