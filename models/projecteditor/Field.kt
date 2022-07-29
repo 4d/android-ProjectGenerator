@@ -123,8 +123,13 @@ fun Field.isManyToOneRelation(dataModelList: List<DataModel>): Boolean =
     this.relatedEntities == null && this.isRelation(dataModelList)
 
 fun correctIconPath(iconPath: String): String {
-    val correctedIconPath = iconPath
-        .substring(0, iconPath.lastIndexOf('.')) // removes extension
+    // removes extension
+    val withoutExt = if (iconPath.contains(".")) {
+        iconPath.substring(0, iconPath.lastIndexOf('.'))
+    } else {
+        iconPath
+    }
+    val correctedIconPath = withoutExt
         .replace(".+/".toRegex(), "")
         .removePrefix(File.separator)
         .toLowerCase()
