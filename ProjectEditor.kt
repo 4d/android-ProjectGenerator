@@ -206,12 +206,7 @@ class ProjectEditor(projectEditorFile: File, val catalogDef: CatalogDef, isCreat
                         actionObject.getSafeString("label")?.let { newAction.label = it }
                         actionObject.getSafeString("scope")?.let { newAction.scope = it }
                         actionObject.getSafeInt("tableNumber")?.let { newAction.tableNumber = it }
-                        val icon = actionObject.getSafeString("icon")
-                        newAction.icon = if (icon.isNullOrEmpty()) {
-                            correctIconPath("action_icon_$actionName")
-                        } else {
-                            icon
-                        }
+                        actionObject.getSafeString("icon")?.let { newAction.icon = it }
                         actionObject.getSafeString("preset")?.let { newAction.preset = it }
                         actionObject.getSafeString("style")?.let { newAction.style = it }
                         actionObject.getSafeArray("parameters")?.let { parametersArray ->
