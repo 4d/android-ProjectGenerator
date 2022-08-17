@@ -5,6 +5,7 @@ import DefaultValues.LAYOUT_FILE
 import FileHelperConstants.ACTIONS_FILENAME
 import FileHelperConstants.APP_INFO_FILENAME
 import FileHelperConstants.CUSTOM_FORMATTERS_FILENAME
+import FileHelperConstants.DEFAULT_SORT_FIELDS_FILENAME
 import FileHelperConstants.DS_STORE
 import FileHelperConstants.TABLE_INFO_FILENAME
 import FileHelperConstants.SEARCHABLE_FIELDS_FILENAME
@@ -983,7 +984,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
     }
 
     fun makeDefaultSortFieldList(){
-        makeJsonFile("default_sort_fields.json", projectEditor.defaultSortFields)
+        makeJsonFile(DEFAULT_SORT_FIELDS_FILENAME, projectEditor.defaultSortFields)
     }
     private fun makeJsonFile(fileName: String, content: Any) {
         val file = File(fileHelper.pathHelper.assetsPath(), fileName)

@@ -4,7 +4,6 @@ import ProjectEditorConstants.FIELDTYPE_KEY
 import ProjectEditorConstants.FILTER_KEY
 import ProjectEditorConstants.FORMAT_KEY
 import ProjectEditorConstants.ICON_KEY
-import ProjectEditorConstants.INT_TYPE
 import ProjectEditorConstants.INVERSENAME_KEY
 import ProjectEditorConstants.ISTOMANY_KEY
 import ProjectEditorConstants.KIND_KEY
@@ -880,26 +879,43 @@ fun JSONObject?.getSubFields(dataModelName: String, catalogDef: CatalogDef): Lis
 fun JSONObject?.getDefaultSortFields(dataModelList: List<DataModel>): JSONObject {
     val list = this?.getSafeObject(PROJECT_KEY)?.getSafeObject("list")
     val jsonObject = JSONObject()
+
     list?.names()?.forEach {
+        val tableName = dataModelList.find { model ->
+            model.id == it
+        }?.name
 
         val item = list.getSafeObject(it as String) as JSONObject
-        val fields = item.getSafeArray("fields")
 
-        val defaultSortField = // skip if photo 'filetype = 3
-                fields?.filter { it1 -> it1.toString() != "null" }?.firstOrNull {
-                    // skip if photo 'filetype = 3
-                    it3 ->
-                    (it3 as JSONObject).getSafeInt("fieldType") != 3
-                }
+        val onlySearchableField = item.getSafeObject("searchableField")
 
-        if (defaultSortField != null) {
-            val tableName = dataModelList.find { model ->
-                model.id == it
-            }?.name
+        // if only one searchableField it will be a jsonObject and not an array in project.4DMobileApp
+        if (onlySearchableField != null) {
+            jsonObject.put(tableName, (onlySearchableField).getSafeString("name")?.fieldAdjustment())
 
-            val name = (defaultSortField as JSONObject).getSafeString("name")?.fieldAdjustment()
-            Log.e(":::::::::: $tableName  $name ")
-            jsonObject.put(tableName, name)
+        } else {
+            // if only one searchableField it will be a jsonObject and not an array[] in project.4DMobileApp
+            val multipleSearchableFields = item.getSafeArray("searchableField")
+            val fields = if (multipleSearchableFields != null && !multipleSearchableFields.isEmpty) {
+                multipleSearchableFields
+            } else {
+                item.getSafeArray("fields")
+            }
+
+            val defaultSortField = // skip if photo 'filetype = 3
+                    fields?.filter { it1 -> it1.toString() != "null" }?.firstOrNull {
+                        // skip if photo 'filetype = 3
+                        it3 ->
+                        (it3 as JSONObject).getSafeInt("fieldType") != 3
+                    }
+
+            if (defaultSortField != null) {
+                val name = (defaultSortField as JSONObject).getSafeString("name")?.fieldAdjustment()
+                jsonObject.put(tableName, name)
+            } else {
+                // if no search field and no field visible we use the primary key as default sort field
+                jsonObject.put(tableName, "__KEY")
+            }
         }
     }
 
