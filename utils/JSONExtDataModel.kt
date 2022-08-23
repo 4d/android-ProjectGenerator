@@ -906,7 +906,7 @@ fun JSONObject?.getDefaultSortFields(dataModelList: List<DataModel>): JSONObject
                     fields?.filter { it1 -> it1.toString() != "null" }?.firstOrNull {
                         // skip if photo 'filetype = 3
                         it3 ->
-                        (it3 as JSONObject).getSafeInt("fieldType") != 3
+                        (it3 as JSONObject).getSafeInt("fieldType") != 3 &&  it3.getSafeString("kind") != "alias"
                     }
 
             if (defaultSortField != null) {
