@@ -1123,7 +1123,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
     }
 
     private fun getImageSize(form: Form, fieldName: String, type: String): Int {
-        customFormattersFields[form.dataModel.name.tableNameAdjustment()]?.get(fieldName.fieldAdjustment())?.let{ fieldMapping ->
+        customFormattersFields[form.dataModel.name.tableNameAdjustment()]?.get(fieldName)?.let{ fieldMapping ->
             return when (type) {
                 "width" -> fieldMapping.imageWidth ?: 0
                 "height" -> fieldMapping.imageHeight ?: 0
@@ -1134,7 +1134,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
     }
 
     private fun isImageNamedBinding(form: Form, fieldName: String): Boolean {
-        customFormattersFields[form.dataModel.name.tableNameAdjustment()]?.get(fieldName.fieldAdjustment())?.let{ fieldMapping ->
+        customFormattersFields[form.dataModel.name.tableNameAdjustment()]?.get(fieldName)?.let{ fieldMapping ->
             return fieldMapping.isImageNamed()
         }
         return false
