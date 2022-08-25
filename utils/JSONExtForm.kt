@@ -67,66 +67,110 @@ fun JSONObject.getFormList(dataModelList: List<DataModel>, formType: FormType, n
 
 fun JSONObject.getSearchFields(dataModelList: List<DataModel>, catalogDef: CatalogDef): HashMap<String, List<String>> {
     val searchFields = HashMap<String, List<String>>()
-    this.getSafeObject("project")?.let { project ->
-        project.getSafeObject("list")?.let { listForms ->
-            listForms.keys().forEach eachTableIndex@{ tableIndex ->
-                if (tableIndex !is String) return@eachTableIndex
-                val tableSearchableFields = mutableListOf<String>()
-                val tableName = dataModelList.find { it.id == tableIndex }?.name
-                listForms.getSafeObject(tableIndex)?.let { listForm ->
-                    // could be an array or an object (object if only one item dropped)
-                    val searchableFieldAsArray = listForm.getSafeArray("searchableField")
-                    if (searchableFieldAsArray != null) {
-                        for (ind in 0 until searchableFieldAsArray.length()) {
-                            searchableFieldAsArray.getSafeObject(ind)?.let { jsonObject ->
-                                jsonObject.getSafeString("kind")?.let { kind ->
-                                    if (kind == "alias") {
-                                        jsonObject.getSafeString("path")?.let { path ->
-                                            val unAliasedPath = unAliasPath(path, tableName ?: "", catalogDef)
-                                            Log.v("Adding searchField alias ${unAliasedPath.fieldAdjustment()} for table $tableName")
-                                            tableSearchableFields.add(unAliasedPath.fieldAdjustment())
-                                        }
-                                    } else {
-                                        jsonObject.getSafeString("name")?.let { fieldName ->
-                                            Log.v("Adding searchField ${fieldName.fieldAdjustment()} for table $tableName")
-                                            tableSearchableFields.add(fieldName.fieldAdjustment())
-                                        }
-                                    }
-                                }
-
-                            }
-                        }
-                    } else {
-                        val searchableFieldAsObject = listForm.getSafeObject("searchableField")
-                        if (searchableFieldAsObject != null) {
-                            searchableFieldAsObject.getSafeString("kind")?.let { kind ->
+    this.getSafeObject(PROJECT_KEY)?.getSafeObject("list")?.let { listForms ->
+        listForms.keys().forEach eachTableIndex@{ tableIndex ->
+            if (tableIndex !is String) return@eachTableIndex
+            val tableSearchableFields = mutableListOf<String>()
+            val tableName = dataModelList.find { it.id == tableIndex }?.name
+            listForms.getSafeObject(tableIndex)?.let { listForm ->
+                // could be an array or an object (object if only one item dropped)
+                val searchableFieldAsArray = listForm.getSafeArray("searchableField")
+                if (searchableFieldAsArray != null) {
+                    for (ind in 0 until searchableFieldAsArray.length()) {
+                        searchableFieldAsArray.getSafeObject(ind)?.let { jsonObject ->
+                            jsonObject.getSafeString("kind")?.let { kind ->
                                 if (kind == "alias") {
-                                    searchableFieldAsObject.getSafeString("path")?.let { path ->
+                                    jsonObject.getSafeString("path")?.let { path ->
                                         val unAliasedPath = unAliasPath(path, tableName ?: "", catalogDef)
-                                        Log.v("Adding searchField alias ${unAliasedPath.fieldAdjustment()} for table $tableName")
-                                        tableSearchableFields.add(unAliasedPath.fieldAdjustment())
+                                        Log.v("Adding searchField alias $unAliasedPath for table $tableName")
+                                        tableSearchableFields.add(unAliasedPath)
                                     }
                                 } else {
-                                    searchableFieldAsObject.getSafeString("name")?.let { fieldName ->
-                                        Log.v("Adding searchField ${fieldName.fieldAdjustment()} for table $tableName")
-                                        tableSearchableFields.add(fieldName.fieldAdjustment())
+                                    jsonObject.getSafeString("name")?.let { fieldName ->
+                                        Log.v("Adding searchField $fieldName for table $tableName")
+                                        tableSearchableFields.add(fieldName)
                                     }
                                 }
                             }
-                        } else {
-                            Log.w("searchField definition error for table $tableName")
+
                         }
                     }
-                }
-                if (tableSearchableFields.size != 0) { // if has search field add it
-                    if (tableName != null) {
-                        searchFields[tableName.tableNameAdjustment()] = tableSearchableFields
+                } else {
+                    val searchableFieldAsObject = listForm.getSafeObject("searchableField")
+                    if (searchableFieldAsObject != null) {
+                        searchableFieldAsObject.getSafeString("kind")?.let { kind ->
+                            if (kind == "alias") {
+                                searchableFieldAsObject.getSafeString("path")?.let { path ->
+                                    val unAliasedPath = unAliasPath(path, tableName ?: "", catalogDef)
+                                    Log.v("Adding searchField alias $unAliasedPath for table $tableName")
+                                    tableSearchableFields.add(unAliasedPath)
+                                }
+                            } else {
+                                searchableFieldAsObject.getSafeString("name")?.let { fieldName ->
+                                    Log.v("Adding searchField $fieldName for table $tableName")
+                                    tableSearchableFields.add(fieldName)
+                                }
+                            }
+                        }
                     } else {
-                        Log.e("Cannot get tableName for index $tableIndex when filling search fields")
+                        Log.w("searchField definition error for table $tableName")
                     }
                 }
             }
-        } // else no list form, so no search fields
-    }
+            if (tableSearchableFields.size != 0) { // if has search field add it
+                if (tableName != null) {
+                    searchFields[tableName.tableNameAdjustment()] = tableSearchableFields
+                } else {
+                    Log.e("Cannot get tableName for index $tableIndex when filling search fields")
+                }
+            }
+        }
+    } // else no list form, so no search fields
     return searchFields
+}
+
+fun JSONObject.getDefaultSortFields(dataModelList: List<DataModel>): HashMap<String, String> {
+    val list = this.getSafeObject(PROJECT_KEY)?.getSafeObject("list")
+    val sortFields = HashMap<String, String>()
+    list?.names()?.forEach { dataModelId ->
+        val tableName = dataModelList.find { it.id == dataModelId }?.name
+
+        if (tableName != null) {
+
+            val item = list.getSafeObject(dataModelId as String) as JSONObject
+
+            val onlySearchableField = item.getSafeObject("searchableField")
+
+            // if only one searchableField it will be a jsonObject and not an array in project.4DMobileApp
+            if (onlySearchableField != null) {
+                onlySearchableField.getSafeString("name")?.let { fieldName ->
+                    sortFields[tableName.tableNameAdjustment()] = fieldName
+                }
+            } else {
+                // if only one searchableField it will be a jsonObject and not an array[] in project.4DMobileApp
+                val multipleSearchableFields = item.getSafeArray("searchableField")
+                val fields = if (multipleSearchableFields != null && !multipleSearchableFields.isEmpty) {
+                    multipleSearchableFields
+                } else {
+                    item.getSafeArray("fields")
+                }
+
+                val defaultSortField = // skip if photo 'filetype = 3
+                    fields?.filter { it.toString() != "null" }?.firstOrNull {
+                        (it as JSONObject).getSafeInt("fieldType") != 3 &&  it.getSafeString("kind") != "alias"
+                    }
+
+                if (defaultSortField != null) {
+                    (defaultSortField as JSONObject).getSafeString("name")?.let { fieldName ->
+                        sortFields[tableName.tableNameAdjustment()] = fieldName
+                    }
+                } else {
+                    // if no search field and no field visible we use the primary key as default sort field
+                    sortFields[tableName.tableNameAdjustment()] = "__KEY"
+                }
+            }
+        }
+    }
+
+    return sortFields
 }

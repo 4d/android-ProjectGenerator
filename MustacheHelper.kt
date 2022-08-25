@@ -5,10 +5,8 @@ import DefaultValues.LAYOUT_FILE
 import FileHelperConstants.ACTIONS_FILENAME
 import FileHelperConstants.APP_INFO_FILENAME
 import FileHelperConstants.CUSTOM_FORMATTERS_FILENAME
-import FileHelperConstants.DEFAULT_SORT_FIELDS_FILENAME
 import FileHelperConstants.DS_STORE
 import FileHelperConstants.TABLE_INFO_FILENAME
-import FileHelperConstants.SEARCHABLE_FIELDS_FILENAME
 import MustacheConstants.ANDROID_SDK_PATH
 import MustacheConstants.APP_NAME_WITH_CAPS
 import MustacheConstants.AUTHOR
@@ -971,10 +969,6 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         makeJsonFile(CUSTOM_FORMATTERS_FILENAME, customFormattersFields)
     }
 
-    fun makeSearchableFields() {
-        makeJsonFile(SEARCHABLE_FIELDS_FILENAME, projectEditor.searchableFields)
-    }
-
     fun makeActions() {
         val hasActionsFeatureFlag = projectEditor.findJsonBoolean(FeatureFlagConstants.HAS_ACTIONS_KEY) ?: false
         Log.d("hasActionsFeatureFlag = $hasActionsFeatureFlag")
@@ -983,9 +977,6 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         }
     }
 
-    fun makeDefaultSortFieldList(){
-        makeJsonFile(DEFAULT_SORT_FIELDS_FILENAME, projectEditor.defaultSortFields)
-    }
     private fun makeJsonFile(fileName: String, content: Any) {
         val file = File(fileHelper.pathHelper.assetsPath(), fileName)
         file.parentFile.mkdirs()
