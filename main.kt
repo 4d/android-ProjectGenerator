@@ -153,17 +153,9 @@ class GenerateCommand : CliktCommand(name = "generate") {
 
         Log.i("\"custom_formatters.json\" file successfully generated.")
 
-        mustacheHelper.makeSearchableFields()
-
-        Log.i("\"searchable_fields.json\" file successfully generated.")
-
         mustacheHelper.makeActions()
 
         Log.i("\"actions.json\" file successfully generated.")
-
-
-        //Fields to sort by used in the case when table have zero sort actions
-        mustacheHelper.makeDefaultSortFieldList()
         
         Log.d("Output: ${projectEditor.findJsonString("targetDirPath")}")
     }

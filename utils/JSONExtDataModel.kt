@@ -876,53 +876,6 @@ fun JSONObject?.getSubFields(dataModelName: String, catalogDef: CatalogDef): Lis
     return subList
 }
 
-fun JSONObject?.getDefaultSortFields(dataModelList: List<DataModel>): JSONObject {
-    val list = this?.getSafeObject(PROJECT_KEY)?.getSafeObject("list")
-    val jsonObject = JSONObject()
-
-    list?.names()?.forEach {
-        val tableName = dataModelList.find { model ->
-            model.id == it
-        }?.name
-
-        val item = list.getSafeObject(it as String) as JSONObject
-
-        val onlySearchableField = item.getSafeObject("searchableField")
-
-        // if only one searchableField it will be a jsonObject and not an array in project.4DMobileApp
-        if (onlySearchableField != null) {
-            jsonObject.put(tableName, (onlySearchableField).getSafeString("name")?.fieldAdjustment())
-
-        } else {
-            // if only one searchableField it will be a jsonObject and not an array[] in project.4DMobileApp
-            val multipleSearchableFields = item.getSafeArray("searchableField")
-            val fields = if (multipleSearchableFields != null && !multipleSearchableFields.isEmpty) {
-                multipleSearchableFields
-            } else {
-                item.getSafeArray("fields")
-            }
-
-            val defaultSortField = // skip if photo 'filetype = 3
-                    fields?.filter { it1 -> it1.toString() != "null" }?.firstOrNull {
-                        // skip if photo 'filetype = 3
-                        it3 ->
-                        (it3 as JSONObject).getSafeInt("fieldType") != 3 &&  it3.getSafeString("kind") != "alias"
-                    }
-
-            if (defaultSortField != null) {
-                val name = (defaultSortField as JSONObject).getSafeString("name")?.fieldAdjustment()
-                jsonObject.put(tableName, name)
-            } else {
-                // if no search field and no field visible we use the primary key as default sort field
-                jsonObject.put(tableName, "__KEY")
-            }
-        }
-    }
-
-    return jsonObject
-}
-
-
 fun buildNewKeyField(name: String): Field {
     val newKeyField =
         Field(name = "__${name.validateWordDecapitalized()}Key")

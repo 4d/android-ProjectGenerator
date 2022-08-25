@@ -46,10 +46,9 @@ class ProjectEditor(projectEditorFile: File, val catalogDef: CatalogDef, isCreat
     lateinit var listFormList: List<Form>
     lateinit var detailFormList: List<Form>
     lateinit var navigationTableList: List<String>
-    lateinit var searchableFields: HashMap<String, List<String>>
-
-    lateinit var defaultSortFields: JSONObject
-    lateinit var jsonObj: JSONObject
+    private lateinit var searchableFields: HashMap<String, List<String>>
+    private lateinit var defaultSortFields: HashMap<String, String>
+    private lateinit var jsonObj: JSONObject
 
     init {
         val jsonString = projectEditorFile.readFile()
@@ -184,10 +183,14 @@ class ProjectEditor(projectEditorFile: File, val catalogDef: CatalogDef, isCreat
                 .filter { !(it.name.startsWith("__") && it.name.endsWith("Key")) }
                 .joinToString { if (it.isNativeType(dataModelList)) it.name else it.name + ".*" }
 
+            val searchFields = searchableFields[tableName] ?: listOf()
+
             val queryAndFields = TableInfo(
                 originalName = originalTableName,
                 query = query,
                 fields = fieldsConcat,
+                searchFields = searchFields.joinToString(),
+                defaultSortField = defaultSortFields[tableName] ?: "__KEY"
             )
 
             map[tableName] = queryAndFields
