@@ -66,7 +66,7 @@ fun getFirstTarget(catalogDef: CatalogDef, relation: Relation): String {
 }
 
 fun getEmbeddedReturnType(relation: Relation): String {
-    return if (relation.path.contains(".")) relation.relation_embedded_return_type else relation.target
+    return if (relation.path.contains(".")) relation.relation_embedded_return_type.tableNameAdjustment() else relation.target.tableNameAdjustment()
 }
 
 fun getKeyName(catalogDef: CatalogDef, relation: Relation): String {
@@ -122,15 +122,15 @@ fun Relation.getTemplateRelationForRoomFiller(catalogDef: CatalogDef): TemplateR
             this.name
         return TemplateRelationForRoomFiller(
             className = getEmbeddedReturnTypeName(source, name),
-            relation_source = source,
-            relation_target = target,
+            relation_source = source.tableNameAdjustment(),
+            relation_target = target.tableNameAdjustment(),
             relation_name = name,
             relation_source_camelCase = source.fieldAdjustment(),
             key_name = key.fieldAdjustment(),
-            relation_embedded_return_type = target,
+            relation_embedded_return_type = target.tableNameAdjustment(),
             firstIsToMany = this.type == RelationType.ONE_TO_MANY,
             relation_part_name = name.fieldAdjustment(),
-            firstTarget = target
+            firstTarget = target.tableNameAdjustment()
         )
     } else {
         if (this.path.count { it == '.' } > 0) {
@@ -149,8 +149,8 @@ fun Relation.getTemplateRelationForRoomFiller(catalogDef: CatalogDef): TemplateR
                 Log.d("key = $key")
                 return TemplateRelationForRoomFiller(
                     className = getEmbeddedReturnTypeName(source, name),
-                    relation_source = source,
-                    relation_target = target,
+                    relation_source = source.tableNameAdjustment(),
+                    relation_target = target.tableNameAdjustment(),
                     relation_name = name,
                     relation_source_camelCase = source.fieldAdjustment(),
                     key_name = key.fieldAdjustment(),
