@@ -211,6 +211,7 @@ class ProjectEditor(projectEditorFile: File, val catalogDef: CatalogDef, isCreat
                         actionObject.getSafeInt("tableNumber")?.let { newAction.tableNumber = it }
                         actionObject.getSafeString("icon")?.let { newAction.icon = it }
                         actionObject.getSafeString("preset")?.let { newAction.preset = it }
+                        actionObject.getSafeString("description")?.let { newAction.description = it }
                         actionObject.getSafeString("style")?.let { newAction.style = it }
                         actionObject.getSafeArray("parameters")?.let { parametersArray ->
                             val parameterList = mutableListOf<ActionParameter>()
