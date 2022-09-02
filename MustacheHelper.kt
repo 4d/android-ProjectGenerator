@@ -614,7 +614,9 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
             var maxFields = 0
             getManifestJSONContent(formPath)?.let {
                 specificFieldsCount = it.getSafeObject("fields")?.getSafeInt("count") ?: 0
-                maxFields = it.getSafeObject("fields")?.getSafeInt("max") ?: detailForm.fields?.size ?: 0
+                val manifestMaxFields = it.getSafeObject("fields")?.getSafeInt("max") ?: 0
+                val defMaxFields = detailForm.fields?.size ?: 0
+                maxFields = if (manifestMaxFields > defMaxFields) defMaxFields else manifestMaxFields
                 if (maxFields == 0) maxFields = detailForm.fields?.size ?: 0
             }
 
@@ -645,6 +647,11 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                 val formFieldList = mutableListOf<TemplateFormFieldFiller>()
 
                                 detailForm.fields?.let { fieldList ->
+
+                                    Log.d("My detailForm field list :")
+                                    fieldList.forEach {
+                                        Log.d(it.name)
+                                    }
 
                                     var wholeFormHasIcons = false
 
@@ -706,7 +713,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                                 var k = specificFieldsCount // another counter to avoid null field
 
                                                 for (i in specificFieldsCount until maxFields) {
-
+                                                    Log.d("index i is $i, specificFieldsCount $specificFieldsCount, maxFields $maxFields")
                                                     val field = fieldList[i]
 
                                                     if (field.name.isNotEmpty()) {
