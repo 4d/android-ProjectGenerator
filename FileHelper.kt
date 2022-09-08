@@ -1,4 +1,8 @@
+import FileHelperConstants.DS_STORE
 import FileHelperConstants.kotlinProjectDirs
+import PathHelperConstants.ANDROID_PATH_KEY
+import PathHelperConstants.DRAWABLE_PATH_KEY
+import PathHelperConstants.RES_PATH_KEY
 import PathHelperConstants.TEMPLATE_PLACEHOLDER
 import PathHelperConstants.XML_TXT_EXT
 import org.json.JSONObject
@@ -93,6 +97,15 @@ fun File.readFile(): String {
 
 // Used for both custom templates and custom formatters
 fun getManifest(path: String): File = File(path + File.separator + "manifest.json")
+
+fun getInputControlIconFile(path: String): String? {
+    val folder = File(path + File.separator + ANDROID_PATH_KEY + File.separator + RES_PATH_KEY + File.separator + DRAWABLE_PATH_KEY)
+    folder.walkTopDown().filter { file -> !file.isHidden && file.isFile && folder.absolutePath.contains(file.parent) && file.name != DS_STORE }
+        .firstOrNull()?.let { firstFile ->
+            return firstFile.name
+        }
+    return null
+}
 
 // Used for both custom templates and custom formatters
 fun getManifestJSONContent(path: String): JSONObject? {

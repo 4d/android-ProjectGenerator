@@ -27,5 +27,6 @@ data class ActionParameter(
     var fieldName: String? = null,
     var tableName: String? = null,
     var defaultField: String? = null,
-    var rules: List<Any>? = null
+    var rules: List<Any>? = null,
+    var inputControlIcon: String? = null
 )

@@ -25,6 +25,7 @@
 //INCLUDE models/fillers/TemplateFieldFiller.kt
 //INCLUDE models/fillers/TemplateFormatterFiller.kt
 //INCLUDE models/fillers/TemplateFormFieldFiller.kt
+//INCLUDE models/fillers/TemplateInputControlFiller.kt
 //INCLUDE models/fillers/TemplateLayoutFiller.kt
 //INCLUDE models/fillers/TemplateLayoutTypeFiller.kt
 //INCLUDE models/fillers/TemplatePermissionFiller.kt

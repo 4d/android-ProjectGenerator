@@ -18,8 +18,7 @@ fun getTemplatePermissionFiller(name: String): TemplatePermissionFiller {
                 "        android:maxSdkVersion=\"28\" />"
         Permissions.CAMERA -> "<uses-feature android:name=\"android.hardware.camera\"/>\n" +
                 "<uses-permission android:name=\"$name\" />"
-        else -> "<uses-permission\n" +
-                "        android:name=\"$name\" />"
+        else -> "<uses-permission android:name=\"$name\" />"
     }
     return TemplatePermissionFiller(permission = line)
 }

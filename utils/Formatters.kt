@@ -33,3 +33,12 @@ fun FieldMapping.isValidKotlinCustomDataFormatter(): Boolean {
     }
     return this.name != null && !this.binding.isNullOrEmpty() && isTargetOk
 }
+
+fun FieldMapping.isValidInputControl(): Boolean {
+    val isTargetOk = when (target) {
+        is String -> target == "android"
+        is List<*> -> target.contains("android") || target.isEmpty()
+        else -> false
+    }
+    return this.name != null && !this.binding.isNullOrEmpty() && isTargetOk
+}
