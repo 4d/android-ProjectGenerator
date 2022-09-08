@@ -39,6 +39,8 @@ import ProjectEditorConstants.VERSION
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
+import java.util.stream.Collectors
+import java.util.stream.IntStream
 
 class ProjectEditor(projectEditorFile: File, val catalogDef: CatalogDef, isCreateDatabaseCommand: Boolean = false) {
 
@@ -202,16 +204,19 @@ class ProjectEditor(projectEditorFile: File, val catalogDef: CatalogDef, isCreat
     fun getActions(): Actions {
         val actionList = mutableListOf<Action>()
         jsonObj.getSafeObject(PROJECT_KEY)?.getSafeArray(ACTIONS_KEY)?.let { actionsArray ->
-            for (i in 0 until actionsArray.length()) {
-                actionsArray.getSafeObject(i)?.let { actionObject ->
+
+            val hasOpenUrlActionFeatureFlag = findJsonBoolean(FeatureFlagConstants.HAS_OPEN_URL_ACTION_KEY)
+                    ?: true
+            var actionObjects = IntStream.range(0, actionsArray.length()).mapToObj { actionsArray.getJSONObject(it) }.collect(Collectors.toList())
+            if (!hasOpenUrlActionFeatureFlag) {
+                actionObjects = actionObjects.filter { jsonObject -> jsonObject.getSafeString("preset") != "openURL" }
+            }
+
+            for (i in actionObjects.indices) {
+                actionObjects[i]?.let { actionObject ->
                     actionObject.getSafeString("name")?.let { actionName ->
-
-                        val hasOpenUrlActionFeatureFlag = findJsonBoolean(FeatureFlagConstants.HAS_OPEN_URL_ACTION_KEY)
-                                ?: false
                         val isOpenUrlAction = actionObject.getSafeString("preset") == "openURL"
-
                         // If action is openUrl and OpenUrlActionFeatureFlag  is disabled the action should be skipped
-                        if (!(!hasOpenUrlActionFeatureFlag && isOpenUrlAction)) {
                             val newAction = Action(actionName)
                             actionObject.getSafeString("shortLabel")?.let { newAction.shortLabel = it }
                             actionObject.getSafeString("label")?.let { newAction.label = it }
@@ -259,7 +264,7 @@ class ProjectEditor(projectEditorFile: File, val catalogDef: CatalogDef, isCreat
                                 newAction.parameters = parameterList
                             }
                             actionList.add(newAction)
-                        }
+
                     }
                 }
             }
