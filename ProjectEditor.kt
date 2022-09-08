@@ -215,55 +215,53 @@ class ProjectEditor(projectEditorFile: File, val catalogDef: CatalogDef, isCreat
             for (i in actionObjects.indices) {
                 actionObjects[i]?.let { actionObject ->
                     actionObject.getSafeString("name")?.let { actionName ->
-                        val isOpenUrlAction = actionObject.getSafeString("preset") == "openURL"
-                        // If action is openUrl and OpenUrlActionFeatureFlag  is disabled the action should be skipped
-                            val newAction = Action(actionName)
-                            actionObject.getSafeString("shortLabel")?.let { newAction.shortLabel = it }
-                            actionObject.getSafeString("label")?.let { newAction.label = it }
-                            actionObject.getSafeString("scope")?.let { newAction.scope = it }
-                            actionObject.getSafeInt("tableNumber")?.let { newAction.tableNumber = it }
-                            actionObject.getSafeString("icon")?.let { newAction.icon = it }
-                            actionObject.getSafeString("preset")?.let { newAction.preset = it }
-                            actionObject.getSafeString("description")?.let { newAction.description = it }
-                            actionObject.getSafeString("style")?.let { newAction.style = it }
-                            actionObject.getSafeArray("parameters")?.let { parametersArray ->
-                                val parameterList = mutableListOf<ActionParameter>()
-                                for (j in 0 until parametersArray.length()) {
-                                    parametersArray.getSafeObject(j)?.let { parameter ->
-                                        parameter.getSafeString("name")?.let { parameterName ->
-                                            val newParameter = ActionParameter(parameterName)
-                                            parameter.getSafeString("label")?.let { newParameter.label = it }
-                                            parameter.getSafeString("shortLabel")?.let { newParameter.shortLabel = it }
-                                            parameter.getSafeString("type")?.let { newParameter.type = it }
-                                            parameter.getSafeString("default")?.let { newParameter.default = it }
-                                            parameter.getSafeString("placeholder")?.let { newParameter.placeholder = it }
-                                            parameter.getSafeString("format")?.let { newParameter.format = it }
-                                            actionObject.getSafeInt("fieldNumber")?.let { newParameter.fieldNumber = it }
-                                            parameter.getSafeString("defaultField")?.let {
-                                                newParameter.defaultField = parameterName.fieldAdjustment()
-                                                // If field is an alias, set target field as defaultField
-                                                getDefaultFieldForAlias(newAction.tableNumber, parameterName)?.let { defaultField ->
-                                                    newParameter.defaultField = defaultField
-                                                    getFieldName(newAction.tableNumber, parameterName)?.let { newParameter.fieldName = it }
-                                                    getTableName(newAction.tableNumber, parameterName)?.let { newParameter.tableName = it }
-                                                }
+                        val newAction = Action(actionName)
+                        actionObject.getSafeString("shortLabel")?.let { newAction.shortLabel = it }
+                        actionObject.getSafeString("label")?.let { newAction.label = it }
+                        actionObject.getSafeString("scope")?.let { newAction.scope = it }
+                        actionObject.getSafeInt("tableNumber")?.let { newAction.tableNumber = it }
+                        actionObject.getSafeString("icon")?.let { newAction.icon = it }
+                        actionObject.getSafeString("preset")?.let { newAction.preset = it }
+                        actionObject.getSafeString("description")?.let { newAction.description = it }
+                        actionObject.getSafeString("style")?.let { newAction.style = it }
+                        actionObject.getSafeArray("parameters")?.let { parametersArray ->
+                            val parameterList = mutableListOf<ActionParameter>()
+                            for (j in 0 until parametersArray.length()) {
+                                parametersArray.getSafeObject(j)?.let { parameter ->
+                                    parameter.getSafeString("name")?.let { parameterName ->
+                                        val newParameter = ActionParameter(parameterName)
+                                        parameter.getSafeString("label")?.let { newParameter.label = it }
+                                        parameter.getSafeString("shortLabel")?.let { newParameter.shortLabel = it }
+                                        parameter.getSafeString("type")?.let { newParameter.type = it }
+                                        parameter.getSafeString("default")?.let { newParameter.default = it }
+                                        parameter.getSafeString("placeholder")?.let { newParameter.placeholder = it }
+                                        parameter.getSafeString("format")?.let { newParameter.format = it }
+                                        actionObject.getSafeInt("fieldNumber")?.let { newParameter.fieldNumber = it }
+                                        parameter.getSafeString("defaultField")?.let {
+                                            newParameter.defaultField = parameterName.fieldAdjustment()
+                                            // If field is an alias, set target field as defaultField
+                                            getDefaultFieldForAlias(newAction.tableNumber, parameterName)?.let { defaultField ->
+                                                newParameter.defaultField = defaultField
+                                                getFieldName(newAction.tableNumber, parameterName)?.let { newParameter.fieldName = it }
+                                                getTableName(newAction.tableNumber, parameterName)?.let { newParameter.tableName = it }
                                             }
-                                            parameter.getSafeArray("rules")?.let { rulesArray ->
-                                                val rulesList = mutableListOf<Any>()
-                                                for (k in 0 until rulesArray.length()) {
-                                                    // can be a string or an object
-                                                    rulesArray.getSafeString(k)?.let { rulesList.add(it) }
-                                                    rulesArray.getSafeObject(k)?.let { rulesList.add(it.toStringMap()) }
-                                                }
-                                                newParameter.rules = rulesList
-                                            }
-                                            parameterList.add(newParameter)
                                         }
+                                        parameter.getSafeArray("rules")?.let { rulesArray ->
+                                            val rulesList = mutableListOf<Any>()
+                                            for (k in 0 until rulesArray.length()) {
+                                                // can be a string or an object
+                                                rulesArray.getSafeString(k)?.let { rulesList.add(it) }
+                                                rulesArray.getSafeObject(k)?.let { rulesList.add(it.toStringMap()) }
+                                            }
+                                            newParameter.rules = rulesList
+                                        }
+                                        parameterList.add(newParameter)
                                     }
                                 }
-                                newAction.parameters = parameterList
                             }
-                            actionList.add(newAction)
+                            newAction.parameters = parameterList
+                        }
+                        actionList.add(newAction)
 
                     }
                 }
