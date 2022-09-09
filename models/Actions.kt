@@ -12,8 +12,9 @@ data class Action(
     var icon: String? = null,
     var preset: String? = null,
     var style: String? = null,
-    var parameters: List<ActionParameter>? = null
-)
+    var parameters: List<ActionParameter>? = null,
+    var description: String? = null
+    )
 
 data class ActionParameter(
     val name: String,
