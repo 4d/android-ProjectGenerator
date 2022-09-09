@@ -338,7 +338,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         data[CUSTOM_FORMATTER_IMAGES] = customFormatterImages
         data[HAS_CUSTOM_FORMATTER_IMAGES] = customFormatterImages.isNotEmpty()
 
-        data[HAS_DATASET] = projectEditor.findJsonBoolean(FeatureFlagConstants.HAS_DATASET_KEY) ?: false
+        data[HAS_DATASET] = projectEditor.findJsonBoolean(FeatureFlagConstants.HAS_DATASET_KEY) ?: true
 
         getAllInputControls()
         data[INPUT_CONTROLS] = inputControls.distinct()
@@ -986,7 +986,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
     }
 
     fun makeActions() {
-        val hasActionsFeatureFlag = projectEditor.findJsonBoolean(FeatureFlagConstants.HAS_ACTIONS_KEY) ?: false
+        val hasActionsFeatureFlag = projectEditor.findJsonBoolean(FeatureFlagConstants.HAS_ACTIONS_KEY) ?: true
         Log.d("hasActionsFeatureFlag = $hasActionsFeatureFlag")
         if (hasActionsFeatureFlag) {
             makeJsonFile(ACTIONS_FILENAME, actions)
@@ -1030,7 +1030,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
     }
 
     private fun getAllInputControls() {
-        val hasInputControlsFeatureFlag = projectEditor.findJsonBoolean(FeatureFlagConstants.HAS_INPUT_CONTROLS) ?: false
+        val hasInputControlsFeatureFlag = projectEditor.findJsonBoolean(FeatureFlagConstants.HAS_INPUT_CONTROLS) ?: true
         if (hasInputControlsFeatureFlag) {
             getInputControls(actions.table.values)
             getInputControls(actions.currentRecord.values)

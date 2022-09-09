@@ -2,7 +2,7 @@ import java.io.File
 
 class FeatureChecker(projectEditor: ProjectEditor) {
 
-    private val hasDataSet = projectEditor.findJsonBoolean(FeatureFlagConstants.HAS_DATASET_KEY) ?: false
+    private val hasDataSet = projectEditor.findJsonBoolean(FeatureFlagConstants.HAS_DATASET_KEY) ?: true
     private val debugMode = projectEditor.findJsonBoolean("debugMode") ?: false
 
     private val filesPathToSkipIfDataSet = listOf<String>(

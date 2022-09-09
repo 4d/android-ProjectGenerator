@@ -14,7 +14,7 @@ fun getFieldMapping(manifestContent: JSONObject, format: String): FieldMapping =
         tintable = manifestContent.getSafeObject("assets")?.getSafeBoolean("tintable"),
         target = manifestContent.getSafeString("target") ?: manifestContent.getSafeArray("target")
             .getStringList(), // target can be a String or a JSONArray,
-        capabilities = manifestContent.getSafeObject("capabilities")?.getSafeArray("android").getStringList()
+        capabilities = manifestContent.getSafeObject("capabilities").checkCapabilities()
     )
 
 fun getSize(manifestContent: JSONObject, type: String): Int? =
