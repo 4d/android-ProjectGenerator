@@ -1054,19 +1054,26 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                         class_name = inputControlClass
                                     )
                                     inputControls.add(templateInputControlFiller)
-                                }
 
-                                val fieldMapping = getFieldMapping(it, format)
-                                Log.d("fieldMapping for input control :  $fieldMapping")
+                                    val fieldMapping = getFieldMapping(it, format)
+                                    Log.d("fieldMapping for input control :  $fieldMapping")
 
-                                if (fieldMapping.isValidInputControl()) {
-                                    // Saving any permission for input controls
-                                    fieldMapping.capabilities.forEach { permissionName ->
-                                        permissionFillerList.add(getTemplatePermissionFiller(permissionName))
-                                    }
-                                    // Add icon name in actions
-                                    getInputControlIconFile(inputControlPath)?.let { iconName ->
-                                        actionParameter.inputControlIcon = iconName
+                                    if (fieldMapping.isValidInputControl()) {
+                                        // Saving any permission for input controls
+                                        fieldMapping.capabilities.forEach { permissionName ->
+                                            permissionFillerList.add(getTemplatePermissionFiller(permissionName))
+                                        }
+                                        // Add icon name in actions of type text
+                                        val shouldGetInputControlIcon = when (fieldMapping.type) {
+                                            is String -> fieldMapping.type == "text"
+                                            is List<*> -> fieldMapping.type.contains("text") || fieldMapping.type.isEmpty()
+                                            else -> false
+                                        }
+                                        if (shouldGetInputControlIcon) {
+                                            getInputControlIconFile(inputControlPath)?.let { iconName ->
+                                                actionParameter.inputControlIcon = iconName
+                                            }
+                                        }
                                     }
                                 }
                             }
