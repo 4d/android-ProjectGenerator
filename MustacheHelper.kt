@@ -1063,17 +1063,6 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                         fieldMapping.capabilities.forEach { permissionName ->
                                             permissionFillerList.add(getTemplatePermissionFiller(permissionName))
                                         }
-                                        // Add icon name in actions of type text
-                                        val shouldGetInputControlIcon = when (fieldMapping.type) {
-                                            is String -> fieldMapping.type == "text"
-                                            is List<*> -> fieldMapping.type.contains("text") || fieldMapping.type.isEmpty()
-                                            else -> false
-                                        }
-                                        if (shouldGetInputControlIcon) {
-                                            getInputControlIconFile(inputControlPath)?.let { iconName ->
-                                                actionParameter.inputControlIcon = iconName
-                                            }
-                                        }
                                     }
                                 }
                             }
