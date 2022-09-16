@@ -297,7 +297,7 @@ class PathHelper(
                     .filter { file -> !file.isHidden && file.isFile && currentFolder.absolutePath.contains(file.parent) && file.name != DS_STORE }
                     .forEach { currentFile ->
                         val fileContent: String = currentFile.readFile()
-                        if (fileContent.contains("@InputControl")) {
+                        if (fileContent.contains("@KotlinInputControl")) {
                             return currentFile.name.substringBefore(".")
                         }
                     }
