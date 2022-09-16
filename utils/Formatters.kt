@@ -26,19 +26,21 @@ fun FieldMapping.isValidFormatter(): Boolean =
             && this.choiceList != null && this.name != null
 
 fun FieldMapping.isValidKotlinCustomDataFormatter(): Boolean {
-    val isTargetOk = when (target) {
-        is String -> target == "android"
-        is List<*> -> target.contains("android") || target.isEmpty()
-        else -> false
-    }
-    return this.name != null && !this.binding.isNullOrEmpty() && isTargetOk
+    return this.name != null && !this.binding.isNullOrEmpty() && this.isTargetOk()
 }
 
 fun FieldMapping.isValidKotlinInputControl(): Boolean {
-    val isTargetOk = when (target) {
-        is String -> target == "android"
-        is List<*> -> target.contains("android") || target.isEmpty()
-        else -> false
+    return this.name != null && this.isTargetOk()
+}
+
+fun FieldMapping.isTargetOk(): Boolean {
+    var isTargetOk = true
+    this.target?.let { target ->
+        isTargetOk = when (target) {
+            is String -> target == "android"
+            is List<*> -> target.contains("android") || target.isEmpty()
+            else -> false
+        }
     }
-    return this.name != null && !this.binding.isNullOrEmpty() && isTargetOk
+    return isTargetOk
 }
