@@ -53,6 +53,6 @@ object MustacheConstants {
     const val RELATIONS_MANY_TO_ONE_FOR_DETAIL = "relations_many_to_one_for_detail"
     const val HAS_DATASET = "hasDataSet"
     const val PERMISSIONS = "permissions"
-    const val INPUT_CONTROLS = "input_controls"
+    const val KOTLIN_INPUT_CONTROLS = "kotlin_input_controls"
     const val DEBUG_MODE = "debug_mode"
 }

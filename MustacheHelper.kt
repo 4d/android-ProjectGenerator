@@ -28,7 +28,7 @@ import MustacheConstants.HAS_CUSTOM_FORMATTER_IMAGES
 import MustacheConstants.HAS_DATASET
 import MustacheConstants.HAS_RELATION
 import MustacheConstants.HAS_REMOTE_ADDRESS
-import MustacheConstants.INPUT_CONTROLS
+import MustacheConstants.KOTLIN_INPUT_CONTROLS
 import MustacheConstants.PACKAGE
 import MustacheConstants.PERMISSIONS
 import MustacheConstants.RELATIONS
@@ -108,7 +108,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
     private val actions = projectEditor.getActions()
 
-    private var inputControls = mutableListOf<TemplateInputControlFiller>()
+    private var kotlinInputControls = mutableListOf<TemplateInputControlFiller>()
 
 
     init {
@@ -341,7 +341,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         data[HAS_DATASET] = projectEditor.findJsonBoolean(FeatureFlagConstants.HAS_DATASET_KEY) ?: true
 
         getAllInputControls()
-        data[INPUT_CONTROLS] = inputControls.distinct()
+        data[KOTLIN_INPUT_CONTROLS] = kotlinInputControls.distinct()
 
         getAllActionPermissions()
         data[PERMISSIONS] = permissionFillerList.distinct()
@@ -1030,7 +1030,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
     }
 
     private fun getAllInputControls() {
-        val hasInputControlsFeatureFlag = projectEditor.findJsonBoolean(FeatureFlagConstants.HAS_INPUT_CONTROLS) ?: true
+        val hasInputControlsFeatureFlag = projectEditor.findJsonBoolean(FeatureFlagConstants.HAS_KOTLIN_INPUT_CONTROLS) ?: true
         if (hasInputControlsFeatureFlag) {
             getInputControls(actions.table.values)
             getInputControls(actions.currentRecord.values)
@@ -1046,19 +1046,19 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                             val inputControlPath = fileHelper.pathHelper.getInputControlPath(format)
                             getManifestJSONContent(inputControlPath)?.let {
 
-                                val inputControlClass = fileHelper.pathHelper.findMatchingInputControlClass(inputControlPath)
-                                if (inputControlClass != null) {
+                                val kotlinInputControlClass = fileHelper.pathHelper.findMatchingKotlinInputControlClass(inputControlPath)
+                                if (kotlinInputControlClass != null) {
 
                                     val templateInputControlFiller = TemplateInputControlFiller(
                                         name = format.removePrefix("/"),
-                                        class_name = inputControlClass
+                                        class_name = kotlinInputControlClass
                                     )
-                                    inputControls.add(templateInputControlFiller)
+                                    kotlinInputControls.add(templateInputControlFiller)
 
                                     val fieldMapping = getFieldMapping(it, format)
                                     Log.d("fieldMapping for input control :  $fieldMapping")
 
-                                    if (fieldMapping.isValidInputControl()) {
+                                    if (fieldMapping.isValidKotlinInputControl()) {
                                         // Saving any permission for input controls
                                         fieldMapping.capabilities.forEach { permissionName ->
                                             permissionFillerList.add(getTemplatePermissionFiller(permissionName))

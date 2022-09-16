@@ -289,7 +289,7 @@ class PathHelper(
         return null
     }
 
-    fun findMatchingInputControlClass(basePath: String): String? {
+    fun findMatchingKotlinInputControlClass(basePath: String): String? {
         Log.d("findMatchingInputControlClass, basePath : $basePath")
         File(basePath).walkTopDown().filter { folder -> !folder.isHidden && folder.isDirectory }
             .forEach { currentFolder ->
