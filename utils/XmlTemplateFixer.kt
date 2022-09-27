@@ -128,6 +128,12 @@ fun replaceTemplateText(oldFormText: String, formType: FormType): String {
         "{{tableName_lowercase}}_field_value_${id}"
     }
 
+    regex = ("___LABEL_SPECIFIC_ID_(\\d+)___").toRegex()
+    newFormText = regex.replace(newFormText) { matchResult ->
+        val id = matchResult.destructured.component1()
+        "{{tableName_lowercase}}_field_label_${id}"
+    }
+
     regex = ("(\\h*)android:text=\"___BUTTON_(\\d+)___\"").toRegex()
     newFormText = regex.replace(newFormText) { matchResult ->
         val indent = matchResult.destructured.component1()
