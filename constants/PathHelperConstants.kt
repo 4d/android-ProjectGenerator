@@ -17,6 +17,7 @@ object PathHelperConstants {
     const val SRC_PATH_KEY = "src"
     const val MAIN_PATH_KEY = "main"
     const val RES_PATH_KEY = "res"
+    const val DRAWABLE_PATH_KEY = "drawable"
     const val NAVIGATION_PATH_KEY = "navigation"
     const val ASSETS_PATH_KEY = "assets"
     const val LAYOUT_PATH_KEY = "layout"
@@ -27,6 +28,7 @@ object PathHelperConstants {
     const val RECYCLER_VIEW_ITEM_PREFIX = "recyclerview_item_"
     const val DETAIL_FORM_PREFIX = "fragment_detail_"
     const val HOST_FORMATTERS_KEY = "formatters"
+    const val HOST_INPUT_CONTROLS_KEY = "inputControls"
     const val FORMATTERS_FORMATTER_KEY = "Formatters"
 
     /**

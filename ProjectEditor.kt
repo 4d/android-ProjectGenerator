@@ -139,6 +139,7 @@ class ProjectEditor(projectEditorFile: File, val catalogDef: CatalogDef, isCreat
             FeatureFlagConstants.HAS_RELATIONS_KEY -> jsonObj.getSafeBoolean(FeatureFlagConstants.HAS_RELATIONS_KEY)
             FeatureFlagConstants.HAS_ACTIONS_KEY -> jsonObj.getSafeBoolean(FeatureFlagConstants.HAS_ACTIONS_KEY)
             FeatureFlagConstants.HAS_DATASET_KEY -> jsonObj.getSafeBoolean(FeatureFlagConstants.HAS_DATASET_KEY)
+            FeatureFlagConstants.HAS_KOTLIN_INPUT_CONTROLS -> jsonObj.getSafeBoolean(FeatureFlagConstants.HAS_KOTLIN_INPUT_CONTROLS)
             FeatureFlagConstants.HAS_OPEN_URL_ACTION_KEY -> jsonObj.getSafeBoolean(FeatureFlagConstants.HAS_OPEN_URL_ACTION_KEY)
             "debugMode" -> jsonObj.getSafeBoolean(DEBUG_MODE_KEY)
             else -> null

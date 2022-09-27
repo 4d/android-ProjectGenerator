@@ -1,4 +1,8 @@
+import FileHelperConstants.DS_STORE
 import FileHelperConstants.kotlinProjectDirs
+import PathHelperConstants.ANDROID_PATH_KEY
+import PathHelperConstants.DRAWABLE_PATH_KEY
+import PathHelperConstants.RES_PATH_KEY
 import PathHelperConstants.TEMPLATE_PLACEHOLDER
 import PathHelperConstants.XML_TXT_EXT
 import org.json.JSONObject

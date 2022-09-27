@@ -20,6 +20,10 @@
 import DefaultValues.DEFAULT_APPLICATION
 import DefaultValues.DEFAULT_COMPANY
 import DefaultValues.DEFAULT_PACKAGE
+import FileHelperConstants.ACTIONS_FILENAME
+import FileHelperConstants.APP_INFO_FILENAME
+import FileHelperConstants.CUSTOM_FORMATTERS_FILENAME
+import FileHelperConstants.TABLE_INFO_FILENAME
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.subcommands
 import com.github.ajalt.clikt.parameters.options.option
@@ -143,19 +147,19 @@ class GenerateCommand : CliktCommand(name = "generate") {
 
         mustacheHelper.makeTableInfo()
 
-        Log.i("\"tableInfo.json\" file successfully generated.")
+        Log.i("\"$TABLE_INFO_FILENAME\" file successfully generated.")
 
         mustacheHelper.makeAppInfo()
 
-        Log.i("\"app_info.json\" file successfully generated.")
+        Log.i("\"$APP_INFO_FILENAME\" file successfully generated.")
 
         mustacheHelper.makeCustomFormatters()
 
-        Log.i("\"custom_formatters.json\" file successfully generated.")
+        Log.i("\"$CUSTOM_FORMATTERS_FILENAME\" file successfully generated.")
 
         mustacheHelper.makeActions()
 
-        Log.i("\"actions.json\" file successfully generated.")
+        Log.i("\"$ACTIONS_FILENAME\" file successfully generated.")
         
         Log.d("Output: ${projectEditor.findJsonString("targetDirPath")}")
     }

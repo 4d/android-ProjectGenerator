@@ -1,5 +1,6 @@
 import DefaultValues.DEFAULT_DETAIL_FORM
 import DefaultValues.DEFAULT_LIST_FORM
+import FileHelperConstants.DS_STORE
 import FileHelperConstants.TEMPORARY_UNZIPPED_TEMPLATE_PREFIX
 import PathHelperConstants.ANDROID_PATH_KEY
 import PathHelperConstants.APP_PATH_KEY
@@ -9,6 +10,7 @@ import PathHelperConstants.DETAIL_FORM_PREFIX
 import PathHelperConstants.FORMATTERS_FORMATTER_KEY
 import PathHelperConstants.HOST_FORMATTERS_KEY
 import PathHelperConstants.HOST_FORMS
+import PathHelperConstants.HOST_INPUT_CONTROLS_KEY
 import PathHelperConstants.JAVA_PATH_KEY
 import PathHelperConstants.LAYOUT_PATH_KEY
 import PathHelperConstants.LIST_FORMS_KEY
@@ -79,6 +81,8 @@ class PathHelper(
     private val hostDetailFormTemplatesPath = hostFormTemplatesPath + File.separator + DETAIL_FORMS_KEY
 
     private val hostFormattersPath = hostDb + File.separator + HOST_FORMATTERS_KEY
+
+    private val hostInputControlsPath = hostDb + File.separator + HOST_INPUT_CONTROLS_KEY
 
     private val srcPath = targetDirPath + File.separator +
             APP_PATH_KEY + File.separator +
@@ -244,6 +248,61 @@ class PathHelper(
             return hostFormattersPath + File.separator + newFormatterName.removePrefix(File.separator)
         }
         throw IllegalArgumentException("Getting path of formatter $name that is not a host one ie. starting with '/'")
+    }
+
+    // Need to browse all input controls and check their manifest name value
+    fun getInputControlPath(name: String): String {
+        if (name.startsWith("/")) {
+            var inputControlPath = ""
+            inputControlPath = hostInputControlsPath
+            var newInputControlName = name
+            if (name.endsWith(".zip")) {
+                val zipFile = File(inputControlPath + File.separator + name.removePrefix("/"))
+                if (zipFile.exists()) {
+                    val tmpDir = ZipManager.unzip(zipFile)
+                    tmpUnzippedTemplateListToBeDeleted.add(tmpDir)
+                    newInputControlName = TEMPORARY_UNZIPPED_TEMPLATE_PREFIX + name.removePrefix("/").removeSuffix(".zip")
+                } else {
+                    throw IllegalArgumentException("Zip file '$name' could not be found")
+                }
+            return hostInputControlsPath + File.separator + newInputControlName.removePrefix(File.separator)
+            } else {
+                findAppropriateFolder(hostInputControlsPath, name)?.let { inputControlFolder ->
+                    return hostInputControlsPath + File.separator + inputControlFolder.name
+                }
+            }
+        }
+        throw IllegalArgumentException("Getting path of input control $name that is not a host one ie. starting with '/'")
+    }
+
+    fun findAppropriateFolder(basePath: String, nameInManifest: String): File? {
+        Log.d("findAppropriateFolder, basePath : $basePath, nameInManifest: $nameInManifest")
+        File(basePath).walkTopDown().filter { folder -> !folder.isHidden && folder.isDirectory }
+            .forEach { currentFolder ->
+                Log.d("currentfolder: $currentFolder")
+                getManifestJSONContent(currentFolder.absolutePath.replaceIfWindowsPath())?.let { jsonContent ->
+                    if (jsonContent.getSafeString("name") == nameInManifest.removePrefix("/")) {
+                        return currentFolder
+                    }
+                }
+            }
+        return null
+    }
+
+    fun findMatchingKotlinInputControlClass(basePath: String): String? {
+        Log.d("findMatchingInputControlClass, basePath : $basePath")
+        File(basePath).walkTopDown().filter { folder -> !folder.isHidden && folder.isDirectory }
+            .forEach { currentFolder ->
+                currentFolder.walkTopDown()
+                    .filter { file -> !file.isHidden && file.isFile && currentFolder.absolutePath.contains(file.parent) && file.name != DS_STORE }
+                    .forEach { currentFile ->
+                        val fileContent: String = currentFile.readFile()
+                        if (fileContent.contains("@KotlinInputControl")) {
+                            return currentFile.name.substringBefore(".")
+                        }
+                    }
+            }
+        return null
     }
 
     fun deleteTemporaryUnzippedDirectories() {

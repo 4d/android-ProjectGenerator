@@ -28,6 +28,7 @@ import MustacheConstants.HAS_CUSTOM_FORMATTER_IMAGES
 import MustacheConstants.HAS_DATASET
 import MustacheConstants.HAS_RELATION
 import MustacheConstants.HAS_REMOTE_ADDRESS
+import MustacheConstants.KOTLIN_INPUT_CONTROLS
 import MustacheConstants.PACKAGE
 import MustacheConstants.PERMISSIONS
 import MustacheConstants.RELATIONS
@@ -104,6 +105,11 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
     // <tableName, List<Fields>>
     private val tableFieldsMap = mutableMapOf<String, List<Field>>()
+
+    private val actions = projectEditor.getActions()
+
+    private var kotlinInputControls = mutableListOf<TemplateInputControlFiller>()
+
 
     init {
         Log.d("==================================\n" +
@@ -332,7 +338,10 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         data[CUSTOM_FORMATTER_IMAGES] = customFormatterImages
         data[HAS_CUSTOM_FORMATTER_IMAGES] = customFormatterImages.isNotEmpty()
 
-        data[HAS_DATASET] = projectEditor.findJsonBoolean(FeatureFlagConstants.HAS_DATASET_KEY) ?: false
+        data[HAS_DATASET] = projectEditor.findJsonBoolean(FeatureFlagConstants.HAS_DATASET_KEY) ?: true
+
+        getAllInputControls()
+        data[KOTLIN_INPUT_CONTROLS] = kotlinInputControls.distinct()
 
         getAllActionPermissions()
         data[PERMISSIONS] = permissionFillerList.distinct()
@@ -977,10 +986,10 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
     }
 
     fun makeActions() {
-        val hasActionsFeatureFlag = projectEditor.findJsonBoolean(FeatureFlagConstants.HAS_ACTIONS_KEY) ?: false
+        val hasActionsFeatureFlag = projectEditor.findJsonBoolean(FeatureFlagConstants.HAS_ACTIONS_KEY) ?: true
         Log.d("hasActionsFeatureFlag = $hasActionsFeatureFlag")
         if (hasActionsFeatureFlag) {
-            makeJsonFile(ACTIONS_FILENAME, projectEditor.getActions())
+            makeJsonFile(ACTIONS_FILENAME, actions)
         }
     }
 
@@ -1004,8 +1013,8 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
     }
 
     private fun getAllActionPermissions() {
-        getActionPermissions(projectEditor.getActions().table.values)
-        getActionPermissions(projectEditor.getActions().currentRecord.values)
+        getActionPermissions(actions.table.values)
+        getActionPermissions(actions.currentRecord.values)
     }
 
     private fun getActionPermissions(actionListPerTable: Collection<List<Action>>) {
@@ -1014,6 +1023,50 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                 action.parameters?.forEach { actionParameter ->
                     if (actionParameter.type == "string" && actionParameter.format == "barcode") {
                         permissionFillerList.add(getTemplatePermissionFiller(Permissions.CAMERA))
+                    }
+                }
+            }
+        }
+    }
+
+    private fun getAllInputControls() {
+        val hasInputControlsFeatureFlag = projectEditor.findJsonBoolean(FeatureFlagConstants.HAS_KOTLIN_INPUT_CONTROLS) ?: true
+        if (hasInputControlsFeatureFlag) {
+            getInputControls(actions.table.values)
+            getInputControls(actions.currentRecord.values)
+        }
+    }
+
+    private fun getInputControls(actionListPerTable: Collection<List<Action>>) {
+        actionListPerTable.forEach { actions ->
+            actions.forEach { action ->
+                action.parameters?.forEach { actionParameter ->
+                    actionParameter.format?.let { format ->
+                        if (format.startsWith("/")) {
+                            val inputControlPath = fileHelper.pathHelper.getInputControlPath(format)
+                            getManifestJSONContent(inputControlPath)?.let {
+
+                                val kotlinInputControlClass = fileHelper.pathHelper.findMatchingKotlinInputControlClass(inputControlPath)
+                                if (kotlinInputControlClass != null) {
+
+                                    val templateInputControlFiller = TemplateInputControlFiller(
+                                        name = format.removePrefix("/"),
+                                        class_name = kotlinInputControlClass
+                                    )
+                                    kotlinInputControls.add(templateInputControlFiller)
+
+                                    val fieldMapping = getFieldMapping(it, format)
+                                    Log.d("fieldMapping for input control :  $fieldMapping")
+
+                                    if (fieldMapping.isValidKotlinInputControl()) {
+                                        // Saving any permission for input controls
+                                        fieldMapping.capabilities.forEach { permissionName ->
+                                            permissionFillerList.add(getTemplatePermissionFiller(permissionName))
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -1054,12 +1107,13 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
                                 val fieldMapping = getFieldMapping(it, format)
                                 Log.d("fieldMapping :  $fieldMapping")
-                                // Saving any permission for kotlin custom formatters
-                                fieldMapping.capabilities.forEach { permissionName ->
-                                    permissionFillerList.add(getTemplatePermissionFiller(permissionName))
-                                }
 
                                 if (fieldMapping.isValidFormatter()) {
+                                    // Saving any permission for kotlin custom formatters
+                                    fieldMapping.capabilities.forEach { permissionName ->
+                                        permissionFillerList.add(getTemplatePermissionFiller(permissionName))
+                                    }
+
                                     extractFormatter(fieldMapping, formatPath, format)
                                     map[field.name] = fieldMapping
                                 }
@@ -1106,9 +1160,9 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
     private fun getResourceName(format: String, imageName: String, darkModeExists: Boolean): Pair<String, String> {
         val correctedFormatName = format
             .removePrefix("/")
+            .substringBefore(".") // removes extension for .zip file
             .toLowerCase()
             .replace("[^a-z0-9]+".toRegex(), "_")
-
 
         Log.d("getResourceName, correctedFormatName : $correctedFormatName")
 
