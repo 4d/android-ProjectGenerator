@@ -17,7 +17,7 @@ fun String.replaceXmlTxtSuffix() =
  */
 
 fun String.tableNameAdjustment() =
-    this.condense().capitalize(Locale.getDefault()).replaceSpecialChars().firstCharForTable().validateWord()
+    this.condense().capitalize(Locale.getDefault()).replaceSpecialChars().firstCharForTable().validateWord().capitalize(Locale.getDefault())
 
 fun String.fieldAdjustment() =
     this.condense().replaceSpecialChars().lowerCustomProperties().validateWordDecapitalized()
