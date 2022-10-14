@@ -45,13 +45,21 @@ private fun String.lowerCustomProperties() =
         this
     else
         when {
-            this.startsWith("__") && this.endsWith("Key") -> this.removeSuffix("Key").decapitalize(Locale.getDefault()) + "Key"
+            this.startsWith("__") && this.endsWith("Key") -> this.removeSuffix("Key").decapitalize2firstChars() + "Key"
             this == "ID" -> this
-            else -> this.decapitalize(Locale.getDefault())
+            else -> this.decapitalize2firstChars()
         }
 
+private fun String.decapitalize2firstChars(): String {
+    return when (this.length) {
+        0 -> ""
+        1 -> this.toLowerCase()
+        else -> this.substring(0, 2).toLowerCase() + this.substring(2, this.length)
+    }
+}
+
 private fun String.decapitalizeExceptID() =
-    if (this == "ID") this else this.decapitalize(Locale.getDefault())
+    if (this == "ID") this else this.decapitalize2firstChars()
 
 private fun String.firstCharForTable(): String =
     if (this.startsWith("_"))
