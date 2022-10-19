@@ -252,37 +252,44 @@ class PathHelper(
 
     // Need to browse all input controls and check their manifest name value
     fun getInputControlPath(name: String): String {
+        Log.d("getInputControlPath: name = $name")
         if (name.startsWith("/")) {
-            var inputControlPath = ""
-            inputControlPath = hostInputControlsPath
-            var newInputControlName = name
-            if (name.endsWith(".zip")) {
-                val zipFile = File(inputControlPath + File.separator + name.removePrefix("/"))
-                if (zipFile.exists()) {
-                    val tmpDir = ZipManager.unzip(zipFile)
-                    tmpUnzippedTemplateListToBeDeleted.add(tmpDir)
-                    newInputControlName = TEMPORARY_UNZIPPED_TEMPLATE_PREFIX + name.removePrefix("/").removeSuffix(".zip")
-                } else {
-                    throw IllegalArgumentException("Zip file '$name' could not be found")
-                }
-            return hostInputControlsPath + File.separator + newInputControlName.removePrefix(File.separator)
-            } else {
-                findAppropriateFolder(hostInputControlsPath, name)?.let { inputControlFolder ->
-                    return hostInputControlsPath + File.separator + inputControlFolder.name
-                }
+            findAppropriateFolder(hostInputControlsPath, name)?.let { inputControlFolder ->
+                return hostInputControlsPath + File.separator + inputControlFolder.name
+            }
+            // check for zip
+            findAppropriateZip(hostInputControlsPath, name)?.let { unzippedArchive ->
+                return unzippedArchive.absolutePath.replaceIfWindowsPath()
             }
         }
         throw IllegalArgumentException("Getting path of input control $name that is not a host one ie. starting with '/'")
     }
 
-    fun findAppropriateFolder(basePath: String, nameInManifest: String): File? {
+    private fun findAppropriateFolder(basePath: String, nameInManifest: String): File? {
         Log.d("findAppropriateFolder, basePath : $basePath, nameInManifest: $nameInManifest")
         File(basePath).walkTopDown().filter { folder -> !folder.isHidden && folder.isDirectory }
             .forEach { currentFolder ->
-                Log.d("currentfolder: $currentFolder")
                 getManifestJSONContent(currentFolder.absolutePath.replaceIfWindowsPath())?.let { jsonContent ->
                     if (jsonContent.getSafeString("name") == nameInManifest.removePrefix("/")) {
                         return currentFolder
+                    }
+                }
+            }
+        return null
+    }
+
+    private fun findAppropriateZip(basePath: String, nameInManifest: String): File? {
+        Log.d("findAppropriateZip, basePath : $basePath, nameInManifest: $nameInManifest")
+        File(basePath).walkTopDown().filter { file -> !file.isHidden && file.isFile && file.extension == "zip" }
+            .forEach { zipFile ->
+                Log.d("zipFile: $zipFile")
+                val tmpDir = ZipManager.unzip(zipFile)
+                tmpUnzippedTemplateListToBeDeleted.add(tmpDir)
+                tmpDir.walkTopDown().firstOrNull { zipContent -> zipContent.name == "manifest.json" }?.let { manifestFile ->
+                    getManifestJSONContent(manifestFile)?.let { jsonContent ->
+                        if (jsonContent.getSafeString("name") == nameInManifest.removePrefix("/")) {
+                            return tmpDir
+                        }
                     }
                 }
             }

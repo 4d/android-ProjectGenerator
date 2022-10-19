@@ -101,8 +101,12 @@ fun getManifest(path: String): File = File(path + File.separator + "manifest.jso
 // Used for both custom templates and custom formatters
 fun getManifestJSONContent(path: String): JSONObject? {
     val manifest = getManifest(path)
-    return if (manifest.exists()) {
-        val jsonString = manifest.readFile()
+    return getManifestJSONContent(manifest)
+}
+
+fun getManifestJSONContent(manifestFile: File): JSONObject? {
+    return if (manifestFile.exists()) {
+        val jsonString = manifestFile.readFile()
         retrieveJSONObject(jsonString)
     } else
         null
