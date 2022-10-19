@@ -183,8 +183,11 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
             }
         }
         Log.d("> Cache 4D SDK = ${data[CACHE_4D_SDK_PATH]}")
-        if (!File("${data[CACHE_4D_SDK_PATH]}").exists()) {
-            throw Exception("Cache 4D SDK path do not exists. Define it correctly.")
+        val hasNoSDK = projectEditor.findJsonBoolean(FeatureFlagConstants.HAS_NO_SDK_KEY) ?: false
+        if (!hasNoSDK) {
+            if (!File("${data[CACHE_4D_SDK_PATH]}").exists()) {
+                throw Exception("Cache 4D SDK path does not exist. Define it correctly.")
+            }
         }
 
         val defaultSeed = "rgb(103,80,164)" // #6750A4
