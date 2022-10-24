@@ -28,11 +28,11 @@ fun getTemplatePermissionFiller(name: String): TemplatePermissionFiller {
     return TemplatePermissionFiller(permission = line)
 }
 
-fun JSONObject?.checkCapabilities(): List<String> {
+fun JSONObject.checkCapabilities(): List<String> {
     return when {
-        this?.getSafeArray("android") != null -> this.getSafeArray("android").getStringList()
-        this?.getSafeBoolean("contacts") == true -> listOf(Permissions.READ_CONTACTS)
-        this?.getSafeBoolean("location") == true -> listOf(Permissions.ACCESS_COARSE_LOCATION, Permissions.ACCESS_FINE_LOCATION)
+        this.getSafeArray("android") != null -> this.getSafeArray("android").getStringList()
+        this.getSafeBoolean("contacts") == true -> listOf(Permissions.READ_CONTACTS)
+        this.getSafeBoolean("location") == true -> listOf(Permissions.ACCESS_COARSE_LOCATION, Permissions.ACCESS_FINE_LOCATION)
         else -> listOf()
     }
 }

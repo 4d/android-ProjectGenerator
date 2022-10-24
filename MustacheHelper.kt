@@ -6,6 +6,7 @@ import FileHelperConstants.ACTIONS_FILENAME
 import FileHelperConstants.APP_INFO_FILENAME
 import FileHelperConstants.CUSTOM_FORMATTERS_FILENAME
 import FileHelperConstants.DS_STORE
+import FileHelperConstants.INPUT_CONTROLS_FILENAME
 import FileHelperConstants.TABLE_INFO_FILENAME
 import MustacheConstants.ANDROID_SDK_PATH
 import MustacheConstants.APP_NAME_WITH_CAPS
@@ -101,7 +102,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
     // <formatName, <imageName, <resourceName, darkModeResourceName>>
     private val customFormattersImagesMap: MutableMap<String, MutableMap<String, Pair<String, String>>> = mutableMapOf()
     // <tableName, <fieldName, fieldMapping>>
-    private val customFormattersFields: MutableMap<String, MutableMap<String, FieldMapping>> = mutableMapOf()
+    private val customFormattersFields: MutableMap<String, MutableMap<String, FieldMappingFormatter>> = mutableMapOf()
 
     // <tableName, List<Fields>>
     private val tableFieldsMap = mutableMapOf<String, List<Field>>()
@@ -109,6 +110,8 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
     private val actions = projectEditor.getActions()
 
     private var kotlinInputControls = mutableListOf<TemplateInputControlFiller>()
+
+    private val defaultInputControlList: MutableList<FieldMappingDefaultInputControl> = mutableListOf()
 
 
     init {
@@ -988,6 +991,10 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         makeJsonFile(CUSTOM_FORMATTERS_FILENAME, customFormattersFields)
     }
 
+    fun makeInputControls() {
+        makeJsonFile(INPUT_CONTROLS_FILENAME, defaultInputControlList)
+    }
+
     fun makeActions() {
         val hasActionsFeatureFlag = projectEditor.findJsonBoolean(FeatureFlagConstants.HAS_ACTIONS_KEY) ?: true
         Log.d("hasActionsFeatureFlag = $hasActionsFeatureFlag")
@@ -1046,25 +1053,49 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                 action.parameters?.forEach { actionParameter ->
                     actionParameter.format?.let { format ->
                         if (format.startsWith("/")) {
-                            val inputControlPath = fileHelper.pathHelper.getInputControlPath(format)
-                            getManifestJSONContent(inputControlPath)?.let {
+                            Log.d("getInputControls, actionParameter : $actionParameter")
+                            if (format !in InputControl.defaultInputControls) {
+                                val inputControlPath = fileHelper.pathHelper.getInputControlPath(format)
+                                getManifestJSONContent(inputControlPath)?.let {
 
-                                val kotlinInputControlClass = fileHelper.pathHelper.findMatchingKotlinInputControlClass(inputControlPath)
-                                if (kotlinInputControlClass != null) {
+                                    val kotlinInputControlClass =
+                                        fileHelper.pathHelper.findMatchingKotlinInputControlClass(inputControlPath)
+                                    if (kotlinInputControlClass != null) {
 
-                                    val templateInputControlFiller = TemplateInputControlFiller(
-                                        name = format.removePrefix("/"),
-                                        class_name = kotlinInputControlClass
-                                    )
-                                    kotlinInputControls.add(templateInputControlFiller)
+                                        val templateInputControlFiller = TemplateInputControlFiller(
+                                            name = format.removePrefix("/"),
+                                            class_name = kotlinInputControlClass
+                                        )
+                                        kotlinInputControls.add(templateInputControlFiller)
 
-                                    val fieldMapping = getFieldMapping(it, format)
-                                    Log.d("fieldMapping for input control :  $fieldMapping")
+                                        val fieldMappingKotlinInputControl = getFieldMappingKotlinInputControl(it, format)
+                                        Log.d("fieldMappingKotlinInputControl for input control :  $fieldMappingKotlinInputControl")
 
-                                    if (fieldMapping.isValidKotlinInputControl()) {
-                                        // Saving any permission for input controls
-                                        fieldMapping.capabilities.forEach { permissionName ->
-                                            permissionFillerList.add(getTemplatePermissionFiller(permissionName))
+                                        if (fieldMappingKotlinInputControl.isValidKotlinInputControl()) {
+                                            // Saving any permission for input controls
+                                            fieldMappingKotlinInputControl.capabilities?.forEach { permissionName ->
+                                                permissionFillerList.add(getTemplatePermissionFiller(permissionName))
+                                            }
+                                        }
+                                        Log.d("not a valid kotlin input control")
+                                    }
+                                }
+                            } else {
+                                // default input control
+                                actionParameter.source?.let { source ->
+                                    val inputControlPath = fileHelper.pathHelper.getInputControlPath(source)
+                                    getManifestJSONContent(inputControlPath)?.let {
+                                        val fieldMappingDefaultInputControl = getFieldMappingDefaultInputControl(it)
+                                        Log.d("fieldMappingDefaultInputControl for default input control :  $fieldMappingDefaultInputControl")
+
+                                        if (fieldMappingDefaultInputControl.format.isNullOrEmpty()) {
+                                            fieldMappingDefaultInputControl.format = "push"
+                                        }
+
+                                        if (fieldMappingDefaultInputControl.isValidDefaultInputControl()) {
+                                            defaultInputControlList.add(fieldMappingDefaultInputControl)
+                                        } else {
+                                            Log.d("not a valid default input control")
                                         }
                                     }
                                 }
@@ -1097,7 +1128,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
             Log.d("field = $field")
             getDataModelField(projectEditor.dataModelList, form, field)?.let { fieldFromDataModel ->
                 Log.d("fieldFromDataModel = $fieldFromDataModel")
-                val map: MutableMap<String, FieldMapping> = customFormattersFields[form.dataModel.name.tableNameAdjustment()] ?: mutableMapOf()
+                val map: MutableMap<String, FieldMappingFormatter> = customFormattersFields[form.dataModel.name.tableNameAdjustment()] ?: mutableMapOf()
                 if (map[field.name] == null) {
 
                     if (fieldFromDataModel.format != null) {
@@ -1108,12 +1139,12 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                             val formatPath = fileHelper.pathHelper.getCustomFormatterPath(format)
                             getManifestJSONContent(formatPath)?.let {
 
-                                val fieldMapping = getFieldMapping(it, format)
+                                val fieldMapping = getFieldMappingFormatter(it, format)
                                 Log.d("fieldMapping :  $fieldMapping")
 
                                 if (fieldMapping.isValidFormatter()) {
                                     // Saving any permission for kotlin custom formatters
-                                    fieldMapping.capabilities.forEach { permissionName ->
+                                    fieldMapping.capabilities?.forEach { permissionName ->
                                         permissionFillerList.add(getTemplatePermissionFiller(permissionName))
                                     }
 
@@ -1129,16 +1160,16 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         }
     }
 
-    private fun extractFormatter(fieldMapping: FieldMapping, formatPath: String, format: String) {
+    private fun extractFormatter(fieldMappingFormatter: FieldMappingFormatter, formatPath: String, format: String) {
 
-        if (fieldMapping.isImageNamed()) {
+        if (fieldMappingFormatter.isImageNamed()) {
             val imageMap = mutableMapOf<String, Pair<String, String>>()
 
-            // choiceList can be Map<String, String> (JSONObject in app_info.json)
-            // or a List<String> (JSONArray in app_info.json)
-            when (fieldMapping.choiceList) {
+            // choiceList can be Map<String, String> (JSONObject in appInfo.json)
+            // or a List<String> (JSONArray in appInfo.json)
+            when (fieldMappingFormatter.choiceList) {
                 is Map<*, *> -> {
-                    fieldMapping.choiceList.values.forEach eachImageName@ { imageName ->
+                    fieldMappingFormatter.choiceList.values.forEach eachImageName@ { imageName ->
                         if (imageName !is String) return@eachImageName
                         if (imageName.contains(".") && imageExistsInFormatter(formatPath, imageName)) {
                             val darkModeExists = imageExistsInFormatterInDarkMode(formatPath, imageName)
@@ -1147,7 +1178,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                     }
                 }
                 is List<*> -> {
-                    fieldMapping.choiceList.forEach eachImageName@ { imageName ->
+                    fieldMappingFormatter.choiceList.forEach eachImageName@ { imageName ->
                         if (imageName !is String) return@eachImageName
                         if (imageName.contains(".") && imageExistsInFormatter(formatPath, imageName)) {
                             val darkModeExists = imageExistsInFormatterInDarkMode(formatPath, imageName)

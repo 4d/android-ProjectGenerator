@@ -166,7 +166,7 @@ fun getFormatNameForType(pathHelper: PathHelper, dataModelList: List<DataModel>,
             val formatPath = pathHelper.getCustomFormatterPath(format)
             getManifestJSONContent(formatPath)?.let {
 
-                val fieldMapping = getFieldMapping(it, format)
+                val fieldMapping = getFieldMappingFormatter(it, format)
                 return if (fieldMapping.isValidFormatter() || fieldMapping.isValidKotlinCustomDataFormatter()) {
                     format
                 } else {
