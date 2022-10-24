@@ -23,6 +23,7 @@ import DefaultValues.DEFAULT_PACKAGE
 import FileHelperConstants.ACTIONS_FILENAME
 import FileHelperConstants.APP_INFO_FILENAME
 import FileHelperConstants.CUSTOM_FORMATTERS_FILENAME
+import FileHelperConstants.INPUT_CONTROLS_FILENAME
 import FileHelperConstants.TABLE_INFO_FILENAME
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.subcommands
@@ -156,6 +157,10 @@ class GenerateCommand : CliktCommand(name = "generate") {
         mustacheHelper.makeCustomFormatters()
 
         Log.i("\"$CUSTOM_FORMATTERS_FILENAME\" file successfully generated.")
+
+        mustacheHelper.makeInputControls()
+
+        Log.i("\"$INPUT_CONTROLS_FILENAME\" file successfully generated.")
 
         mustacheHelper.makeActions()
 

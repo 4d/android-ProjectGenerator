@@ -327,7 +327,7 @@ class PathHelper(
         if (!format.startsWith("/")) return false
         val formatPath = getCustomFormatterPath(format)
         getManifestJSONContent(formatPath)?.let {
-            val fieldMapping = getFieldMapping(it, format)
+            val fieldMapping = getFieldMappingFormatter(it, format)
             return fieldMapping.isValidFormatter()
         }
         return false
@@ -338,7 +338,7 @@ class PathHelper(
         val formatPath = getCustomFormatterPath(format)
         if (!formattersFolderExistsInFormatter(formatPath)) return false
         getManifestJSONContent(formatPath)?.let {
-            val fieldMapping = getFieldMapping(it, format)
+            val fieldMapping = getFieldMappingFormatter(it, format)
             return fieldMapping.isValidKotlinCustomDataFormatter()
         }
         return false
@@ -347,7 +347,7 @@ class PathHelper(
     fun getKotlinCustomFormatterBinding(format: String): String {
         val formatPath = getCustomFormatterPath(format)
         getManifestJSONContent(formatPath)?.let {
-            val fieldMapping = getFieldMapping(it, format)
+            val fieldMapping = getFieldMappingFormatter(it, format)
             return fieldMapping.binding ?: ""
         }
         return ""

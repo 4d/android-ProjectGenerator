@@ -240,6 +240,7 @@ class ProjectEditor(projectEditorFile: File, val catalogDef: CatalogDef, isCreat
                                         parameter.getSafeString("default")?.let { newParameter.default = it }
                                         parameter.getSafeString("placeholder")?.let { newParameter.placeholder = it }
                                         parameter.getSafeString("format")?.let { newParameter.format = it }
+                                        parameter.getSafeString("source")?.let { newParameter.source = it }
                                         actionObject.getSafeInt("fieldNumber")?.let { newParameter.fieldNumber = it }
                                         parameter.getSafeString("defaultField")?.let {
                                             newParameter.defaultField = parameterName.fieldAdjustment()

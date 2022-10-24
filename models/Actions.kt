@@ -14,7 +14,7 @@ data class Action(
     var style: String? = null,
     var parameters: List<ActionParameter>? = null,
     var description: String? = null
-    )
+)
 
 data class ActionParameter(
     val name: String,
@@ -24,9 +24,15 @@ data class ActionParameter(
     var default: String? = null,
     var placeholder: String? = null,
     var format: String? = null,
+    var source: String? = null,
     var fieldNumber: Int? = null,
     var fieldName: String? = null,
     var tableName: String? = null,
     var defaultField: String? = null,
     var rules: List<Any>? = null
 )
+
+object InputControl {
+
+    val defaultInputControls = listOf("/push", "/segmented", "/popover", "/sheet", "/picker")
+}
