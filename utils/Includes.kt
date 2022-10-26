@@ -22,6 +22,7 @@
 //INCLUDE models/Actions.kt
 //INCLUDE models/AppData.kt
 //INCLUDE models/AppInfo.kt
+//INCLUDE models/SectionField.kt
 //INCLUDE models/fillers/TemplateFieldFiller.kt
 //INCLUDE models/fillers/TemplateFormatterFiller.kt
 //INCLUDE models/fillers/TemplateFormFieldFiller.kt

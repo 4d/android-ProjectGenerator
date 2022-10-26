@@ -19,6 +19,7 @@ object ProjectEditorConstants {
     const val VALIDATED_KEY = "validated"
     const val STRING_KEY = "string"
     const val FIELDTYPE_KEY = "fieldType"
+    const val VALUE_TYPE_KEY = "valueType"
     const val RELATEDDATACLASS_KEY = "relatedDataClass"
     const val RELATEDTABLENUMBER_KEY = "relatedTableNumber"
     const val INVERSENAME_KEY = "inverseName"

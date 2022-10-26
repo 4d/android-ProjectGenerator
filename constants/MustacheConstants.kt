@@ -55,4 +55,5 @@ object MustacheConstants {
     const val PERMISSIONS = "permissions"
     const val KOTLIN_INPUT_CONTROLS = "kotlin_input_controls"
     const val DEBUG_MODE = "debug_mode"
+    const val SECTION_FIELDS = "section_fields"
 }
