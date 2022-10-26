@@ -1,7 +1,7 @@
 data class TableInfo(
-    val originalName: String,
-    val query: String,
-    val fields: String,
-    val searchFields: String,
-    val defaultSortField: String
+        val originalName: String,
+        val query: String,
+        val fields: String,
+        val searchFields: String,
+        val defaultSortField: String
 )

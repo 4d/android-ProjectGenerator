@@ -12,6 +12,7 @@ data class Field(
         var label: String? = null,
         var shortLabel: String? = null,
         var fieldType: Int? = null,
+        var valueType: String? = null,
         var fieldTypeString: String? = null,
         var relatedEntities: String? = null,
         var relatedTableNumber: Int? = null,

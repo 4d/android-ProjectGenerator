@@ -50,6 +50,8 @@ class ProjectEditor(projectEditorFile: File, val catalogDef: CatalogDef, isCreat
     lateinit var navigationTableList: List<String>
     private lateinit var searchableFields: HashMap<String, List<String>>
     private lateinit var defaultSortFields: HashMap<String, String>
+
+    lateinit var sectionFields: MutableList<SectionField>
     private lateinit var jsonObj: JSONObject
 
     init {
@@ -87,6 +89,18 @@ class ProjectEditor(projectEditorFile: File, val catalogDef: CatalogDef, isCreat
                 Log.d("> Detail forms list successfully read.")
 
                 defaultSortFields = jsonObj.getDefaultSortFields(dataModelList)
+
+                sectionFields = jsonObj.getSectionFields(dataModelList).map { field ->
+                    if (field.isAlias()) {
+                        getDefaultFieldForAlias(field.tableNumber, field.name)?.let { name ->
+                            field.name = name
+                        }
+                    } else {
+                        field.name = field.name.fieldAdjustment().replace(".", "?.")
+                    }
+                    field
+
+                }.toMutableList()
             }
 
         } ?: kotlin.run {
@@ -193,11 +207,11 @@ class ProjectEditor(projectEditorFile: File, val catalogDef: CatalogDef, isCreat
             val searchFields = searchableFields[tableName] ?: listOf()
 
             val queryAndFields = TableInfo(
-                originalName = originalTableName,
-                query = query,
-                fields = fieldsConcat,
-                searchFields = searchFields.joinToString(),
-                defaultSortField = defaultSortFields[tableName] ?: "__KEY"
+                    originalName = originalTableName,
+                    query = query,
+                    fields = fieldsConcat,
+                    searchFields = searchFields.joinToString(),
+                    defaultSortField = defaultSortFields[tableName] ?: "__KEY"
             )
 
             map[tableName] = queryAndFields

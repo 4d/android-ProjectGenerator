@@ -17,6 +17,7 @@ import ProjectEditorConstants.SHORTLABEL_KEY
 import ProjectEditorConstants.STRING_KEY
 import ProjectEditorConstants.STRING_TYPE
 import ProjectEditorConstants.VALIDATED_KEY
+import ProjectEditorConstants.VALUE_TYPE_KEY
 import org.json.JSONObject
 
 fun JSONObject.getDataModelList(catalogDef: CatalogDef, isCreateDatabaseCommand: Boolean = false): List<DataModel> {
@@ -754,6 +755,7 @@ fun JSONObject?.getDataModelField(keyField: String, dataModelId: String?, dataMo
     this?.getSafeString(LABEL_KEY)?.let { field.label = it }
     this?.getSafeString(SHORTLABEL_KEY)?.let { field.shortLabel = it }
     this?.getSafeInt(FIELDTYPE_KEY)?.let { field.fieldType = it }
+    this?.getSafeString(VALUE_TYPE_KEY)?.let { field.valueType = it }
     this?.getSafeInt(RELATEDTABLENUMBER_KEY)?.let { field.relatedTableNumber = it }
     this?.getSafeString(INVERSENAME_KEY)?.let { field.inverseName = it }
     this?.getSafeString(NAME_KEY)?.let { fieldName -> // BASIC FIELD

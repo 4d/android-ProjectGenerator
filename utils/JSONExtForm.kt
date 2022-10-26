@@ -174,3 +174,41 @@ fun JSONObject.getDefaultSortFields(dataModelList: List<DataModel>): HashMap<Str
 
     return sortFields
 }
+
+fun JSONObject.getSectionFields(dataModelList: List<DataModel>): MutableList<SectionField> {
+
+    val list = this.getSafeObject(PROJECT_KEY)?.getSafeObject("list")
+    val sectionFields = mutableListOf<SectionField>()
+    list?.names()?.forEach { dataModelId ->
+        val tableName = dataModelList.find { it.id == dataModelId }?.name
+        if (tableName != null) {
+            val item = list.getSafeObject(dataModelId as String) as JSONObject
+            item.getSafeObject("sectionField")?.let {
+                val fieldNumber = it.getSafeInt("fieldNumber")
+                val kind = it.getSafeString("kind")
+                val path = it.getSafeString("path")
+                var tableNumber = dataModelId.toIntOrNull() //the data mode ID is the table number in project.4DMobileApp.json
+
+                it.getSafeString("name")?.let { fieldName ->
+                    val valueType = dataModelList.find { dataModel ->
+                        dataModel.id == dataModelId
+                    }?.fields?.find { field -> field.id == fieldNumber.toString() }?.valueType
+
+                    if( kind == "alias"){
+                        path?.let {p->
+                            if(p.count { value -> value == '.'  } <= 1){
+                                sectionFields.add(SectionField(fieldName, valueType ?: "", kind, path, tableNumber, tableName))
+                            }
+                        }
+                    } else {
+                        sectionFields.add(SectionField(fieldName, valueType ?: "", kind, path, tableNumber, tableName))
+                    }
+
+                }
+            }
+        }
+    }
+    return sectionFields
+}
+
+

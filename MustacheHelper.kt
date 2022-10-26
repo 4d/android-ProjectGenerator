@@ -43,6 +43,7 @@ import MustacheConstants.RELATIONS_ONE_TO_MANY_FOR_DETAIL
 import MustacheConstants.RELATIONS_ONE_TO_MANY_FOR_LIST
 import MustacheConstants.RELATIONS_WITHOUT_ALIAS
 import MustacheConstants.REMOTE_ADDRESS
+import MustacheConstants.SECTION_FIELDS
 import MustacheConstants.TABLENAME
 import MustacheConstants.TABLENAMES
 import MustacheConstants.TABLENAMES_LAYOUT
@@ -351,6 +352,8 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
         getAllActionPermissions()
         data[PERMISSIONS] = permissionFillerList.distinct()
+
+        data[SECTION_FIELDS] = projectEditor.sectionFields
     }
 
     /**
