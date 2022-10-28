@@ -995,7 +995,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
     }
 
     fun makeInputControls() {
-        makeJsonFile(INPUT_CONTROLS_FILENAME, defaultInputControlList)
+        makeJsonFile(INPUT_CONTROLS_FILENAME, defaultInputControlList.distinct())
     }
 
     fun makeActions() {
