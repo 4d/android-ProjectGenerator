@@ -197,11 +197,11 @@ fun JSONObject.getSectionFields(dataModelList: List<DataModel>): MutableList<Sec
                     if( kind == "alias"){
                         path?.let {p->
                             if(p.count { value -> value == '.'  } <= 1){
-                                sectionFields.add(SectionField(fieldName, valueType ?: "", kind, path, tableNumber, tableName))
+                                sectionFields.add(SectionField(fieldName, valueType ?: "", kind, path, tableNumber, tableName.tableNameAdjustment()))
                             }
                         }
                     } else {
-                        sectionFields.add(SectionField(fieldName, valueType ?: "", kind, path, tableNumber, tableName))
+                        sectionFields.add(SectionField(fieldName, valueType ?: "", kind, path, tableNumber, tableName.tableNameAdjustment()))
                     }
 
                 }
