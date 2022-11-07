@@ -40,13 +40,56 @@ fun getFieldMappingDefaultInputControl(manifestContent: JSONObject): FieldMappin
 fun getChoiceList(manifestContent: JSONObject): Any {
     Log.d("getChoiceList, manifestContent = $manifestContent")
     return if (manifestContent.getSafeObject("choiceList")?.getSafeObject("dataSource") != null) {
-        mapOf("dataSource" to manifestContent.getSafeObject("choiceList")?.getSafeObject("dataSource")?.toStringMap())
+        mapOf("dataSource" to manifestContent.getSafeObject("choiceList")?.getSafeObject("dataSource")?.getDataSource())
     } else {
         manifestContent.getSafeObject("choiceList")?.toStringMap()
             ?: manifestContent.getSafeArray("choiceList")
                 .getStringList()  // choiceList can be a JSONObject or a JSONArray
     }
 }
+
+private fun JSONObject.getDataSource(): Any {
+    val dataSource = InputControlDataSource()
+    getSafeString("dataClass")?.let { dataSource.dataClass = it }
+    getSafeString("field")?.let { dataSource.field = it }
+    getSafeString("entityFormat")?.let { dataSource.entityFormat = it }
+
+    getSafeBoolean("search")?.let { dataSource.search = it }
+    getSafeString("search")?.let { dataSource.search = it }
+    getSafeArray("search")?.let { dataSource.search = it.getStringList() }
+
+    getSafeString("order")?.let { dataSource.order = it }
+
+    getSafeString("sort")?.let { dataSource.sort = it }
+    getSafeArray("sort")?.let { sortArray ->
+        if (sortArray.getSafeString(0) != null) { // list of String
+            val list = mutableListOf<Any>()
+            for (i in 0 until sortArray.length()) {
+                sortArray.getSafeString(i)?.let { list.add(it) }
+            }
+            dataSource.sort = list
+        } else { // list of objects
+            val list = mutableListOf<Any>()
+            for (i in 0 until sortArray.length()) {
+                sortArray.getSafeObject(i)?.toStringMap()?.let { map ->
+                    list.add(map)
+                }
+            }
+            dataSource.sort = list
+        }
+    }
+    getSafeObject("sort")?.let { dataSource.sort = it.toStringMap() }
+    return dataSource
+}
+
+data class InputControlDataSource(
+    var dataClass: String? = null,
+    var field: String? = null,
+    var entityFormat: String? = null,
+    var search: Any? = null, // Bool, String, Array
+    var order: String? = null,
+    var sort: Any? = null // String, Array (of String, Object (field, order) , Object (field, order)
+)
 
 fun getSize(manifestContent: JSONObject, type: String): Int? =
     manifestContent.getSafeObject("assets")?.getSafeObject("size")?.getSafeInt(type)
