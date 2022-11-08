@@ -185,14 +185,24 @@ fun JSONObject.getSectionFields(dataModelList: List<DataModel>): MutableList<Sec
             val item = list.getSafeObject(dataModelId as String) as JSONObject
             item.getSafeObject("sectionField")?.let {
                 val fieldNumber = it.getSafeInt("fieldNumber")
+
                 val kind = it.getSafeString("kind")
                 val path = it.getSafeString("path")
                 var tableNumber = dataModelId.toIntOrNull() //the data mode ID is the table number in project.4DMobileApp.json
 
                 it.getSafeString("name")?.let { fieldName ->
-                    val valueType = dataModelList.find { dataModel ->
-                        dataModel.id == dataModelId
-                    }?.fields?.find { field -> field.id == fieldNumber.toString() }?.valueType
+
+                    val fieldType = it.getSafeInt("fieldType")
+                    // In 4D project editor the value type of time field is "number" instead of "time" ,
+                    // so if the field is a Time  (fieldType = 11) we force the valueType to "time" (important to format the section Header to a time format)
+
+                    val valueType = if (fieldType == 11) {
+                        "time"
+                    } else {
+                        dataModelList.find { dataModel ->
+                            dataModel.id == dataModelId
+                        }?.fields?.find { field -> field.id == fieldNumber.toString() }?.valueType
+                    }
 
                     if( kind == "alias"){
                         path?.let {p->
