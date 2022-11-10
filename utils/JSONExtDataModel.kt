@@ -64,7 +64,7 @@ fun JSONObject.getDataModelList(catalogDef: CatalogDef, isCreateDatabaseCommand:
             }
 
             if (missingIcon) {
-                newDataModel.iconPath = "nav_icon_${newDataModel.id}"
+                newDataModel.iconPath = null
             }
 
             newDataModelJSONObject.getSafeObject(EMPTY_KEY)?.getSafeObject(FILTER_KEY)?.let {
