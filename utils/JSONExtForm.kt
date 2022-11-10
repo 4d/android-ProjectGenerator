@@ -191,22 +191,22 @@ fun JSONObject.getSectionFields(dataModelList: List<DataModel>): MutableList<Sec
                 var tableNumber = dataModelId.toIntOrNull() //the data mode ID is the table number in project.4DMobileApp.json
 
                 it.getSafeString("name")?.let { fieldName ->
-
                     val fieldType = it.getSafeInt("fieldType")
-                    // In 4D project editor the value type of time field is "number" instead of "time" ,
-                    // so if the field is a Time  (fieldType = 11) we force the valueType to "time" (important to format the section Header to a time format)
-
-                    val valueType = if (fieldType == 11) {
-                        "time"
-                    } else {
-                        dataModelList.find { dataModel ->
-                            dataModel.id == dataModelId
-                        }?.fields?.find { field -> field.id == fieldNumber.toString() }?.valueType
+                    var valueType: String? = null
+                    dataModelList.find { dataModel ->
+                        dataModel.id == dataModelId
+                    }?.fields?.find { field -> field.id == fieldNumber.toString() }?.let { field ->
+                        // if the field is time or date we return the format instead (fullDate, shortTime, Duration ...)
+                        valueType = if ((fieldType == 11) || (fieldType == 4)) {
+                            field.format
+                        } else {
+                            field.valueType
+                        }
                     }
 
-                    if( kind == "alias"){
-                        path?.let {p->
-                            if(p.count { value -> value == '.'  } <= 1){
+                    if (kind == "alias") {
+                        path?.let { p ->
+                            if (p.count { value -> value == '.'  } <= 1){
                                 sectionFields.add(SectionField(fieldName, valueType ?: "", kind, path, tableNumber, tableName.tableNameAdjustment()))
                             }
                         }
