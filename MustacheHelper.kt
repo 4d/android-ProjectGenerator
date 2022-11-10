@@ -288,17 +288,23 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         typesAndTables.add(getTemplateTableFiller("Map"))
         data[TYPES_AND_TABLES] = typesAndTables
 
-        var navigationTableCounter = 0 // Counter to limit to 4 navigation tables as it is not possible to have more than 5
+        var shouldUseIcon = false
         projectEditor.navigationTableList.forEach { dataModelId ->
             projectEditor.dataModelList.find { it.id == dataModelId }?.let { dataModel ->
-                if (navigationTableCounter <= 3) {
-
-                    navigationTableCounter++
-                    Log.w("Adding [${dataModel.name}] in navigation table list for navbar")
-                    tableNamesForNavigationForNavBar.add(dataModel.getTemplateLayoutFillerForNavigation())
-                } else {
-                    Log.w("Not adding [${dataModel.name}] in navigation table list for navbar")
+                if (!dataModel.iconPath.isNullOrEmpty()) {
+                    shouldUseIcon = true
+                    return@forEach
                 }
+            }
+        }
+
+        projectEditor.navigationTableList.forEach { dataModelId ->
+            projectEditor.dataModelList.find { it.id == dataModelId }?.let { dataModel ->
+                Log.w("Adding [${dataModel.name}] in navigation table list for navbar")
+                if (shouldUseIcon && dataModel.iconPath.isNullOrEmpty()) {
+                    dataModel.iconPath = "nav_icon_${dataModel.id}"
+                }
+                tableNamesForNavigationForNavBar.add(dataModel.getTemplateLayoutFillerForNavigation())
             }
         }
 

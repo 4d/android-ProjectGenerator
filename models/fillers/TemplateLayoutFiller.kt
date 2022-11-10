@@ -15,7 +15,7 @@ fun DataModel.getTemplateLayoutFillerForNavigation(): TemplateLayoutFiller =
         nameLowerCase = this.name.tableNameAdjustment().toLowerCase(),
         nameCamelCase = this.name.dataBindingAdjustment(),
         label = this.getLabel().encode(),
-        hasIcon = (this.iconPath != null && this.iconPath != ""),
+        hasIcon = !this.iconPath.isNullOrEmpty(),
         icon = this.iconPath ?: ""
     )
 
@@ -26,6 +26,6 @@ fun DataModel.getTemplateLayoutFiller(): TemplateLayoutFiller =
         nameLowerCase = this.name.toLowerCase().fieldAdjustment(),
         nameCamelCase = this.name.dataBindingAdjustment(),
         label = this.getLabel(),
-        hasIcon = (this.iconPath != null && this.iconPath != ""),
+        hasIcon = !this.iconPath.isNullOrEmpty(),
         icon = this.iconPath ?: ""
     )
