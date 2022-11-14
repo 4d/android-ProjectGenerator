@@ -25,7 +25,6 @@ import MustacheConstants.FORM_FIELDS
 import MustacheConstants.HAS_ANY_MANY_TO_ONE_RELATION
 import MustacheConstants.HAS_ANY_ONE_TO_MANY_RELATION
 import MustacheConstants.HAS_ANY_ONE_TO_MANY_RELATION_FOR_LAYOUT
-import MustacheConstants.HAS_CUSTOM_FORMATTER_IMAGES
 import MustacheConstants.HAS_DATASET
 import MustacheConstants.HAS_RELATION
 import MustacheConstants.HAS_REMOTE_ADDRESS
@@ -349,7 +348,6 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
             }
         }
         data[CUSTOM_FORMATTER_IMAGES] = customFormatterImages
-        data[HAS_CUSTOM_FORMATTER_IMAGES] = customFormatterImages.isNotEmpty()
 
         data[HAS_DATASET] = projectEditor.findJsonBoolean(FeatureFlagConstants.HAS_DATASET_KEY) ?: true
 

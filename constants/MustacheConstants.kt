@@ -46,7 +46,6 @@ object MustacheConstants {
     const val HAS_RELATION = "has_relation"
     const val HAS_ANY_ONE_TO_MANY_RELATION = "has_any_one_to_many_relation"
     const val HAS_ANY_ONE_TO_MANY_RELATION_FOR_LAYOUT = "has_any_one_to_many_relation_for_layout"
-    const val HAS_CUSTOM_FORMATTER_IMAGES = "has_custom_formatter_images"
     const val RELATIONS_ONE_TO_MANY_FOR_LIST = "relations_one_to_many_for_list"
     const val RELATIONS_MANY_TO_ONE_FOR_LIST = "relations_many_to_one_for_list"
     const val RELATIONS_ONE_TO_MANY_FOR_DETAIL = "relations_one_to_many_for_detail"
