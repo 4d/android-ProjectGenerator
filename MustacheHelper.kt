@@ -58,6 +58,7 @@ import MustacheConstants.TABLE_HAS_ANY_RELATION
 import MustacheConstants.TABLE_HAS_DATE_FIELD
 import MustacheConstants.TABLE_HAS_ONE_TO_MANY_FIELD
 import MustacheConstants.TABLE_HAS_TIME_FIELD
+import MustacheConstants.TABLE_LABEL
 import MustacheConstants.TYPES_AND_TABLES
 import PathHelperConstants.TEMPLATE_PLACEHOLDER
 import com.google.gson.Gson
@@ -489,6 +490,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
             }
 
         data[TABLENAME_LOWERCASE] = tableName.name.toLowerCase().fieldAdjustment()
+        data[TABLE_LABEL] = tableName.label
         data[TABLENAME_CAMELCASE] = tableName.name.dataBindingAdjustment()
         projectEditor.dataModelList.find { it.name.tableNameAdjustment() == tableName.name.tableNameAdjustment() }?.fields?.let { fields ->
 

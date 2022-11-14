@@ -12,6 +12,7 @@ object MustacheConstants {
     const val TABLENAME = "tableName"
     const val TABLENAME_ORIGINAL = "tableName_original"
     const val TABLENAME_LOWERCASE = "tableName_lowercase"
+    const val TABLE_LABEL = "table_label"
     const val TABLENAME_CAMELCASE = "tableName_nameCamelCase"
     const val TABLENAMES = "tableNames"
     const val TABLENAMES_LAYOUT = "tableNames_layout"
