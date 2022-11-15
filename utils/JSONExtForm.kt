@@ -197,10 +197,26 @@ fun JSONObject.getSectionFields(dataModelList: List<DataModel>): MutableList<Sec
                         dataModel.id == dataModelId
                     }?.fields?.find { field -> field.id == fieldNumber.toString() }?.let { field ->
                         // if the field is time or date we return the format instead (fullDate, shortTime, Duration ...)
-                        valueType = if ((fieldType == 11) || (fieldType == 4)) {
-                            field.format
-                        } else {
-                            field.valueType
+                        valueType = when (fieldType) {
+                            // date field
+                            4 -> {
+                                if (!field.format.isNullOrEmpty()) {
+                                    field.format
+                                } else {
+                                    "mediumDate"  //If format is null or empty return default format
+                                }
+                            }
+                            // time field
+                            11 -> {
+                                if (!field.format.isNullOrEmpty()) {
+                                    field.format
+                                } else {
+                                    "mediumTime"  //If format is null or empty return default format
+                                }
+                            }
+                            else -> {
+                                field.valueType
+                            }
                         }
                     }
 
