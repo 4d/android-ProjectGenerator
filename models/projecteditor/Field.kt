@@ -474,55 +474,62 @@ fun cleanPrefixSuffix(label: String): String {
 }
 
 fun getNavbarTitle(dataModelList: List<DataModel>, form: Form, formField: Field, catalogDef: CatalogDef): String {
-    Log.d("getNavbarTitle field [${formField.name}] ////")
+    Log.d("getNavbarTitle - getNavbarTitle field [${formField.name}] ////")
     val fieldFromDataModel: Field = getDataModelField(dataModelList, form, formField) ?: return ""
-    val format = fieldFromDataModel.format ?: return ""
+    Log.d("getNavbarTitle - fieldFromDataModel: $fieldFromDataModel")
 
-    val regex = ("((?:%[\\w|\\s|\\.]+%)+)").toRegex()
-    val formatWithoutRemainingLength = format.replace("%length%", "")
-    val navbarTitle = regex.replace(formatWithoutRemainingLength) { matchResult ->
-        val fieldName = matchResult.destructured.component1().removePrefix("%").removeSuffix("%")
-        // Verify that fieldName exists in source dataModel
-        Log.d("Regexed fieldName: $fieldName")
-        val path = unAliasPath(fieldName, form.dataModel.name, catalogDef)
-        Log.d("path = $path")
-        val endFieldName = path.substringAfterLast(".").fieldAdjustment()
-        val destBeforeField = destBeforeField(catalogDef, form.dataModel.name, path)
-        val endField = dataModelList.find { it.name.tableNameAdjustment() == destBeforeField.tableNameAdjustment() }?.fields?.find { it.name.fieldAdjustment() == endFieldName }
+    fieldFromDataModel.format?.let { format ->
+        Log.d("getNavbarTitle - format: $format")
 
-        Log.d("endField: $endField")
+        val regex = ("((?:%[\\w|\\s|\\.]+%)+)").toRegex()
+        val formatWithoutRemainingLength = format.replace("%length%", "")
+        val navbarTitle = regex.replace(formatWithoutRemainingLength) { matchResult ->
+            val fieldName = matchResult.destructured.component1().removePrefix("%").removeSuffix("%")
+            // Verify that fieldName exists in source dataModel
+            Log.d("Regexed fieldName: $fieldName")
+            val path = unAliasPath(fieldName, form.dataModel.name, catalogDef)
+            Log.d("path = $path")
+            val endFieldName = path.substringAfterLast(".").fieldAdjustment()
+            val destBeforeField = destBeforeField(catalogDef, form.dataModel.name, path)
+            val endField = dataModelList.find { it.name.tableNameAdjustment() == destBeforeField.tableNameAdjustment() }?.fields?.find { it.name.fieldAdjustment() == endFieldName }
 
-        if (endField?.isNativeType(dataModelList) == true) {
+            Log.d("endField: $endField")
 
-            val fieldAliasName = endField.getFieldAliasName(dataModelList)
-            Log.d("fieldAliasName = $fieldAliasName")
+            if (endField?.isNativeType(dataModelList) == true) {
 
-            when {
-                path.contains(".") -> {
-                    val relation = findRelationFromPath(dataModelList, form.dataModel.name, path.substringBeforeLast("."))
-                    if (relation != null) {
-                        Log.d("Found relation with same path with path $relation")
+                val fieldAliasName = endField.getFieldAliasName(dataModelList)
+                Log.d("fieldAliasName = $fieldAliasName")
 
-                        val pathToOneWithoutFirst = getPathToOneWithoutFirst(relation, catalogDef)
-                        if (pathToOneWithoutFirst.isNotEmpty())
-                            "\${(roomEntity as ${form.dataModel.name.tableNameAdjustment()}RoomEntity?)?.${relation.name.relationAdjustment()}?.${pathToOneWithoutFirst}?.$fieldAliasName.toString()}"
-                        else
-                            "\${(roomEntity as ${form.dataModel.name.tableNameAdjustment()}RoomEntity?)?.${relation.name.relationAdjustment()}?.$fieldAliasName.toString()}"
-                    } else {
-                        Log.d("No relation found with path : ${path.substringBeforeLast(".")}")
-                        fieldName
+                when {
+                    path.contains(".") -> {
+                        val relation = findRelationFromPath(dataModelList, form.dataModel.name, path.substringBeforeLast("."))
+                        if (relation != null) {
+                            Log.d("Found relation with same path with path $relation")
+
+                            val pathToOneWithoutFirst = getPathToOneWithoutFirst(relation, catalogDef)
+                            if (pathToOneWithoutFirst.isNotEmpty())
+                                "\${(roomEntity as ${form.dataModel.name.tableNameAdjustment()}RoomEntity?)?.${relation.name.relationAdjustment()}?.${pathToOneWithoutFirst}?.$fieldAliasName.toString()}"
+                            else
+                                "\${(roomEntity as ${form.dataModel.name.tableNameAdjustment()}RoomEntity?)?.${relation.name.relationAdjustment()}?.$fieldAliasName.toString()}"
+                        } else {
+                            Log.d("No relation found with path : ${path.substringBeforeLast(".")}")
+                            fieldName
+                        }
+                    }
+                    else -> {
+                        "\${(roomEntity as ${form.dataModel.name.tableNameAdjustment()}RoomEntity?)?.__entity?.${fieldAliasName.fieldAdjustment()}.toString()}"
                     }
                 }
-                else -> {
-                    "\${(roomEntity as ${form.dataModel.name.tableNameAdjustment()}RoomEntity?)?.__entity?.${fieldAliasName.fieldAdjustment()}.toString()}"
-                }
+            } else {
+                fieldName
             }
-        } else {
-            fieldName
         }
+        Log.d("navbarTitle: $navbarTitle")
+        return navbarTitle
     }
-    Log.d("navbarTitle: $navbarTitle")
-    return navbarTitle
+
+    Log.d("fieldFromDataModel.format = null")
+    return dataModelList.find { it.id == fieldFromDataModel.relatedTableNumber.toString() }?.label ?: ""
 }
 
 /**
