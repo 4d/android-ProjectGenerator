@@ -529,7 +529,9 @@ fun getNavbarTitle(dataModelList: List<DataModel>, form: Form, formField: Field,
     }
 
     Log.d("fieldFromDataModel.format = null")
-    return dataModelList.find { it.id == fieldFromDataModel.relatedTableNumber.toString() }?.label ?: ""
+    return dataModelList.find { it.name == fieldFromDataModel.relatedEntities }?.label
+        ?: dataModelList.find { it.name == fieldFromDataModel.relatedDataClass }?.label
+        ?: ""
 }
 
 /**
