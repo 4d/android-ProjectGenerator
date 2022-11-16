@@ -4,6 +4,7 @@ data class TemplateRelationFillerForEachLayout(
     val relation_source: String,
     val relation_target: String,
     val relation_name: String,
+    val relation_name_original: String,
     val tableNameLowercase: String,
     val associatedViewId: Int,
     val isSubRelation: Boolean,
@@ -28,6 +29,7 @@ fun getTemplateRelationFillerForLayout(
         relation_source = source.tableNameAdjustment(),
         relation_target = relation.target.tableNameAdjustment(),
         relation_name = relation.name.relationAdjustment(),
+        relation_name_original = relation.name,
         tableNameLowercase = source.dataBindingAdjustment().decapitalize(Locale.getDefault()),
         associatedViewId = viewId,
         isSubRelation = relation.name.fieldAdjustment().contains("."),
@@ -36,7 +38,7 @@ fun getTemplateRelationFillerForLayout(
         relation_source_camelCase = source.dataBindingAdjustment(),
         relation_target_camelCase = relation.target.dataBindingAdjustment(),
         isAlias = relation.path.contains("."),
-        path = relation.path.ifEmpty { relation.name.fieldAdjustment() },
+        path = relation.path.ifEmpty { relation.name },
         pathToOneWithoutFirst = getPathToOneWithoutFirst(relation, catalogDef),
         pathToManyWithoutFirst = getPathToManyWithoutFirst(relation, catalogDef)
     )
