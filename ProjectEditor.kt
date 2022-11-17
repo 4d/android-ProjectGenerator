@@ -17,6 +17,7 @@ import ProjectEditorConstants.EMAIL_KEY
 import ProjectEditorConstants.EMPTY_TYPE
 import ProjectEditorConstants.FLOAT_TYPE
 import ProjectEditorConstants.INT_TYPE
+import ProjectEditorConstants.LOCAL_SOURCE
 import ProjectEditorConstants.NAME_KEY
 import ProjectEditorConstants.OBJECT_TYPE
 import ProjectEditorConstants.ORGANIZATION_KEY
@@ -159,6 +160,7 @@ class ProjectEditor(projectEditorFile: File, val catalogDef: CatalogDef, isCreat
             FeatureFlagConstants.HAS_NO_DATA_KEY -> jsonObj.getSafeBoolean(FeatureFlagConstants.HAS_NO_DATA_KEY)
             FeatureFlagConstants.HAS_NO_SDK_KEY -> jsonObj.getSafeBoolean(FeatureFlagConstants.HAS_NO_SDK_KEY)
             "debugMode" -> jsonObj.getSafeBoolean(DEBUG_MODE_KEY)
+            "canUseLocalSource" -> jsonObj.getSafeBoolean(LOCAL_SOURCE)
             else -> null
         }
     }

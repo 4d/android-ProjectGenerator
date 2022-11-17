@@ -167,6 +167,9 @@ class GenerateCommand : CliktCommand(name = "generate") {
         Log.i("\"$ACTIONS_FILENAME\" file successfully generated.")
         
         Log.d("Output: ${projectEditor.findJsonString("targetDirPath")}")
+
+        Log.d("data:")
+        Log.logData(mustacheHelper.data)
     }
 }
 

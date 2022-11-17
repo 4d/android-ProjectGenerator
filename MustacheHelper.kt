@@ -61,6 +61,7 @@ import MustacheConstants.TABLE_HAS_TIME_FIELD
 import MustacheConstants.TABLE_LABEL
 import MustacheConstants.TYPES_AND_TABLES
 import PathHelperConstants.TEMPLATE_PLACEHOLDER
+import ProjectEditorConstants.LOCAL_SOURCE
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.samskivert.mustache.Mustache
@@ -73,7 +74,7 @@ import java.util.*
 
 class MustacheHelper(private val fileHelper: FileHelper, private val projectEditor: ProjectEditor) {
 
-    private var data = mutableMapOf<String, Any>()
+    var data = mutableMapOf<String, Any>()
 
     private val gson: Gson = GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create()
 
@@ -129,6 +130,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         data[APP_NAME_WITH_CAPS] = fileHelper.pathHelper.appNameWithCaps
 
         data[DEBUG_MODE] = projectEditor.findJsonBoolean("debugMode") ?: false
+        data[LOCAL_SOURCE] = projectEditor.findJsonBoolean("canUseLocalSource") ?: false
 
         // for network_security_config.xml
         // whitelist production host address if defined, else, server host address, else localhost
@@ -803,6 +805,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
     }
 
     private fun fillRelationFillerForEachRelation(source: String, index: Int, formType: FormType, relation: Relation, navbarTitle: String) {
+        Log.d("AZfillRelationFillerForEachRelation, relationpat: ${relation.path}")
         val filler = getTemplateRelationFillerForLayout(source, index, navbarTitle, relation, projectEditor.catalogDef)
         when {
             formType == FormType.LIST && relation.type == RelationType.ONE_TO_MANY ->

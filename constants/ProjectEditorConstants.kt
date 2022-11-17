@@ -54,6 +54,7 @@ object ProjectEditorConstants {
     const val DUMPED_TABLES_KEY = "dumpedTables"
     const val ACTIONS_KEY = "actions"
     const val DEBUG_MODE_KEY = "debugMode"
+    const val LOCAL_SOURCE = "canUseLocalSource"
 
     /**
      * TYPE STRING PARSING

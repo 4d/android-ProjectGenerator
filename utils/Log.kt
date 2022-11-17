@@ -10,4 +10,10 @@ object Log {
     fun i(message: String) = println("$TEXT_INFO I/ : $message $TEXT_RESET")
     fun d(message: String) = println("$TEXT_DEBUG D/ : $message $TEXT_RESET")
     fun e(message: String) = println("${TEXT_STYLE}${TEXT_ERROR} E/: $message $TEXT_RESET")
+
+    fun logData(data: Map<String, Any>) {
+        for ((key, value) in data) {
+            Log.d("[$key] [$value]")
+        }
+    }
 }
