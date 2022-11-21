@@ -46,12 +46,12 @@ fun Field.getFieldKeyAccessor(dataModelList: List<DataModel>): String {
             var nextPath = path.substringBeforeLast(".")
             while (nextPath.contains(".")) {
 
-                name += nextPath.relationAdjustment() + "."
+                name += nextPath.relationNameAdjustment() + "."
                 Log.d("building name = $name")
 
                 nextPath = nextPath.substringAfter(".")
             }
-            val returnName = name + nextPath.relationAdjustment() + "." + path.substringAfterLast(".").fieldAdjustment()
+            val returnName = name + nextPath.relationNameAdjustment() + "." + path.substringAfterLast(".").fieldAdjustment()
             Log.d("getFieldKeyAccessor returnName: $returnName")
             return returnName.substringBeforeLast(".") + ".__KEY"
         } else {
@@ -414,7 +414,7 @@ fun getEntryRelation(dataModelList: List<DataModel>, source: String, formField: 
         val relation: Relation? = findRelation(dataModelList, source, formField)
         Log.d("relation = $relation")
         if (relation != null)
-            "entityData." + relation.name.relationAdjustment() + "." + getPathToManyWithoutFirst(relation, catalogDef)
+            "entityData." + relation.name.relationNameAdjustment() + "." + getPathToManyWithoutFirst(relation, catalogDef)
         else
             "entityData." + formField.getFieldAliasName(dataModelList)
     } else {
@@ -432,7 +432,7 @@ private fun replacePercentPlaceholder(label: String, dataModelList: List<DataMod
             val relation: Relation? = findRelation(dataModelList, form.dataModel.name, field)
             Log.d("relation = $relation")
             if (relation != null)
-                "entityData." + relation.name.relationAdjustment() + "." + getPathToManyWithoutFirst(relation, catalogDef) + ".size"
+                "entityData." + relation.name.relationNameAdjustment() + "." + getPathToManyWithoutFirst(relation, catalogDef) + ".size"
             else
                 "entityData." + field.getFieldAliasName(dataModelList) + ".size"
 
@@ -508,9 +508,9 @@ fun getNavbarTitle(dataModelList: List<DataModel>, form: Form, formField: Field,
 
                             val pathToOneWithoutFirst = getPathToOneWithoutFirst(relation, catalogDef)
                             if (pathToOneWithoutFirst.isNotEmpty())
-                                "\${(roomEntity as ${form.dataModel.name.tableNameAdjustment()}RoomEntity?)?.${relation.name.relationAdjustment()}?.${pathToOneWithoutFirst}?.$fieldAliasName.toString()}"
+                                "\${(roomEntity as ${form.dataModel.name.tableNameAdjustment()}RoomEntity?)?.${relation.name.relationNameAdjustment()}?.${pathToOneWithoutFirst}?.$fieldAliasName.toString()}"
                             else
-                                "\${(roomEntity as ${form.dataModel.name.tableNameAdjustment()}RoomEntity?)?.${relation.name.relationAdjustment()}?.$fieldAliasName.toString()}"
+                                "\${(roomEntity as ${form.dataModel.name.tableNameAdjustment()}RoomEntity?)?.${relation.name.relationNameAdjustment()}?.$fieldAliasName.toString()}"
                         } else {
                             Log.d("No relation found with path : ${path.substringBeforeLast(".")}")
                             fieldName

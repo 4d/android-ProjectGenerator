@@ -90,8 +90,13 @@ fun String.validateWordDecapitalized(): String {
     }
 }
 
-fun String.relationAdjustment(): String =
+fun String.relationNameAdjustment(): String =
     this.split(".").map { it.tableNameAdjustment() }.joinToString("").tableNameAdjustment().decapitalize()
+
+fun String.relationPathAdjustment(): String =
+    this.split(".").joinToString(".") {
+        it.relationNameAdjustment()
+    }
 
 fun String.encode(): String = this
     .replace("&", "&amp;")

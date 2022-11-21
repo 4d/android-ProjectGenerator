@@ -238,7 +238,7 @@ fun JSONObject.getDataModelList(catalogDef: CatalogDef, isCreateDatabaseCommand:
                                                 val adjustedRelation = Relation(
                                                     source = dataModelName,
                                                     target = relation.target,
-                                                    name = path.relationAdjustment(),
+                                                    name = path.relationNameAdjustment(),
                                                     type = relation.type,
                                                     subFields = slaveSubFieldsForRelation,
                                                     inverseName = "",

@@ -24,7 +24,7 @@ fun Relation.getTemplateRelationFiller(catalogDef: CatalogDef): TemplateRelation
     TemplateRelationFiller(
         relation_source = this.source.tableNameAdjustment(),
         relation_target = this.target.tableNameAdjustment(),
-        relation_name = this.name.relationAdjustment(),
+        relation_name = this.name.relationNameAdjustment(),
         inverse_name = this.inverseName.fieldAdjustment(),
         isSubRelation = false,
         originalSubRelationName = "",
@@ -156,7 +156,7 @@ fun Relation.getTemplateRelationForRoomFiller(catalogDef: CatalogDef): TemplateR
                     key_name = key.fieldAdjustment(),
                     relation_embedded_return_type = getEmbeddedReturnTypeName(firstRelation.target, this.path.substringAfter(".")),
                     firstIsToMany = firstRelation.type == RelationType.ONE_TO_MANY,
-                    relation_part_name = if (this.path.contains(".")) this.path.relationAdjustment() else this.path.fieldAdjustment(),
+                    relation_part_name = if (this.path.contains(".")) this.path.relationNameAdjustment() else this.path.fieldAdjustment(),
                     firstTarget = getFirstTarget(catalogDef, this)
                 )
             }

@@ -307,9 +307,9 @@ class ProjectEditor(projectEditorFile: File, val catalogDef: CatalogDef, isCreat
 
                         val endFieldName = path.substringAfterLast(".").fieldAdjustment()
                         return if (path.count { it == '.' } > 1)
-                            relation.name.relationAdjustment() + "?." + getPathToOneWithoutFirst(relation, catalogDef) + "?." + endFieldName
+                            relation.name.relationNameAdjustment() + "?." + getPathToOneWithoutFirst(relation, catalogDef) + "?." + endFieldName
                         else
-                            relation.name.relationAdjustment() + "?." + endFieldName
+                            relation.name.relationNameAdjustment() + "?." + endFieldName
                     }
                 } else {
                     return path.fieldAdjustment()

@@ -117,7 +117,7 @@ fun getRelationsToCreate(catalogDef: CatalogDef, source: String, path: String): 
         val nextRelation = Relation(
             source = nextSource,
             target = target,
-            name = nextPath.relationAdjustment(),
+            name = nextPath.relationNameAdjustment(),
             type = getRelationType(catalogDef, nextSource, nextPath),
             subFields = listOf(),
             inverseName = "",
@@ -150,7 +150,7 @@ fun buildRelationEmbeddedReturnType(catalogDef: CatalogDef, source: String, path
 }
 
 fun getEmbeddedReturnTypeName(first: String, second: String): String {
-    return first.tableNameAdjustment() + "Relation" + second.relationAdjustment().tableNameAdjustment()
+    return first.tableNameAdjustment() + "Relation" + second.relationNameAdjustment().tableNameAdjustment()
 }
 
 /**
@@ -200,12 +200,12 @@ fun Field.getFieldAliasName(dataModelList: List<DataModel>): String {
             var nextPath = path.substringBeforeLast(".")
             while (nextPath.contains(".")) {
 
-                name += nextPath.relationAdjustment() + "."
+                name += nextPath.relationNameAdjustment() + "."
                 Log.d("building name = $name")
 
                 nextPath = nextPath.substringAfter(".")
             }
-            val returnName = name + nextPath.relationAdjustment() + "." + path.substringAfterLast(".").fieldAdjustment()
+            val returnName = name + nextPath.relationNameAdjustment() + "." + path.substringAfterLast(".").fieldAdjustment()
             Log.d("getFieldAliasName returnName: $returnName")
             return returnName
         } else {

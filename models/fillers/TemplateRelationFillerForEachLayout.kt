@@ -27,7 +27,7 @@ fun getTemplateRelationFillerForLayout(
     TemplateRelationFillerForEachLayout(
         relation_source = source.tableNameAdjustment(),
         relation_target = relation.target.tableNameAdjustment(),
-        relation_name = relation.name.relationAdjustment(),
+        relation_name = relation.name.relationNameAdjustment(),
         tableNameLowercase = source.dataBindingAdjustment().decapitalize(Locale.getDefault()),
         associatedViewId = viewId,
         isSubRelation = relation.name.fieldAdjustment().contains("."),
@@ -36,7 +36,7 @@ fun getTemplateRelationFillerForLayout(
         relation_source_camelCase = source.dataBindingAdjustment(),
         relation_target_camelCase = relation.target.dataBindingAdjustment(),
         isAlias = relation.path.contains("."),
-        path = relation.path.ifEmpty { relation.name.fieldAdjustment() },
+        path = relation.path.relationPathAdjustment().ifEmpty { relation.name.fieldAdjustment() },
         pathToOneWithoutFirst = getPathToOneWithoutFirst(relation, catalogDef),
         pathToManyWithoutFirst = getPathToManyWithoutFirst(relation, catalogDef)
     )
@@ -56,7 +56,7 @@ fun getPathToOneWithoutFirst(aliasRelation: Relation, catalogDef: CatalogDef): S
                     path += "?."
 
                 Log.d("tmpNextPath = $tmpNextPath")
-                path += tmpNextPath.relationAdjustment()
+                path += tmpNextPath.relationNameAdjustment()
             }
             nextSource = relation.target
             tmpNextPath = tmpNextPath.substringAfter(".")
@@ -84,9 +84,9 @@ fun getPathToManyWithoutFirst(aliasRelation: Relation, catalogDef: CatalogDef): 
                 Log.d("tmpNextPath = $tmpNextPath")
 
                 path += if (previousRelationType == RelationType.ONE_TO_MANY) {
-                    "mapNotNull { it.${tmpNextPath.relationAdjustment()}"
+                    "mapNotNull { it.${tmpNextPath.relationNameAdjustment()}"
                 } else {
-                    tmpNextPath.relationAdjustment()
+                    tmpNextPath.relationNameAdjustment()
                 }
             }
             previousRelationType = relation.type

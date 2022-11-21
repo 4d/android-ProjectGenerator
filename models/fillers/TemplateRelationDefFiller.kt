@@ -14,7 +14,7 @@ fun TemplateRelationFiller.getTemplateRelationDefFiller(relationType: RelationTy
         relation_name = if (relationType == RelationType.ONE_TO_MANY && this.isSubRelation) this.originalSubRelationName else this.relation_name,
         inverse_name = this.inverse_name,
         relationType = if (relationType == RelationType.ONE_TO_MANY) "Relation.Type.ONE_TO_MANY" else "Relation.Type.MANY_TO_ONE",
-        path = this.path.fieldAdjustment()
+        path = this.path.relationPathAdjustment()
     )
 
 fun TemplateRelationFiller.getTemplateRelationDefFillerForRelationId(): TemplateRelationDefFiller =
