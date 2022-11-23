@@ -50,9 +50,9 @@ class ProjectEditor(projectEditorFile: File, val catalogDef: CatalogDef, isCreat
     lateinit var detailFormList: List<Form>
     lateinit var navigationTableList: List<String>
     private lateinit var searchableFields: HashMap<String, List<String>>
-    private lateinit var defaultSortFields: HashMap<String, String>
 
-    lateinit var sectionFields: MutableList<SectionField>
+    lateinit var sectionFields: MutableList<QueryField>
+    lateinit var defaultSortFields: MutableList<QueryField>
     private lateinit var jsonObj: JSONObject
 
     init {
@@ -90,7 +90,7 @@ class ProjectEditor(projectEditorFile: File, val catalogDef: CatalogDef, isCreat
                 Log.d("> Detail forms list successfully read.")
 
                 defaultSortFields = jsonObj.getDefaultSortFields(dataModelList)
-
+                
                 sectionFields = jsonObj.getSectionFields(dataModelList).map { field ->
                     if (field.isAlias()) {
                         getDefaultFieldForAlias(field.tableNumber, field.name)?.let { name ->
@@ -212,9 +212,7 @@ class ProjectEditor(projectEditorFile: File, val catalogDef: CatalogDef, isCreat
                     originalName = originalTableName,
                     query = query,
                     fields = fieldsConcat,
-                    searchFields = searchFields.joinToString(),
-                    defaultSortField = defaultSortFields[tableName] ?: "__KEY"
-            )
+                    searchFields = searchFields.joinToString())
 
             map[tableName] = queryAndFields
         }

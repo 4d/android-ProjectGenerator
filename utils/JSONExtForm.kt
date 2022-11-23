@@ -129,22 +129,26 @@ fun JSONObject.getSearchFields(dataModelList: List<DataModel>, catalogDef: Catal
     return searchFields
 }
 
-fun JSONObject.getDefaultSortFields(dataModelList: List<DataModel>): HashMap<String, String> {
+fun JSONObject.getDefaultSortFields(dataModelList: List<DataModel>): MutableList<QueryField> {
     val list = this.getSafeObject(PROJECT_KEY)?.getSafeObject("list")
-    val sortFields = HashMap<String, String>()
+    val defaultSortFields = mutableListOf<QueryField>()
     list?.names()?.forEach { dataModelId ->
         val tableName = dataModelList.find { it.id == dataModelId }?.name
-
         if (tableName != null) {
 
             val item = list.getSafeObject(dataModelId as String) as JSONObject
+
+            var fieldNumber: Int? = null
+            var fieldType: String? = null
+            var fieldName: String? = null
 
             val onlySearchableField = item.getSafeObject("searchableField")
 
             // if only one searchableField it will be a jsonObject and not an array in project.4DMobileApp
             if (onlySearchableField != null) {
-                onlySearchableField.getSafeString("name")?.let { fieldName ->
-                    sortFields[tableName.tableNameAdjustment()] = fieldName
+                fieldNumber = onlySearchableField.getSafeInt("fieldNumber")
+                onlySearchableField.getSafeString("name")?.let { name ->
+                    fieldName = name
                 }
             } else {
                 // if only one searchableField it will be a jsonObject and not an array[] in project.4DMobileApp
@@ -156,29 +160,65 @@ fun JSONObject.getDefaultSortFields(dataModelList: List<DataModel>): HashMap<Str
                 }
 
                 val defaultSortField = // skip if photo 'filetype = 3
-                    fields?.filter { it.toString() != "null" }?.firstOrNull {
-                        (it as JSONObject).getSafeInt("fieldType") != 3 &&  it.getSafeString("kind") != "alias"
-                    }
+                        fields?.filter { it.toString() != "null" }?.firstOrNull {
+                            (it as JSONObject).getSafeInt("fieldType") != 3 && it.getSafeString("kind") != "alias"
+                        }
 
                 if (defaultSortField != null) {
-                    (defaultSortField as JSONObject).getSafeString("name")?.let { fieldName ->
-                        sortFields[tableName.tableNameAdjustment()] = fieldName
+                    (defaultSortField as JSONObject).getSafeString("name")?.let { name ->
+                        fieldName = name
                     }
+                    fieldNumber = defaultSortField.getSafeInt("fieldNumber")
+
                 } else {
                     // if no search field and no field visible we use the primary key as default sort field
-                    sortFields[tableName.tableNameAdjustment()] = "__KEY"
+                    fieldName = "__KEY"
                 }
+            }
+
+            if (fieldNumber != null) {
+                dataModelList.find { dataModel ->
+                    dataModel.id == dataModelId
+                }?.fields?.find { field -> field.id == fieldNumber.toString() }?.let { field ->
+                    fieldType = when (field.fieldType) {
+                        // date field
+                        4 -> {
+                            if (!field.format.isNullOrEmpty()) {
+                                field.format
+                            } else {
+                                "mediumDate"  //If format is null or empty return default format
+                            }
+                        }
+                        // time field
+                        11 -> {
+                            if (!field.format.isNullOrEmpty()) {
+                                field.format
+                            } else {
+                                "mediumTime"  //If format is null or empty return default format
+                            }
+                        }
+                        else -> {
+                            field.valueType
+                        }
+                    }
+                }
+
+            }
+
+            if ((fieldName != null) && (!fieldType.isNullOrEmpty())) {
+                defaultSortFields.add(QueryField(fieldName!!, fieldType
+                        ?: "", null, null, null, tableName.tableNameAdjustment()))
             }
         }
     }
 
-    return sortFields
+    return defaultSortFields
 }
 
-fun JSONObject.getSectionFields(dataModelList: List<DataModel>): MutableList<SectionField> {
+fun JSONObject.getSectionFields(dataModelList: List<DataModel>): MutableList<QueryField> {
 
     val list = this.getSafeObject(PROJECT_KEY)?.getSafeObject("list")
-    val sectionFields = mutableListOf<SectionField>()
+    val sectionFields = mutableListOf<QueryField>()
     list?.names()?.forEach { dataModelId ->
         val tableName = dataModelList.find { it.id == dataModelId }?.name
         if (tableName != null) {
@@ -214,6 +254,7 @@ fun JSONObject.getSectionFields(dataModelList: List<DataModel>): MutableList<Sec
                                     "mediumTime"  //If format is null or empty return default format
                                 }
                             }
+
                             else -> {
                                 field.valueType
                             }
@@ -222,12 +263,14 @@ fun JSONObject.getSectionFields(dataModelList: List<DataModel>): MutableList<Sec
 
                     if (kind == "alias") {
                         path?.let { p ->
-                            if (p.count { value -> value == '.'  } <= 1){
-                                sectionFields.add(SectionField(fieldName, valueType ?: "", kind, path, tableNumber, tableName.tableNameAdjustment()))
+                            if (p.count { value -> value == '.' } <= 1) {
+                                sectionFields.add(QueryField(fieldName, valueType
+                                        ?: "", kind, path, tableNumber, tableName.tableNameAdjustment()))
                             }
                         }
                     } else {
-                        sectionFields.add(SectionField(fieldName, valueType ?: "", kind, path, tableNumber, tableName.tableNameAdjustment()))
+                        sectionFields.add(QueryField(fieldName, valueType
+                                ?: "", kind, path, tableNumber, tableName.tableNameAdjustment()))
                     }
 
                 }
@@ -236,5 +279,3 @@ fun JSONObject.getSectionFields(dataModelList: List<DataModel>): MutableList<Sec
     }
     return sectionFields
 }
-
-
