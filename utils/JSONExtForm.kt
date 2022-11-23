@@ -159,10 +159,10 @@ fun JSONObject.getDefaultSortFields(dataModelList: List<DataModel>): MutableList
                     item.getSafeArray("fields")
                 }
 
-                val defaultSortField = // skip if photo 'filetype = 3
-                        fields?.filter { it.toString() != "null" }?.firstOrNull {
-                            (it as JSONObject).getSafeInt("fieldType") != 3 && it.getSafeString("kind") != "alias"
-                        }
+                // skip if photo 'filetype = 3
+                val defaultSortField = fields?.filter { it.toString() != "null" }?.firstOrNull {
+                    (it as JSONObject).getSafeInt("fieldType") != 3 && it.getSafeString("kind") != "alias"
+                }
 
                 if (defaultSortField != null) {
                     (defaultSortField as JSONObject).getSafeString("name")?.let { name ->
@@ -205,9 +205,10 @@ fun JSONObject.getDefaultSortFields(dataModelList: List<DataModel>): MutableList
 
             }
 
-            if ((fieldName != null) && (!fieldType.isNullOrEmpty())) {
-                defaultSortFields.add(QueryField(fieldName!!, fieldType
-                        ?: "", null, null, null, tableName.tableNameAdjustment()))
+            fieldName?.let { name ->
+                fieldType?.let { type ->
+                    defaultSortFields.add(QueryField(name, type, null, null, null, tableName.tableNameAdjustment()))
+                }
             }
         }
     }

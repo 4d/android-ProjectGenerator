@@ -212,8 +212,8 @@ class ProjectEditor(projectEditorFile: File, val catalogDef: CatalogDef, isCreat
                     originalName = originalTableName,
                     query = query,
                     fields = fieldsConcat,
-                    searchFields = searchFields.joinToString())
-
+                    searchFields = searchFields.joinToString()
+            )
             map[tableName] = queryAndFields
         }
         return map
