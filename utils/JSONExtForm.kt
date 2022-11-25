@@ -262,16 +262,33 @@ fun JSONObject.getSectionFields(dataModelList: List<DataModel>): MutableList<Que
                         }
                     }
 
+                    // Adjust property name exp : adresse?.Name => adresse?.name , otherwise section will not work
+                    val adjustedFieldName = if (fieldName.contains(".")) {
+                        val propertyName = fieldName.split(".").last()
+                        fieldName.replace(propertyName, propertyName.fieldAdjustment())
+                    } else {
+                        fieldName
+                    }
+
+                    // Adjust relation name exp : Adresse?.Name => adresse.Name
+
+                    val adjustedPath = if (fieldName.contains(".")) {
+                        val relationName = fieldName.split(".").first()
+                        fieldName.replace(relationName, relationName.fieldAdjustment())
+                    } else {
+                        fieldName
+                    }
+
                     if (kind == "alias") {
                         path?.let { p ->
                             if (p.count { value -> value == '.' } <= 1) {
-                                sectionFields.add(QueryField(fieldName, valueType
-                                        ?: "", kind, path, tableNumber, tableName.tableNameAdjustment()))
+                                sectionFields.add(QueryField(adjustedFieldName, valueType
+                                        ?: "", kind, adjustedPath, tableNumber, tableName.tableNameAdjustment()))
                             }
                         }
                     } else {
-                        sectionFields.add(QueryField(fieldName, valueType
-                                ?: "", kind, path, tableNumber, tableName.tableNameAdjustment()))
+                        sectionFields.add(QueryField(adjustedFieldName, valueType
+                                ?: "", kind, adjustedPath, tableNumber, tableName.tableNameAdjustment()))
                     }
 
                 }
