@@ -11,6 +11,7 @@ import PathHelperConstants.FORMATTERS_FORMATTER_KEY
 import PathHelperConstants.HOST_FORMATTERS_KEY
 import PathHelperConstants.HOST_FORMS
 import PathHelperConstants.HOST_INPUT_CONTROLS_KEY
+import PathHelperConstants.HOST_LOGIN_FORM_KEY
 import PathHelperConstants.JAVA_PATH_KEY
 import PathHelperConstants.LAYOUT_PATH_KEY
 import PathHelperConstants.LIST_FORMS_KEY
@@ -83,6 +84,8 @@ class PathHelper(
     private val hostFormattersPath = hostDb + File.separator + HOST_FORMATTERS_KEY
 
     private val hostInputControlsPath = hostDb + File.separator + HOST_INPUT_CONTROLS_KEY
+
+    private val hostLoginFormPath = hostDb + File.separator + HOST_LOGIN_FORM_KEY
 
     private val srcPath = targetDirPath + File.separator +
             APP_PATH_KEY + File.separator +
@@ -265,6 +268,20 @@ class PathHelper(
         throw IllegalArgumentException("Getting path of input control $name that is not a host one ie. starting with '/'")
     }
 
+    fun getCustomLoginFormPath(name: String): String {
+        Log.d("getCustomLoginFormPath: name = $name")
+        if (name.startsWith("/")) {
+            findAppropriateFolder(hostLoginFormPath, name)?.let { loginFormFolder ->
+                return hostLoginFormPath + File.separator + loginFormFolder.name
+            }
+            // check for zip
+            findAppropriateZip(hostLoginFormPath, name)?.let { unzippedArchive ->
+                return unzippedArchive.absolutePath.replaceIfWindowsPath()
+            }
+        }
+        throw IllegalArgumentException("Getting path of login form $name that is not a host one ie. starting with '/'")
+    }
+
     private fun findAppropriateFolder(basePath: String, nameInManifest: String): File? {
         Log.d("findAppropriateFolder, basePath : $basePath, nameInManifest: $nameInManifest")
         File(basePath).walkTopDown().filter { folder -> !folder.isHidden && folder.isDirectory }
@@ -296,7 +313,7 @@ class PathHelper(
         return null
     }
 
-    fun findMatchingKotlinInputControlClass(basePath: String): String? {
+    fun findMatchingKotlinClass(basePath: String, annotation: String): String? {
         Log.d("findMatchingInputControlClass, basePath : $basePath")
         File(basePath).walkTopDown().filter { folder -> !folder.isHidden && folder.isDirectory }
             .forEach { currentFolder ->
@@ -304,7 +321,7 @@ class PathHelper(
                     .filter { file -> !file.isHidden && file.isFile && currentFolder.absolutePath.contains(file.parent) && file.name != DS_STORE }
                     .forEach { currentFile ->
                         val fileContent: String = currentFile.readFile()
-                        if (fileContent.contains("@KotlinInputControl")) {
+                        if (fileContent.contains(annotation)) {
                             return currentFile.name.substringBefore(".")
                         }
                     }

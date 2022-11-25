@@ -28,3 +28,10 @@ data class FieldMappingDefaultInputControl(
     val imageWidth: Int?,
     val imageHeight: Int?,
 )
+
+data class FieldMappingLoginForm(
+    val type: Any?,  // type can be a String or a JSONArray
+    val name: String?,
+    val target: Any?,
+    val capabilities : List<String>?
+)

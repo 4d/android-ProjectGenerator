@@ -25,6 +25,16 @@ fun getFieldMappingKotlinInputControl(manifestContent: JSONObject, format: Strin
         capabilities = manifestContent.getSafeObject("capabilities")?.checkCapabilities(),
     )
 
+fun getFieldMappingLoginForm(manifestContent: JSONObject, format: String): FieldMappingLoginForm =
+    FieldMappingLoginForm(
+        type = manifestContent.getSafeString("type") ?: manifestContent.getSafeArray("type")
+            .getStringList(), // type can be a String or a JSONArray
+        name = format,
+        target = manifestContent.getSafeString("target") ?: manifestContent.getSafeArray("target")
+            .getStringList(), // target can be a String or a JSONArray,
+        capabilities = manifestContent.getSafeObject("capabilities")?.checkCapabilities(),
+    )
+
 fun getFieldMappingDefaultInputControl(manifestContent: JSONObject): FieldMappingDefaultInputControl =
     FieldMappingDefaultInputControl(
         binding = manifestContent.getSafeString("binding"),
@@ -95,6 +105,10 @@ fun FieldMappingFormatter.isValidKotlinCustomDataFormatter(): Boolean {
 }
 
 fun FieldMappingKotlinInputControl.isValidKotlinInputControl(): Boolean {
+    return this.name != null && isTargetOk(target)
+}
+
+fun FieldMappingLoginForm.isValidLoginForm(): Boolean {
     return this.name != null && isTargetOk(target)
 }
 

@@ -13,6 +13,7 @@ object DefaultValues {
     const val DEFAULT_DETAIL_FORM = "Blank Form"
     const val LAYOUT_FILE = "layout.xml"
     const val DEFAULT_ADDRESS = "10.0.2.2"
+    const val DEFAULT_LOGIN_FORM = "DefaultLogin"
 
     /**
      *  val VERBOSE = 2
