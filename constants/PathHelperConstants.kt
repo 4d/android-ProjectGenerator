@@ -29,6 +29,7 @@ object PathHelperConstants {
     const val DETAIL_FORM_PREFIX = "fragment_detail_"
     const val HOST_FORMATTERS_KEY = "formatters"
     const val HOST_INPUT_CONTROLS_KEY = "inputControls"
+    const val HOST_LOGIN_FORM_KEY = "login"
     const val FORMATTERS_FORMATTER_KEY = "Formatters"
 
     /**

@@ -1,5 +1,6 @@
 import DefaultValues.DEFAULT_ADDRESS
 import DefaultValues.DEFAULT_AUTHOR
+import DefaultValues.DEFAULT_LOGIN_FORM
 import DefaultValues.DEFAULT_REMOTE_URL
 import DefaultValues.LAYOUT_FILE
 import FileHelperConstants.ACTIONS_FILENAME
@@ -26,10 +27,13 @@ import MustacheConstants.FORM_FIELDS
 import MustacheConstants.HAS_ANY_MANY_TO_ONE_RELATION
 import MustacheConstants.HAS_ANY_ONE_TO_MANY_RELATION
 import MustacheConstants.HAS_ANY_ONE_TO_MANY_RELATION_FOR_LAYOUT
+import MustacheConstants.HAS_CUSTOM_LOGIN
 import MustacheConstants.HAS_DATASET
+import MustacheConstants.HAS_KOTLIN_INPUT_CONTROLS
 import MustacheConstants.HAS_RELATION
 import MustacheConstants.HAS_REMOTE_ADDRESS
 import MustacheConstants.KOTLIN_INPUT_CONTROLS
+import MustacheConstants.LOGIN_CLASS_NAME
 import MustacheConstants.PACKAGE
 import MustacheConstants.PERMISSIONS
 import MustacheConstants.RELATIONS
@@ -355,7 +359,12 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
         data[HAS_DATASET] = projectEditor.findJsonBoolean(FeatureFlagConstants.HAS_DATASET_KEY) ?: true
 
+        val loginFormClass: String = getCustomLoginFormClassName() ?: DEFAULT_LOGIN_FORM
+        data[LOGIN_CLASS_NAME] = loginFormClass
+        data[HAS_CUSTOM_LOGIN] = data[LOGIN_CLASS_NAME] == DEFAULT_LOGIN_FORM
+
         getAllInputControls()
+        data[HAS_KOTLIN_INPUT_CONTROLS] = kotlinInputControls.isNotEmpty()
         data[KOTLIN_INPUT_CONTROLS] = kotlinInputControls.distinct()
 
         getAllActionPermissions()
@@ -1073,7 +1082,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                 getManifestJSONContent(inputControlPath)?.let {
 
                                     val kotlinInputControlClass =
-                                        fileHelper.pathHelper.findMatchingKotlinInputControlClass(inputControlPath)
+                                        fileHelper.pathHelper.findMatchingKotlinClass(inputControlPath, "@KotlinInputControl")
                                     if (kotlinInputControlClass != null) {
 
                                         val templateInputControlFiller = TemplateInputControlFiller(
@@ -1119,6 +1128,33 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                 }
             }
         }
+    }
+
+    private fun getCustomLoginFormClassName(): String? {
+        val loginForm = projectEditor.findJsonString("login")
+        Log.d("getLoginFormClassName, loginForm : $loginForm")
+        if (loginForm?.startsWith("/") == true) {
+            val loginFormPath = fileHelper.pathHelper.getCustomLoginFormPath(loginForm)
+            getManifestJSONContent(loginFormPath)?.let {
+                val kotlinLoginFormClass =
+                    fileHelper.pathHelper.findMatchingKotlinClass(loginFormPath, "@LoginForm")
+                if (kotlinLoginFormClass != null) {
+
+                    val fieldMappingLoginForm = getFieldMappingLoginForm(it, loginForm)
+                    Log.d("fieldMappingLoginForm for login form :  $fieldMappingLoginForm")
+
+                    if (fieldMappingLoginForm.isValidLoginForm()) {
+                        // Saving any permission for input controls
+                        fieldMappingLoginForm.capabilities?.forEach { permissionName ->
+                            permissionFillerList.add(getTemplatePermissionFiller(permissionName))
+                        }
+                        return kotlinLoginFormClass
+                    }
+                    Log.d("not a valid login form")
+                }
+            }
+        }
+        return null
     }
 
     // <tableName, <fieldName, fieldMapping>>
