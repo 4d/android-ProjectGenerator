@@ -361,7 +361,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
         val loginFormClass: String = getCustomLoginFormClassName() ?: DEFAULT_LOGIN_FORM
         data[LOGIN_CLASS_NAME] = loginFormClass
-        data[HAS_CUSTOM_LOGIN] = data[LOGIN_CLASS_NAME] == DEFAULT_LOGIN_FORM
+        data[HAS_CUSTOM_LOGIN] = data[LOGIN_CLASS_NAME] != DEFAULT_LOGIN_FORM
 
         getAllInputControls()
         data[HAS_KOTLIN_INPUT_CONTROLS] = kotlinInputControls.isNotEmpty()
