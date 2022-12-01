@@ -1134,23 +1134,24 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         val loginForm = projectEditor.findJsonString("login")
         Log.d("getLoginFormClassName, loginForm : $loginForm")
         if (loginForm?.startsWith("/") == true) {
-            val loginFormPath = fileHelper.pathHelper.getCustomLoginFormPath(loginForm)
-            getManifestJSONContent(loginFormPath)?.let {
-                val kotlinLoginFormClass =
-                    fileHelper.pathHelper.findMatchingKotlinClass(loginFormPath, "@LoginForm")
-                if (kotlinLoginFormClass != null) {
+            fileHelper.pathHelper.getTemplateLoginFormPath(loginForm)?.let { loginFormPath ->
+                getManifestJSONContent(loginFormPath)?.let {
+                    val kotlinLoginFormClass =
+                        fileHelper.pathHelper.findMatchingKotlinClass(loginFormPath, "@LoginForm")
+                    if (kotlinLoginFormClass != null) {
 
-                    val fieldMappingLoginForm = getFieldMappingLoginForm(it, loginForm)
-                    Log.d("fieldMappingLoginForm for login form :  $fieldMappingLoginForm")
+                        val fieldMappingLoginForm = getFieldMappingLoginForm(it, loginForm)
+                        Log.d("fieldMappingLoginForm for login form :  $fieldMappingLoginForm")
 
-                    if (fieldMappingLoginForm.isValidLoginForm()) {
-                        // Saving any permission for input controls
-                        fieldMappingLoginForm.capabilities?.forEach { permissionName ->
-                            permissionFillerList.add(getTemplatePermissionFiller(permissionName))
+                        if (fieldMappingLoginForm.isValidLoginForm()) {
+                            // Saving any permission for input controls
+                            fieldMappingLoginForm.capabilities?.forEach { permissionName ->
+                                permissionFillerList.add(getTemplatePermissionFiller(permissionName))
+                            }
+                            return kotlinLoginFormClass
                         }
-                        return kotlinLoginFormClass
+                        Log.d("not a valid login form")
                     }
-                    Log.d("not a valid login form")
                 }
             }
         }

@@ -15,6 +15,7 @@ import PathHelperConstants.HOST_LOGIN_FORM_KEY
 import PathHelperConstants.JAVA_PATH_KEY
 import PathHelperConstants.LAYOUT_PATH_KEY
 import PathHelperConstants.LIST_FORMS_KEY
+import PathHelperConstants.LOGIN_FORMS_KEY
 import PathHelperConstants.MAIN_PATH_KEY
 import PathHelperConstants.NAVIGATION_PATH_KEY
 import PathHelperConstants.PACKAGE_JOINED_PH
@@ -80,6 +81,8 @@ class PathHelper(
     private val hostListFormTemplatesPath = hostFormTemplatesPath + File.separator + LIST_FORMS_KEY
 
     private val hostDetailFormTemplatesPath = hostFormTemplatesPath + File.separator + DETAIL_FORMS_KEY
+
+    private val hostLoginFormTemplatesPath = hostFormTemplatesPath + File.separator + LOGIN_FORMS_KEY
 
     private val hostFormattersPath = hostDb + File.separator + HOST_FORMATTERS_KEY
 
@@ -268,18 +271,30 @@ class PathHelper(
         throw IllegalArgumentException("Getting path of input control $name that is not a host one ie. starting with '/'")
     }
 
-    fun getCustomLoginFormPath(name: String): String {
-        Log.d("getCustomLoginFormPath: name = $name")
-        if (name.startsWith("/")) {
-            findAppropriateFolder(hostLoginFormPath, name)?.let { loginFormFolder ->
-                return hostLoginFormPath + File.separator + loginFormFolder.name
-            }
-            // check for zip
-            findAppropriateZip(hostLoginFormPath, name)?.let { unzippedArchive ->
-                return unzippedArchive.absolutePath.replaceIfWindowsPath()
+    fun getTemplateLoginFormPath(formName: String): String? {
+        var templatePath = ""
+        var newFormName = formName
+        if (formName.startsWith("/")) {
+            Log.d("formName $formName")
+            templatePath = hostLoginFormTemplatesPath
+            Log.d("templatePath $templatePath")
+
+            if (formName.endsWith(".zip")) {
+                val zipFile = File(templatePath + File.separator + formName.removePrefix("/"))
+                if (zipFile.exists()) {
+                    val tmpDir = ZipManager.unzip(zipFile)
+                    tmpUnzippedTemplateListToBeDeleted.add(tmpDir)
+                    newFormName = TEMPORARY_UNZIPPED_TEMPLATE_PREFIX + formName.removePrefix("/").removeSuffix(".zip")
+                    Log.d("newFormName $newFormName")
+                    return templatePath + File.separator + newFormName.removePrefix(File.separator)
+                }
+            } else {
+                Log.d("newFormName $newFormName")
+                return templatePath + File.separator + newFormName.removePrefix(File.separator)
             }
         }
-        throw IllegalArgumentException("Getting path of login form $name that is not a host one ie. starting with '/'")
+        Log.d("getTemplateLoginFormPath returns null")
+        return null
     }
 
     private fun findAppropriateFolder(basePath: String, nameInManifest: String): File? {

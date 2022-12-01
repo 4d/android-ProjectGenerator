@@ -25,6 +25,7 @@ object PathHelperConstants {
     const val HOST_FORMS = "form"
     const val LIST_FORMS_KEY = "list"
     const val DETAIL_FORMS_KEY = "detail"
+    const val LOGIN_FORMS_KEY = "login"
     const val RECYCLER_VIEW_ITEM_PREFIX = "recyclerview_item_"
     const val DETAIL_FORM_PREFIX = "fragment_detail_"
     const val HOST_FORMATTERS_KEY = "formatters"

@@ -1,8 +1,4 @@
-import FileHelperConstants.DS_STORE
 import FileHelperConstants.kotlinProjectDirs
-import PathHelperConstants.ANDROID_PATH_KEY
-import PathHelperConstants.DRAWABLE_PATH_KEY
-import PathHelperConstants.RES_PATH_KEY
 import PathHelperConstants.TEMPLATE_PLACEHOLDER
 import PathHelperConstants.XML_TXT_EXT
 import org.json.JSONObject
@@ -100,6 +96,7 @@ fun getManifest(path: String): File = File(path + File.separator + "manifest.jso
 
 // Used for both custom templates and custom formatters
 fun getManifestJSONContent(path: String): JSONObject? {
+    Log.d("getManifestJSONContent: $path")
     val manifest = getManifest(path)
     return getManifestJSONContent(manifest)
 }
