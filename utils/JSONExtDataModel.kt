@@ -425,22 +425,20 @@ fun JSONObject.getDataModelList(catalogDef: CatalogDef, isCreateDatabaseCommand:
                         Log.d("A native type field should be added")
                         val dest = destBeforeField(catalogDef, dataModelAlias.name, catalogField.path)
                         Log.d("dest: $dest")
+
                         catalogField.path?.substringAfterLast(".")?.let { endFieldName ->
                             Log.d("endFieldName: $endFieldName")
-                            catalogDef.dataModelAliases.find { it.name == dest }?.fields?.find { it.name == endFieldName }?.let { endField ->
-                                Log.d("endField: $endField")
-
-                                val newList = dataModelList.find { it.name == dest }?.fields ?: mutableListOf()
-                                newList.takeIf { newList.find { it.name == endField.name } == null }?.add(endField.convertToField())
-                                // If endField is an alias, also add the path field
-                                if (!endField.path.isNullOrEmpty()) {
-                                    catalogDef.dataModelAliases.find { it.name == dest }?.fields?.find { it.name == endField.path }?.let { pathField ->
-                                        newList.takeIf { newList.find { it.name == pathField.name } == null }?.add(pathField.convertToField())
-                                    }
-                                }
-                                dataModelList.find { it.name == dest }?.fields = newList
-                            }
+                            dataModelList.createMissingFieldIfNeeded(dest, catalogDef, endFieldName)
                         }
+                        Log.d("//////// repeat with unAliased path to create unknown fields")
+                        val unAliasedPath = unAliasPath(catalogField.path, dataModelAlias.name, catalogDef)
+                        Log.d("unAliasedPath = $unAliasedPath")
+                        val destBeforeField = destBeforeField(catalogDef, dataModelAlias.name, unAliasedPath)
+                        Log.d("destBeforeField: $destBeforeField")
+                        val endFieldName = unAliasedPath.substringAfterLast(".")
+                        Log.d("endFieldName: $endFieldName")
+
+                        dataModelList.createMissingFieldIfNeeded(destBeforeField, catalogDef, endFieldName)
                     }
 
                     // if the alias is a slave, we need to create a relation from parent. Example: service.managerServiceName we must create serviceManagerService
@@ -747,6 +745,24 @@ fun MutableList<DataModel>.handleAlias(nextTableName: String?, relationName: Str
         }
     }
     return returnNextTableName
+}
+
+fun MutableList<DataModel>.createMissingFieldIfNeeded(dest: String, catalogDef: CatalogDef, endFieldName: String) {
+    catalogDef.dataModelAliases.find { it.name == dest }?.fields?.find { it.name == endFieldName }?.let { endField ->
+        Log.d("endField: $endField")
+
+        val newList = this.find { it.name == dest }?.fields ?: mutableListOf()
+        newList.takeIf { newList.find { it.name == endField.name } == null }?.add(endField.convertToField())
+        Log.d("endField.path = ${endField.path}")
+        // If endField is an alias, also add the path field
+        if (!endField.path.isNullOrEmpty()) {
+            catalogDef.dataModelAliases.find { it.name == dest }?.fields?.find { it.name == endField.path }?.let { pathField ->
+                Log.d("pathField: $pathField")
+                newList.takeIf { newList.find { it.name == pathField.name } == null }?.add(pathField.convertToField())
+            }
+        }
+        this.find { it.name == dest }?.fields = newList
+    }
 }
 
 fun JSONObject?.getDataModelField(keyField: String, dataModelId: String?, dataModelName: String, catalogDef: CatalogDef): Field {
