@@ -84,7 +84,7 @@ fun JSONObject.getDataModelList(catalogDef: CatalogDef, isCreateDatabaseCommand:
                     val field: Field? = newFieldJSONObject?.getDataModelField(keyField, keyDataModel, dataModelName, catalogDef)
 
                     field?.let {
-                        Log.d("field: $field")
+                        Log.d("field, level 0: $field")
 
                         val subFields: List<Field> = newFieldJSONObject.getSubFields(dataModelName, catalogDef)
 
@@ -487,6 +487,37 @@ fun JSONObject.getDataModelList(catalogDef: CatalogDef, isCreateDatabaseCommand:
     Log.d("Sanity fields")
     dataModelList.forEach { dataModel ->
         val sanityFieldList = mutableListOf<Field>()
+        val fieldDone: MutableList<String> = mutableListOf()
+        dataModel.fields?.forEach eachDmField@{ field ->
+            Log.d("field : $field")
+            val nbNotSlave = dataModel.fields?.count { it.name == field.name && it.isSlave == false } ?: 0
+            val nbSlaveField = dataModel.fields?.count { it.name == field.name && it.isSlave == true } ?: 0
+            when {
+                fieldDone.contains(field.name) -> return@eachDmField
+                nbNotSlave == 1 -> {
+                    if (field.isSlave != false) {
+                        return@eachDmField
+                    }
+                }
+                nbNotSlave == 0 && nbSlaveField == 1 -> {
+                    if (field.isSlave != true) {
+                        return@eachDmField
+                    }
+                }
+            }
+            Log.d("adding field : $field")
+            fieldDone.add(field.name)
+            field.relatedTableNumber?.let { relatedTableNumber -> // relation
+                if (catalogDef.dataModelAliases.map { it.tableNumber.toString() }.contains(relatedTableNumber.toString())) {
+
+                    sanityFieldList.add(field)
+                } else {
+                    Log.e("Excluding unknown field $field")
+                }
+            } ?: kotlin.run { // not relation
+                sanityFieldList.add(field)
+            }
+        }
         dataModel.fields?.distinctBy { it.name }?.forEach { field ->
             Log.d("field : $field")
             field.relatedTableNumber?.let { relatedTableNumber -> // relation
@@ -871,6 +902,8 @@ fun JSONObject?.getDataModelField(keyField: String, dataModelId: String?, dataMo
         field.label = field.name
     if (field.shortLabel.isNullOrEmpty())
         field.shortLabel = field.name
+
+    Log.d("field:::::: $field")
     return field
 }
 

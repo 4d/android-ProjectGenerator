@@ -237,6 +237,7 @@ class PathHelper(
     }
 
     fun getCustomFormatterPath(name: String): String {
+        Log.d("getCustomFormatterPath:name: $name")
         if (name.startsWith("/")) {
             var formatterPath = ""
             formatterPath = hostFormattersPath
@@ -251,6 +252,7 @@ class PathHelper(
                     throw IllegalArgumentException("Zip file '$name' could not be found")
                 }
             }
+            Log.d("getCustomFormatterPath:return: ${hostFormattersPath + File.separator + newFormatterName.removePrefix(File.separator)}")
             return hostFormattersPath + File.separator + newFormatterName.removePrefix(File.separator)
         }
         throw IllegalArgumentException("Getting path of formatter $name that is not a host one ie. starting with '/'")
