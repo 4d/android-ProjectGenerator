@@ -158,6 +158,7 @@ class ProjectEditor(projectEditorFile: File, val catalogDef: CatalogDef, isCreat
             FeatureFlagConstants.HAS_DATASET_KEY -> jsonObj.getSafeBoolean(FeatureFlagConstants.HAS_DATASET_KEY)
             FeatureFlagConstants.HAS_KOTLIN_INPUT_CONTROLS -> jsonObj.getSafeBoolean(FeatureFlagConstants.HAS_KOTLIN_INPUT_CONTROLS)
             FeatureFlagConstants.HAS_OPEN_URL_ACTION_KEY -> jsonObj.getSafeBoolean(FeatureFlagConstants.HAS_OPEN_URL_ACTION_KEY)
+            FeatureFlagConstants.HAS_CUSTOM_LOGIN_FORMS -> jsonObj.getSafeBoolean(FeatureFlagConstants.HAS_CUSTOM_LOGIN_FORMS)
             FeatureFlagConstants.HAS_BUILD_WITH_CMD_KEY -> jsonObj.getSafeBoolean(FeatureFlagConstants.HAS_BUILD_WITH_CMD_KEY)
             FeatureFlagConstants.HAS_NO_DATA_KEY -> jsonObj.getSafeBoolean(FeatureFlagConstants.HAS_NO_DATA_KEY)
             FeatureFlagConstants.HAS_NO_SDK_KEY -> jsonObj.getSafeBoolean(FeatureFlagConstants.HAS_NO_SDK_KEY)
