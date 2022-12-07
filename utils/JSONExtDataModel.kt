@@ -518,19 +518,6 @@ fun JSONObject.getDataModelList(catalogDef: CatalogDef, isCreateDatabaseCommand:
                 sanityFieldList.add(field)
             }
         }
-        dataModel.fields?.distinctBy { it.name }?.forEach { field ->
-            Log.d("field : $field")
-            field.relatedTableNumber?.let { relatedTableNumber -> // relation
-                if (catalogDef.dataModelAliases.map { it.tableNumber.toString() }.contains(relatedTableNumber.toString())) {
-
-                    sanityFieldList.add(field)
-                } else {
-                    Log.e("Excluding unknown field $field")
-                }
-            } ?: kotlin.run { // not relation
-                sanityFieldList.add(field)
-            }
-        }
         Log.d("DataModel ${dataModel.name}, previous fields size = ${dataModel.fields?.size}, new size = ${sanityFieldList.size}")
         dataModel.fields = sanityFieldList
 
