@@ -211,11 +211,14 @@ class ProjectEditor(projectEditorFile: File, val catalogDef: CatalogDef, isCreat
 
             val searchFields = searchableFields[tableName] ?: listOf()
 
+            val searchableWithBarcode = listFormList.find { it.dataModel.name == tableName }?.searchableWithBarcode ?: false
+
             val queryAndFields = TableInfo(
                     originalName = originalTableName,
                     query = query,
                     fields = fieldsConcat,
-                    searchFields = searchFields.joinToString()
+                    searchFields = searchFields.joinToString(),
+                    searchableWithBarcode = false // set to searchableWithBarcode
             )
             map[tableName] = queryAndFields
         }

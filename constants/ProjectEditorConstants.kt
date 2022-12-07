@@ -27,6 +27,7 @@ object ProjectEditorConstants {
     const val RELATEDENTITIES_KEY = "relatedEntities"
     const val LIST_KEY = "list"
     const val FORM_KEY = "form"
+    const val SEARCHABLE_WITH_BARCODE = "searchableWithBarcode"
     const val FIELDS_KEY = "fields"
     const val ID_KEY = "id"
     const val DETAIL_KEY = "detail"
