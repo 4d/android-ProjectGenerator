@@ -4,6 +4,7 @@ import ProjectEditorConstants.FORM_KEY
 import ProjectEditorConstants.LIST_KEY
 import ProjectEditorConstants.PHOTO_TYPE
 import ProjectEditorConstants.PROJECT_KEY
+import ProjectEditorConstants.SEARCHABLE_WITH_BARCODE
 import org.json.JSONObject
 
 fun JSONObject.getFormList(dataModelList: List<DataModel>, formType: FormType, navigationTableList: List<String>, catalogDef: CatalogDef): List<Form> {
@@ -19,6 +20,9 @@ fun JSONObject.getFormList(dataModelList: List<DataModel>, formType: FormType, n
             val newFormJSONObject = forms.getSafeObject(keyDataModel.toString())
             newFormJSONObject?.getSafeString(FORM_KEY)?.let {
                 form.name = it
+            }
+            newFormJSONObject?.getSafeBoolean(SEARCHABLE_WITH_BARCODE)?.let {
+                form.searchableWithBarcode = it
             }
             val fieldList = newFormJSONObject?.getSafeArray(FIELDS_KEY).getObjectListAsString()
             form.fields = getFormFields(fieldList, dataModel.name, catalogDef)
