@@ -2,12 +2,12 @@ import DefaultValues.DEFAULT_ADDRESS
 import DefaultValues.DEFAULT_AUTHOR
 import DefaultValues.DEFAULT_LOGIN_FORM
 import DefaultValues.DEFAULT_REMOTE_URL
-import DefaultValues.LAYOUT_FILE
 import FileHelperConstants.ACTIONS_FILENAME
 import FileHelperConstants.APP_INFO_FILENAME
 import FileHelperConstants.CUSTOM_FORMATTERS_FILENAME
 import FileHelperConstants.DS_STORE
 import FileHelperConstants.INPUT_CONTROLS_FILENAME
+import FileHelperConstants.LAYOUT_FILE
 import FileHelperConstants.TABLE_INFO_FILENAME
 import MustacheConstants.ANDROID_SDK_PATH
 import MustacheConstants.APP_NAME_WITH_CAPS
@@ -32,6 +32,8 @@ import MustacheConstants.HAS_DATASET
 import MustacheConstants.HAS_KOTLIN_INPUT_CONTROLS
 import MustacheConstants.HAS_RELATION
 import MustacheConstants.HAS_REMOTE_ADDRESS
+import MustacheConstants.IS_GOOGLE_MAPS_PLATFORM_USED
+import MustacheConstants.IS_GOOGLE_MAPS_PLATFORM_USED_FOR_TABLE
 import MustacheConstants.KOTLIN_INPUT_CONTROLS
 import MustacheConstants.LOGIN_CLASS_NAME
 import MustacheConstants.PACKAGE
@@ -340,6 +342,8 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
         data[TABLENAMES_LAYOUT] = tableNamesForLayoutType
 
+        data[IS_GOOGLE_MAPS_PLATFORM_USED] = tableNamesForLayoutType.any { it.isGoogleMapsPlatformUsed }
+
         getCustomFormatterFields()
 
         customFormatterImages = mutableListOf()
@@ -508,6 +512,8 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                 data[TABLENAME_ORIGINAL] = dataModel.getLabel().encode()
             }
 
+        data[IS_GOOGLE_MAPS_PLATFORM_USED_FOR_TABLE] = tableNamesForLayoutType.find { it.name == tableName.name }?.isGoogleMapsPlatformUsed ?: false
+
         data[TABLENAME_LOWERCASE] = tableName.name.toLowerCase().fieldAdjustment()
         data[TABLE_LABEL] = tableName.label
         data[TABLENAME_CAMELCASE] = tableName.name.dataBindingAdjustment()
@@ -552,7 +558,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
         data[RELATIONS_MANY_TO_ONE] = relationsManyToOne.distinctBy { it.relation_source to it.relation_target to it.relation_name }
         data[RELATIONS_ONE_TO_MANY] = relationsOneToMany.distinctBy { it.relation_source to it.relation_target to it.relation_name }
-        if (relationsManyToOne.size > 0 || relationsOneToMany.size >0)
+        if (relationsManyToOne.size > 0 || relationsOneToMany.size > 0)
             data[TABLE_HAS_ANY_RELATION] = true
     }
 
@@ -566,8 +572,10 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
             val appFolderInTemplate = fileHelper.pathHelper.getAppFolderInTemplate(formPath)
 
-            File(appFolderInTemplate).walkTopDown().filter { folder -> !folder.isHidden && folder.isDirectory }
+            File(appFolderInTemplate).parentFile.walkTopDown().filter { folder -> !folder.isHidden && folder.isDirectory }
                 .forEach { currentFolder ->
+
+                    Log.i(" > Processed template folder : $currentFolder")
 
                     compiler = generateCompilerFolder(currentFolder.absolutePath)
 
@@ -854,7 +862,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         data.remove("field_${i}_accessor")
         data.remove("field_${i}_image_field_name")
         data.remove("field_${i}_image_source_table_name")
-        data.remove("field_${i}_image_key_accessor")
+        data.remove("field_${i}_key_accessor")
         data.remove("field_${i}_format_field_name")
         data.remove("field_${i}_field_table_name")
         data.remove("field_${i}_field_image_width")
@@ -882,7 +890,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         data["field_${i}_accessor"] = ""
         data["field_${i}_image_field_name"] = ""
         data["field_${i}_image_source_table_name"] = ""
-        data["field_${i}_image_key_accessor"] = ""
+        data["field_${i}_key_accessor"] = ""
         data["field_${i}_format_field_name"] = ""
         data["field_${i}_field_table_name"] = ""
         data["field_${i}_field_image_width"] = 0
@@ -927,9 +935,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
             }
         }
 
-        if (field.isImage()) {
-            data["field_${i}_image_key_accessor"] = field.getFieldKeyAccessor(projectEditor.dataModelList)
-        }
+        data["field_${i}_key_accessor"] = field.getFieldKeyAccessor(projectEditor.dataModelList)
 
         if (wholeFormHasIcons) {
             data["field_${i}_iconPath"] = getIcon(projectEditor.dataModelList, form, field)
@@ -980,11 +986,62 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                 data.remove(FIRST_FIELD)
             }
         } else {
-            Log.i("File to copy : ${currentFile.absolutePath}; target : ${newFile.absolutePath}")
+            copyFile(currentFile, newFile)
+        }
+    }
+
+    private fun copyFile(currentFile: File, newFile: File) {
+        Log.i("File to copy : ${currentFile.absolutePath}; target : ${newFile.absolutePath}")
+
+        var shouldCopy = true
+        Log.d("newFile = $newFile")
+        Log.d("newFile exists() = ${newFile.exists()}")
+        Log.d("newFile name = ${newFile.name}")
+        if (newFile.exists() && newFile.name == "local.properties") {
+            Log.d("concat localProperties")
+            shouldCopy = false
+            concatLocalProperties(currentFile, newFile)
+        }
+        if (newFile.exists() && newFile.extension == ".xml" && newFile.parentFile.name == "values") {
+            Log.d("concat resource file")
+            shouldCopy = !concatResources(currentFile, newFile)
+        }
+        if (shouldCopy) {
+            Log.d("copy file recursively")
             if (!currentFile.copyRecursively(target = newFile, overwrite = true)) {
                 throw Exception("An error occurred while copying template files with target : ${newFile.absolutePath}")
             }
         }
+    }
+
+    private fun concatLocalProperties(newFile: File, oldFile: File) {
+        val newFileContent = newFile.readFile()
+        var oldFileContent = oldFile.readFile()
+        oldFileContent = oldFileContent + System.lineSeparator() + newFileContent
+        oldFile.writeText(oldFileContent)
+    }
+
+    private fun concatResources(newFile: File, oldFile: File): Boolean {
+        if (!newFile.exists() || !oldFile.exists()) {
+            return false
+        }
+        var newFileContent = newFile.readFile()
+        var oldFileContent = oldFile.readFile()
+
+        val startResourceKey = "<resources>"
+        val endResourceKey = "</resources>"
+
+        if (!newFileContent.contains(startResourceKey) || !newFileContent.contains(endResourceKey)) {
+            return false
+        }
+        if (!oldFileContent.contains(startResourceKey) || !oldFileContent.contains(endResourceKey)) {
+            return false
+        }
+
+        newFileContent = newFileContent.substringAfter(startResourceKey).substringBeforeLast(endResourceKey)
+        oldFileContent = oldFileContent.substringBeforeLast(endResourceKey) + newFileContent + System.lineSeparator() + endResourceKey
+        oldFile.writeText(oldFileContent)
+        return true
     }
 
     private fun applyTemplate(newPath: String, overwrite: Boolean = false) {

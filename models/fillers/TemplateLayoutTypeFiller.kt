@@ -1,7 +1,17 @@
-data class TemplateLayoutTypeFiller(val name: String, val layout_manager_type: String, val isSwipeAllowed: Boolean)
+data class TemplateLayoutTypeFiller(
+    val name: String,
+    val layout_manager_type: String,
+    val isSwipeAllowed: Boolean,
+    val isGoogleMapsPlatformUsed: Boolean
+)
 
 fun getTemplateLayoutTypeFiller(tableName: String, formPath: String): TemplateLayoutTypeFiller =
-        TemplateLayoutTypeFiller(name = tableName, layout_manager_type = getLayoutManagerType(formPath), isSwipeAllowed = isSwipeAllowed(formPath))
+    TemplateLayoutTypeFiller(
+        name = tableName,
+        layout_manager_type = getLayoutManagerType(formPath),
+        isSwipeAllowed = isSwipeAllowed(formPath),
+        isGoogleMapsPlatformUsed = isGoogleMapsPlatformUsed(formPath)
+    )
 
 fun getLayoutManagerType(formPath: String): String {
     Log.i("getLayoutManagerType: $formPath")
@@ -30,6 +40,12 @@ fun isSwipeAllowed(formPath: String): Boolean {
     }
 }
 
-
-
-
+fun isGoogleMapsPlatformUsed(formPath: String): Boolean {
+    getManifestJSONContent(formPath)?.let {
+        val isGMPUsed: Boolean? = it.getSafeObject("tags")?.getSafeBoolean("google_maps_platform")
+        isGMPUsed?.let { isUsed ->
+            return isUsed
+        }
+    }
+    return false
+}

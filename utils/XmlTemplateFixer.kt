@@ -47,7 +47,7 @@ fun replaceTemplateText(oldFormText: String, formType: FormType): String {
         else
             "${indent}{{#isImage}}\n" +
                     "${indent}app:imageFieldName='@{\"{{imageFieldName}}\"}'\n" +
-                    "${indent}app:imageKey=\"@{ {{accessor}}{{imageKeyAccessor}} }\"\n" +
+                    "${indent}app:imageKey=\"@{ {{accessor}}{{keyAccessor}} }\"\n" +
                     "${indent}app:imageTableName='@{\"{{imageSourceTableName}}\"}'\n" +
                     "${indent}app:imageUrl=\"@{ {{accessor}}{{name}}.__deferred.uri}\"\n" +
                     "${indent}{{/isImage}}"
@@ -224,13 +224,23 @@ fun replaceTemplateText(oldFormText: String, formType: FormType): String {
         "${indent}{{#field_${id}_defined}}\n" +
                 "${indent}{{#field_${id}_is_image}}\n" +
                 "${indent}app:imageFieldName='@{\"{{field_${id}_image_field_name}}\"}'\n" +
-                "${indent}app:imageKey=\"@{ {{field_${id}_accessor}}{{field_${id}_image_key_accessor}} }\"\n" +
+                "${indent}app:imageKey=\"@{ {{field_${id}_accessor}}{{field_${id}_key_accessor}} }\"\n" +
                 "${indent}app:imageTableName='@{\"{{field_${id}_image_source_table_name}}\"}'\n" +
                 "${indent}app:imageUrl=\"@{ {{field_${id}_accessor}}{{field_${id}_name}}.__deferred.uri}\"\n" +
                 "${indent}{{/field_${id}_is_image}}\n" +
                 "${indent}{{/field_${id}_defined}}\n" +
                 "${indent}{{^field_${id}_defined}}\n" +
                 "${indent}app:imageDrawable=\"@{@drawable/image_not_supported}\"\n" +
+                "${indent}{{/field_${id}_defined}}"
+    }
+
+    regex = ("(\\h*)app:mapDataSource=\"___TEXT_(\\d+)___\"").toRegex()
+    newFormText = regex.replace(newFormText) { matchResult ->
+        val indent = matchResult.destructured.component1()
+        val id = matchResult.destructured.component2()
+        "${indent}{{#field_${id}_defined}}\n" +
+                "${indent}app:mapDataSource=\"@{ {{field_${id}_accessor}}{{field_${id}_name}} }\"\n" +
+                "${indent}app:mapDataSourceKey=\"@{ {{field_${id}_accessor}}{{field_${id}_key_accessor}} }\"\n" +
                 "${indent}{{/field_${id}_defined}}"
     }
 

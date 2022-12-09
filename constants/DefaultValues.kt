@@ -11,7 +11,6 @@ object DefaultValues {
     const val DEFAULT_AUTHOR = "Anonymous User"
     const val DEFAULT_LIST_FORM = "Simple Table"
     const val DEFAULT_DETAIL_FORM = "Blank Form"
-    const val LAYOUT_FILE = "layout.xml"
     const val DEFAULT_ADDRESS = "10.0.2.2"
     const val DEFAULT_LOGIN_FORM = "DefaultLogin"
 
