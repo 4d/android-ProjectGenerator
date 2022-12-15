@@ -40,6 +40,7 @@ object ProjectEditorConstants {
     const val ORGANIZATION_KEY = "organization"
     const val PRODUCT_KEY = "product"
     const val SERVER_KEY = "server"
+    const val LOGIN_KEY = "login"
     const val UI_KEY = "ui"
     const val DATASOURCE_KEY = "dataSource"
     const val SOURCE_KEY = "source"

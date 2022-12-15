@@ -364,7 +364,8 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         data[HAS_DATASET] = projectEditor.findJsonBoolean(FeatureFlagConstants.HAS_DATASET_KEY) ?: true
 
         val hasCustomLoginForms = projectEditor.findJsonBoolean(FeatureFlagConstants.HAS_CUSTOM_LOGIN_FORMS) ?: false
-        if (hasCustomLoginForms) {
+        val isAuthEnabled = projectEditor.findJsonBoolean("mailAuth") ?: false
+        if (hasCustomLoginForms && isAuthEnabled) {
             val loginFormClass: String = getCustomLoginFormClassName() ?: DEFAULT_LOGIN_FORM
             data[LOGIN_CLASS_NAME] = loginFormClass
             data[HAS_CUSTOM_LOGIN] = data[LOGIN_CLASS_NAME] != DEFAULT_LOGIN_FORM

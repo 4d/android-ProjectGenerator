@@ -19,6 +19,7 @@ import ProjectEditorConstants.FLOAT_TYPE
 import ProjectEditorConstants.FORM_KEY
 import ProjectEditorConstants.INT_TYPE
 import ProjectEditorConstants.LOCAL_SOURCE
+import ProjectEditorConstants.LOGIN_KEY
 import ProjectEditorConstants.NAME_KEY
 import ProjectEditorConstants.OBJECT_TYPE
 import ProjectEditorConstants.ORGANIZATION_KEY
@@ -130,7 +131,7 @@ class ProjectEditor(projectEditorFile: File, val catalogDef: CatalogDef, isCreat
                     ?.getSafeString(SOURCE_KEY)
             "dominantColor" -> jsonObj.getSafeObject(PROJECT_KEY)?.getSafeObject(UI_KEY)
                     ?.getSafeString(DOMINANT_COLOR_KEY)
-            "login" -> jsonObj.getSafeObject(PROJECT_KEY)?.getSafeObject(SERVER_KEY)?.getSafeObject(AUTHENTICATION_KEY)?.getSafeString(FORM_KEY)
+            "login" -> jsonObj.getSafeObject(PROJECT_KEY)?.getSafeString(LOGIN_KEY)
             else -> null
         }
     }
