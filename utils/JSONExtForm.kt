@@ -287,7 +287,7 @@ fun JSONObject.getSectionFields(dataModelList: List<DataModel>): MutableList<Que
                         path?.let { p ->
                             if (p.count { value -> value == '.' } <= 1) {
                                 sectionFields.add(QueryField(adjustedFieldName, valueType
-                                        ?: "", kind, path, tableNumber, tableName.tableNameAdjustment()))
+                                        ?: "", kind, path.decapitalize(), tableNumber, tableName.tableNameAdjustment()))
                             }
                         }
                     } else {
