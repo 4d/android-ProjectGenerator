@@ -16,7 +16,6 @@ import ProjectEditorConstants.DUMPED_TABLES_KEY
 import ProjectEditorConstants.EMAIL_KEY
 import ProjectEditorConstants.EMPTY_TYPE
 import ProjectEditorConstants.FLOAT_TYPE
-import ProjectEditorConstants.FORM_KEY
 import ProjectEditorConstants.INT_TYPE
 import ProjectEditorConstants.LOCAL_SOURCE
 import ProjectEditorConstants.LOGIN_KEY
@@ -54,6 +53,7 @@ class ProjectEditor(projectEditorFile: File, val catalogDef: CatalogDef, isCreat
     private lateinit var searchableFields: HashMap<String, List<String>>
 
     lateinit var sectionFields: MutableList<QueryField>
+    lateinit var deepLink: DeepLink
     lateinit var defaultSortFields: MutableList<QueryField>
     private lateinit var jsonObj: JSONObject
 
@@ -104,6 +104,8 @@ class ProjectEditor(projectEditorFile: File, val catalogDef: CatalogDef, isCreat
                     field
 
                 }.toMutableList()
+                
+                deepLink = jsonObj.getDeepLinkScheme()
             }
 
         } ?: kotlin.run {

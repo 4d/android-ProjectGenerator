@@ -19,6 +19,7 @@ import MustacheConstants.DATE_DAY
 import MustacheConstants.DATE_MONTH
 import MustacheConstants.DATE_YEAR
 import MustacheConstants.DEBUG_MODE
+import MustacheConstants.DEEPLINK
 import MustacheConstants.DEFAULT_SORT_FIELDS
 import MustacheConstants.ENTITY_CLASSES
 import MustacheConstants.FIELDS
@@ -383,6 +384,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
         data[SECTION_FIELDS] = projectEditor.sectionFields
         data[DEFAULT_SORT_FIELDS] = projectEditor.defaultSortFields
+        data[DEEPLINK] = projectEditor.deepLink
     }
 
     /**

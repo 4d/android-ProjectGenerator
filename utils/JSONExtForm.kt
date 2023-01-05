@@ -301,3 +301,10 @@ fun JSONObject.getSectionFields(dataModelList: List<DataModel>): MutableList<Que
     }
     return sectionFields
 }
+
+fun JSONObject.getDeepLinkScheme(): DeepLink {
+    val deeplinkObject = this.getSafeObject(PROJECT_KEY)?.getSafeObject("deepLinking")
+    return DeepLink(scheme = deeplinkObject?.getSafeString("urlScheme")?.removeSuffix("://")?.toLowerCase() ?: "",
+            enabled = deeplinkObject?.getSafeBoolean("enabled") ?: false)
+
+}
