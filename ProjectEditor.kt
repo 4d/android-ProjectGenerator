@@ -189,7 +189,8 @@ class ProjectEditor(projectEditorFile: File, val catalogDef: CatalogDef, isCreat
                 initialGlobalStamp = if (debugMode) 0 else findJsonInt("dumpedStamp") ?: 0,
                 dumpedTables = findJsonArray("dumpedTables")?.getStringList() ?: mutableListOf(),
                 logLevel = if (debugMode) DEBUG_LOG_LEVEL else DEFAULT_LOG_LEVEL,
-                relations = findJsonBoolean(FeatureFlagConstants.HAS_RELATIONS_KEY) ?: true
+                relations = findJsonBoolean(FeatureFlagConstants.HAS_RELATIONS_KEY) ?: true,
+                crashLogs = true
         )
     }
 

@@ -6,5 +6,6 @@ data class AppInfo(
     val initialGlobalStamp: Int,
     val dumpedTables: List<String>,
     val logLevel: Int,
-    val relations: Boolean
+    val relations: Boolean,
+    val crashLogs: Boolean
 )
