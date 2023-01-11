@@ -228,9 +228,6 @@ fun replaceTemplateText(oldFormText: String, formType: FormType): String {
                 "${indent}app:imageTableName='@{\"{{field_${id}_image_source_table_name}}\"}'\n" +
                 "${indent}app:imageUrl=\"@{ {{field_${id}_accessor}}{{field_${id}_name}}.__deferred.uri}\"\n" +
                 "${indent}{{/field_${id}_is_image}}\n" +
-                "${indent}{{/field_${id}_defined}}\n" +
-                "${indent}{{^field_${id}_defined}}\n" +
-                "${indent}app:imageDrawable=\"@{@drawable/image_not_supported}\"\n" +
                 "${indent}{{/field_${id}_defined}}"
     }
 
