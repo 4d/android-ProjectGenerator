@@ -36,6 +36,7 @@
 //INCLUDE models/fillers/TemplateRelationDefFiller.kt
 //INCLUDE models/fillers/TemplateRelationFiller.kt
 //INCLUDE models/fillers/TemplateRelationFillerForEachLayout.kt
+//INCLUDE models/fillers/TemplateDeeplinkRelationDefFiller.kt
 //INCLUDE models/fillers/TemplateTableFiller.kt
 //INCLUDE models/projecteditor/DataModel.kt
 //INCLUDE models/projecteditor/Field.kt

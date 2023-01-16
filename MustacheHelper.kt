@@ -40,6 +40,8 @@ import MustacheConstants.LOGIN_CLASS_NAME
 import MustacheConstants.PACKAGE
 import MustacheConstants.PERMISSIONS
 import MustacheConstants.RELATIONS
+import MustacheConstants.RELATIONS_DEEPLINK_MANY_TO_ONE
+import MustacheConstants.RELATIONS_DEEPLINK_ONE_TO_MANY
 import MustacheConstants.RELATIONS_EMBEDDED_RETURN_TYPE
 import MustacheConstants.RELATIONS_ID
 import MustacheConstants.RELATIONS_MANY_TO_ONE
@@ -262,6 +264,8 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         data[RELATIONS_MANY_TO_ONE] = relationsManyToOne.distinctBy { it.relation_source to it.relation_target to it.relation_name }
         data[RELATIONS_ONE_TO_MANY] = relationsOneToMany.distinctBy { it.relation_source to it.relation_target to it.relation_name }
         val relations = mutableListOf<TemplateRelationDefFiller>()
+        val relationsDeepLinkOneToMany = mutableListOf<TemplateRelationDefFillerDeepLink>()
+        val relationsDeepLinkManyToOne = mutableListOf<TemplateRelationDefFillerDeepLink>()
         val relationsId = mutableListOf<TemplateRelationDefFiller>()
 
         Log.d("Hiya relations many to one")
@@ -270,6 +274,9 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
             val relationDefFiller = it.getTemplateRelationDefFiller(RelationType.MANY_TO_ONE)
             Log.d("relation filler : $relationDefFiller")
             relations.add(relationDefFiller)
+
+            relationsDeepLinkManyToOne.add(it.getTemplateRelationDefFillerDeepLink(RelationType.MANY_TO_ONE, projectEditor.catalogDef))
+
             if (!it.isAlias)
                 relationsId.add(it.getTemplateRelationDefFillerForRelationId())
         }
@@ -278,8 +285,13 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
             Log.d("filler: $it")
             Log.d("relation filler : ${it.getTemplateRelationDefFiller(RelationType.ONE_TO_MANY)}")
             relations.add(it.getTemplateRelationDefFiller(RelationType.ONE_TO_MANY))
+            relationsDeepLinkOneToMany.add(it.getTemplateRelationDefFillerDeepLink(RelationType.ONE_TO_MANY, projectEditor.catalogDef))
         }
         data[RELATIONS] = relations.distinctBy { it.relation_source to it.relation_target to it.relation_name }
+
+        data[RELATIONS_DEEPLINK_ONE_TO_MANY] = relationsDeepLinkOneToMany.distinctBy { it.relation_source to it.relation_target to it.relation_name }
+        data[RELATIONS_DEEPLINK_MANY_TO_ONE] = relationsDeepLinkManyToOne.distinctBy { it.relation_source to it.relation_target to it.relation_name }
+
         data[RELATIONS_WITHOUT_ALIAS] = relations.distinctBy { it.relation_source to it.relation_target to it.relation_name }.filter { it.path.isNullOrEmpty() }
 
         data[RELATIONS_ID] = relationsId.distinctBy { it.relation_source to it.relation_target to it.relation_name }
