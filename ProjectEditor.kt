@@ -136,9 +136,9 @@ class ProjectEditor(projectEditorFile: File, val catalogDef: CatalogDef, isCreat
                     ?.getSafeString(DOMINANT_COLOR_KEY)
             "login" -> jsonObj.getSafeObject(PROJECT_KEY)?.getSafeString(LOGIN_KEY)
 
-            "componentBuild" -> jsonObj.getSafeObject(PROJECT_KEY)?.getSafeString(COMPONENT_BUILD_KEY)
-            "ideBuildVersion" -> jsonObj.getSafeObject(PROJECT_KEY)?.getSafeString(IDE_BUILD_VERSION_KEY)
-            "ideVersion" -> jsonObj.getSafeObject(PROJECT_KEY)?.getSafeString(IDE_VERSION_KEY)
+            "componentBuild" -> jsonObj.getSafeString(COMPONENT_BUILD_KEY)
+            "ideBuildVersion" -> jsonObj.getSafeString(IDE_BUILD_VERSION_KEY)
+            "ideVersion" -> jsonObj.getSafeString(IDE_VERSION_KEY)
             else -> null
         }
     }
