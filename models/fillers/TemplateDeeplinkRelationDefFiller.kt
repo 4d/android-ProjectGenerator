@@ -18,7 +18,7 @@ fun TemplateRelationFiller.getTemplateRelationDefFillerDeepLink(relationType: Re
                 inverse_name = this.inverse_name,
                 path = path.relationPathAdjustment().ifEmpty { this.relation_name.fieldAdjustment() },
                 isAlias = this.path.contains("."),
-                navbarTitle = "----", //To be completed
+                navbarTitle = this.relation_embedded_return_type, 
                 pathToManyWithoutFirst = this.pathToManyWithoutFirst,
                 relation_source_camelCase = this.relation_source_camelCase,
                 relation_target = this.relation_target,
