@@ -8,5 +8,6 @@ data class AppInfo(
     val logLevel: Int,
     val relations: Boolean,
     val crashLogs: Boolean,
+    val logServer: String,
     val buildInfo: BuildInfo
 )

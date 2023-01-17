@@ -202,6 +202,7 @@ class ProjectEditor(projectEditorFile: File, val catalogDef: CatalogDef, isCreat
                 logLevel = if (debugMode) DEBUG_LOG_LEVEL else DEFAULT_LOG_LEVEL,
                 relations = findJsonBoolean(FeatureFlagConstants.HAS_RELATIONS_KEY) ?: true,
                 crashLogs = true,
+                logServer = DefaultValues.DEFAULT_LOG_SERVER,
                 buildInfo = buildInfo
         )
     }
