@@ -21,7 +21,6 @@
 //INCLUDE database/StaticDataInitializer.kt
 //INCLUDE models/Actions.kt
 //INCLUDE models/AppData.kt
-//INCLUDE models/AppInfo.kt
 //INCLUDE models/BuildInfo.kt
 //INCLUDE models/InputControlDataSource.kt
 //INCLUDE models/QueryField.kt

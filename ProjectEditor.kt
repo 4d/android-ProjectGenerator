@@ -17,7 +17,6 @@ import ProjectEditorConstants.DUMPED_TABLES_KEY
 import ProjectEditorConstants.EMAIL_KEY
 import ProjectEditorConstants.EMPTY_TYPE
 import ProjectEditorConstants.FLOAT_TYPE
-import ProjectEditorConstants.FORM_KEY
 import ProjectEditorConstants.IDE_BUILD_VERSION_KEY
 import ProjectEditorConstants.IDE_VERSION_KEY
 import ProjectEditorConstants.INT_TYPE
@@ -176,7 +175,7 @@ class ProjectEditor(projectEditorFile: File, val catalogDef: CatalogDef, isCreat
         }
     }
 
-    fun getAppInfo(): AppInfo {
+    fun getAppInfo(): Map<String, Any> {
         val appId = findJsonString("bundleIdentifier") ?: ""
         val appName = findJsonString("appNameWithCaps") ?: ""
         val appVersion = findJsonString("version") ?: ""
@@ -192,19 +191,20 @@ class ProjectEditor(projectEditorFile: File, val catalogDef: CatalogDef, isCreat
         if (remoteUrl.isNullOrEmpty())
             remoteUrl = DEFAULT_REMOTE_URL
         val debugMode = findJsonBoolean("debugMode") ?: false
-        return AppInfo(
-                appData = appData,
-                teamId = findJsonString("teamId") ?: "",
-                guestLogin = mailAuth.not(),
-                remoteUrl = remoteUrl,
-                initialGlobalStamp = if (debugMode) 0 else findJsonInt("dumpedStamp") ?: 0,
-                dumpedTables = findJsonArray("dumpedTables")?.getStringList() ?: mutableListOf(),
-                logLevel = if (debugMode) DEBUG_LOG_LEVEL else DEFAULT_LOG_LEVEL,
-                relations = findJsonBoolean(FeatureFlagConstants.HAS_RELATIONS_KEY) ?: true,
-                crashLogs = true,
-                logServer = DefaultValues.DEFAULT_LOG_SERVER,
-                buildInfo = buildInfo
-        )
+
+        return mutableMapOf<String, Any>().apply {
+            put("appData", appData)
+            put("teamId", findJsonString("teamId") ?: "")
+            put("guestLogin", mailAuth.not())
+            put("remoteUrl", remoteUrl)
+            put("initialGlobalStamp", if (debugMode) 0 else findJsonInt("dumpedStamp") ?: 0)
+            put("dumpedTables", findJsonArray("dumpedTables")?.getStringList() ?: JSONArray())
+            put("logLevel", if (debugMode) DEBUG_LOG_LEVEL else DEFAULT_LOG_LEVEL)
+            put("relations", findJsonBoolean(FeatureFlagConstants.HAS_RELATIONS_KEY) ?: true)
+            put("crash.manage", true)
+            put("crash.server.url", DefaultValues.DEFAULT_LOG_SERVER)
+            put("buildInfo", buildInfo)
+        }
     }
 
     fun buildTableInfo(tableFieldsMap: Map<String, List<Field>>): Map<String, TableInfo> {
