@@ -56,6 +56,7 @@ class ProjectEditor(projectEditorFile: File, val catalogDef: CatalogDef, isCreat
     private lateinit var searchableFields: HashMap<String, List<String>>
 
     lateinit var sectionFields: MutableList<QueryField>
+    lateinit var deepLink: DeepLink
     lateinit var defaultSortFields: MutableList<QueryField>
     private lateinit var jsonObj: JSONObject
 
@@ -106,6 +107,8 @@ class ProjectEditor(projectEditorFile: File, val catalogDef: CatalogDef, isCreat
                     field
 
                 }.toMutableList()
+                
+                deepLink = jsonObj.getDeepLinkScheme()
             }
 
         } ?: kotlin.run {
