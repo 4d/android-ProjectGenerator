@@ -282,12 +282,12 @@ fun JSONObject.getSectionFields(dataModelList: List<DataModel>): MutableList<Que
                     } else {
                         fieldName
                     }
-                    
+
                     if (kind == "alias") {
                         path?.let { p ->
-                            if (p.count { value -> value == '.' } <= 1) {
+                            if ((p.count { value -> value == '.' } <= 1) && (path != fieldName) /* Avoid  crash when the field is a relation to an alias fiels exp: Employe -> Room -> AliasRoomName (roomName field) */) {
                                 sectionFields.add(QueryField(adjustedFieldName, valueType
-                                        ?: "", kind, path, tableNumber, tableName.tableNameAdjustment()))
+                                        ?: "", kind, path.decapitalize(), tableNumber, tableName.tableNameAdjustment()))
                             }
                         }
                     } else {

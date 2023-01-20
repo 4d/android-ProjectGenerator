@@ -13,6 +13,7 @@ object DefaultValues {
     const val DEFAULT_DETAIL_FORM = "Blank Form"
     const val DEFAULT_ADDRESS = "10.0.2.2"
     const val DEFAULT_LOGIN_FORM = "DefaultLogin"
+    const val DEFAULT_LOG_SERVER = "https://bugs.4d.com"
 
     /**
      *  val VERBOSE = 2
