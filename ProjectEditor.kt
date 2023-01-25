@@ -197,7 +197,6 @@ class ProjectEditor(projectEditorFile: File, val catalogDef: CatalogDef, isCreat
 
         return mutableMapOf<String, Any>().apply {
             put("appData", appData)
-            put("teamId", findJsonString("teamId") ?: "")
             put("guestLogin", mailAuth.not())
             put("remoteUrl", remoteUrl)
             put("initialGlobalStamp", if (debugMode) 0 else findJsonInt("dumpedStamp") ?: 0)
