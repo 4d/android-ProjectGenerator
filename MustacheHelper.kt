@@ -125,6 +125,8 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
     private val defaultInputControlList: MutableList<FieldMappingDefaultInputControl> = mutableListOf()
 
+    private val filesToCopyAfterGlobalTemplating = mutableMapOf<File, File>() // <editor file, project target file>
+
 
     init {
         Log.d("==================================\n" +
@@ -858,6 +860,10 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                 manyToOneRelationFillerForEachDetailLayout.add(filler)
         }
         Log.d("Adding fillRelationFillerForEachRelation : $filler")
+        Log.d("oneToManyRelationFillerForEachListLayout.size : ${oneToManyRelationFillerForEachListLayout.size}")
+        Log.d("manyToOneRelationFillerForEachListLayout.size : ${manyToOneRelationFillerForEachListLayout.size}")
+        Log.d("oneToManyRelationFillerForEachDetailLayout.size : ${oneToManyRelationFillerForEachDetailLayout.size}")
+        Log.d("manyToOneRelationFillerForEachDetailLayout.size : ${manyToOneRelationFillerForEachDetailLayout.size}")
     }
 
     private fun removeIndexedEntries(i: Int) {
@@ -1001,29 +1007,39 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                 data.remove(FIRST_FIELD)
             }
         } else {
-            copyFile(currentFile, newFile)
+
+            Log.i("File added to filesToCopyAfterGlobalTemplating : ${currentFile.absolutePath}; target : ${newFile.absolutePath}")
+            filesToCopyAfterGlobalTemplating[currentFile] = newFile
         }
     }
 
-    private fun copyFile(currentFile: File, newFile: File) {
-        Log.i("File to copy : ${currentFile.absolutePath}; target : ${newFile.absolutePath}")
+    fun copyFilesAfterGlobalTemplating() {
+        for ((editorFile, newFile) in filesToCopyAfterGlobalTemplating) {
+            copyFile(editorFile, newFile)
+        }
+    }
+
+    private fun copyFile(editorFile: File, newFile: File) {
+        Log.i("File to copy : ${editorFile.absolutePath}; target : ${newFile.absolutePath}")
 
         var shouldCopy = true
         Log.d("newFile = $newFile")
         Log.d("newFile exists() = ${newFile.exists()}")
         Log.d("newFile name = ${newFile.name}")
+        Log.d("newFile ext = ${newFile.extension}")
+        Log.d("newFile.parentFile.name = ${newFile.parentFile.name}")
         if (newFile.exists() && newFile.name == "local.properties") {
             Log.d("concat localProperties")
             shouldCopy = false
-            concatLocalProperties(currentFile, newFile)
+            concatLocalProperties(editorFile, newFile)
         }
-        if (newFile.exists() && newFile.extension == ".xml" && newFile.parentFile.name == "values") {
+        if (newFile.exists() && newFile.extension == "xml" && newFile.parentFile.name == "values") {
             Log.d("concat resource file")
-            shouldCopy = !concatResources(currentFile, newFile)
+            shouldCopy = !concatResources(editorFile, newFile)
         }
         if (shouldCopy) {
             Log.d("copy file recursively")
-            if (!currentFile.copyRecursively(target = newFile, overwrite = true)) {
+            if (!editorFile.copyRecursively(target = newFile, overwrite = true)) {
                 throw Exception("An error occurred while copying template files with target : ${newFile.absolutePath}")
             }
         }

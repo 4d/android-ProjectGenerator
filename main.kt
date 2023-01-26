@@ -130,11 +130,6 @@ class GenerateCommand : CliktCommand(name = "generate") {
 
         Log.i("Start applying Mustache templating...")
 
-        mustacheHelper.processTemplates()
-
-        Log.i("Mustache templating done.")
-        Log.i("-------------------------")
-
         mustacheHelper.applyListFormTemplate()
 
         Log.i("Applied List Form Templates")
@@ -144,7 +139,18 @@ class GenerateCommand : CliktCommand(name = "generate") {
         Log.i("Applied Detail Form Templates")
 
         pathHelper.deleteTemporaryUnzippedDirectories()
+
         Log.i("Deleted Temporary Unzipped Directories")
+
+        mustacheHelper.processTemplates()
+
+        Log.i("Mustache templating done.")
+
+        mustacheHelper.copyFilesAfterGlobalTemplating()
+
+        Log.i("Copied remaining files after templating")
+
+        Log.i("-------------------------")
 
         mustacheHelper.makeTableInfo()
 
