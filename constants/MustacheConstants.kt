@@ -26,6 +26,7 @@ object MustacheConstants {
     const val FIRST_FIELD = "first_field"
     const val FORM_FIELDS = "form_fields"
     const val APP_NAME_WITH_CAPS = "app_name_with_caps"
+    const val APP_VERSION = "app_version"
     const val PACKAGE = "package"
     const val HAS_REMOTE_ADDRESS = "has_remote_address"
     const val REMOTE_ADDRESS = "remote_address"

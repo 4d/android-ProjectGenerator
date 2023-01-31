@@ -2,6 +2,7 @@ import DefaultValues.DEFAULT_ADDRESS
 import DefaultValues.DEFAULT_AUTHOR
 import DefaultValues.DEFAULT_LOGIN_FORM
 import DefaultValues.DEFAULT_REMOTE_URL
+import DefaultValues.DEFAULT_VERSION
 import FileHelperConstants.ACTIONS_FILENAME
 import FileHelperConstants.APP_INFO_FILENAME
 import FileHelperConstants.CUSTOM_FORMATTERS_FILENAME
@@ -11,6 +12,7 @@ import FileHelperConstants.LAYOUT_FILE
 import FileHelperConstants.TABLE_INFO_FILENAME
 import MustacheConstants.ANDROID_SDK_PATH
 import MustacheConstants.APP_NAME_WITH_CAPS
+import MustacheConstants.APP_VERSION
 import MustacheConstants.AUTHOR
 import MustacheConstants.CACHE_4D_SDK_PATH
 import MustacheConstants.COMPANY_HEADER
@@ -140,6 +142,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         data[DATE_YEAR] = Calendar.getInstance().get(Calendar.YEAR).toString()
         data[PACKAGE] = fileHelper.pathHelper.pkg
         data[APP_NAME_WITH_CAPS] = fileHelper.pathHelper.appNameWithCaps
+        data[APP_VERSION] = projectEditor.findJsonString("version") ?: DEFAULT_VERSION
 
         data[DEBUG_MODE] = projectEditor.findJsonBoolean("debugMode") ?: false
         data[LOCAL_SOURCE] = projectEditor.findJsonBoolean("canUseLocalSource") ?: false

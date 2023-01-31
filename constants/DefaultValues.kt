@@ -9,6 +9,7 @@ object DefaultValues {
     const val DEFAULT_APPLICATION = "Default Application"
     const val DEFAULT_PACKAGE = "com.example.myapplication"
     const val DEFAULT_AUTHOR = "Anonymous User"
+    const val DEFAULT_VERSION = "1.0"
     const val DEFAULT_LIST_FORM = "Simple Table"
     const val DEFAULT_DETAIL_FORM = "Blank Form"
     const val DEFAULT_ADDRESS = "10.0.2.2"
