@@ -220,11 +220,12 @@ class ProjectEditor(projectEditorFile: File, val catalogDef: CatalogDef, isCreat
             val tableName = originalTableName.tableNameAdjustment()
 
             val query = dataModelList.find { it.name == tableName }?.query ?: ""
+            val fieldsConcat: LinkedHashMap <String, String> = linkedMapOf()
 
-            val fieldsConcat = fields
-                .filter { it.kind != "alias" }
-                .filter { !(it.name.startsWith("__") && it.name.endsWith("Key")) }
-                .joinToString { if (it.isNativeType(dataModelList)) it.name else it.name + ".*" }
+            fields.filter { it.kind != "alias" }.filter { !(it.name.startsWith("__") && it.name.endsWith("Key")) }
+                    .forEach {
+                        fieldsConcat[it.name.fieldAdjustment()] = if (it.isNativeType(dataModelList)) it.name else it.name + ".*"
+                    }
 
             val searchFields = searchableFields[tableName] ?: listOf()
 
