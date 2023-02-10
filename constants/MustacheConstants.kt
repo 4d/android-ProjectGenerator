@@ -66,4 +66,5 @@ object MustacheConstants {
     const val DEFAULT_SORT_FIELDS = "default_sort_fields"
     const val IS_GOOGLE_MAPS_PLATFORM_USED = "isGoogleMapsPlatformUsed"
     const val IS_GOOGLE_MAPS_PLATFORM_USED_FOR_TABLE = "isGoogleMapsPlatformUsedForTable"
+    const val HAS_PUSH_NOTIFICATIONS = "hasPushNotifications"
 }
