@@ -31,6 +31,7 @@ import ProjectEditorConstants.PHOTO_TYPE
 import ProjectEditorConstants.PRODUCTION_KEY
 import ProjectEditorConstants.PRODUCT_KEY
 import ProjectEditorConstants.PROJECT_KEY
+import ProjectEditorConstants.PUSH_NOTIFICATION
 import ProjectEditorConstants.REMOTE_URL_KEY
 import ProjectEditorConstants.SDK_KEY
 import ProjectEditorConstants.SERVER_KEY
@@ -174,6 +175,7 @@ class ProjectEditor(projectEditorFile: File, val catalogDef: CatalogDef, isCreat
             FeatureFlagConstants.HAS_NO_SDK_KEY -> jsonObj.getSafeBoolean(FeatureFlagConstants.HAS_NO_SDK_KEY)
             "debugMode" -> jsonObj.getSafeBoolean(DEBUG_MODE_KEY)
             "canUseLocalSource" -> jsonObj.getSafeBoolean(LOCAL_SOURCE)
+            "pushNotification" -> jsonObj.getSafeObject(PROJECT_KEY)?.getSafeObject(SERVER_KEY)?.getSafeBoolean(PUSH_NOTIFICATION)
             else -> null
         }
     }
@@ -206,6 +208,7 @@ class ProjectEditor(projectEditorFile: File, val catalogDef: CatalogDef, isCreat
             put("crash.manage", true)
             put("crash.server.url", DefaultValues.DEFAULT_LOG_SERVER)
             put("buildInfo", buildInfo)
+            put("pushNotification", findJsonBoolean("pushNotification") ?: false)
         }
     }
 

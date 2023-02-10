@@ -33,6 +33,7 @@ import MustacheConstants.HAS_ANY_ONE_TO_MANY_RELATION_FOR_LAYOUT
 import MustacheConstants.HAS_CUSTOM_LOGIN
 import MustacheConstants.HAS_DATASET
 import MustacheConstants.HAS_KOTLIN_INPUT_CONTROLS
+import MustacheConstants.HAS_PUSH_NOTIFICATIONS
 import MustacheConstants.HAS_RELATION
 import MustacheConstants.HAS_REMOTE_ADDRESS
 import MustacheConstants.IS_GOOGLE_MAPS_PLATFORM_USED
@@ -361,6 +362,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         data[TABLENAMES_LAYOUT] = tableNamesForLayoutType
 
         data[IS_GOOGLE_MAPS_PLATFORM_USED] = tableNamesForLayoutType.any { it.isGoogleMapsPlatformUsed }
+        data[HAS_PUSH_NOTIFICATIONS] = projectEditor.findJsonBoolean("pushNotification") ?: false
 
         getCustomFormatterFields()
 

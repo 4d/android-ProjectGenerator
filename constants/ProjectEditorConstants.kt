@@ -60,6 +60,7 @@ object ProjectEditorConstants {
     const val ACTIONS_KEY = "actions"
     const val DEBUG_MODE_KEY = "debugMode"
     const val LOCAL_SOURCE = "canUseLocalSource"
+    const val PUSH_NOTIFICATION = "pushNotification"
 
     /**
      * TYPE STRING PARSING
