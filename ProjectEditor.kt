@@ -248,6 +248,7 @@ class ProjectEditor(projectEditorFile: File, val catalogDef: CatalogDef, isCreat
 
     fun getActions(): Actions {
         val actionList = mutableListOf<Action>()
+        val globalActions = mutableListOf<Action>()
         jsonObj.getSafeObject(PROJECT_KEY)?.getSafeArray(ACTIONS_KEY)?.let { actionsArray ->
 
             val hasOpenUrlActionFeatureFlag = findJsonBoolean(FeatureFlagConstants.HAS_OPEN_URL_ACTION_KEY)
@@ -307,8 +308,12 @@ class ProjectEditor(projectEditorFile: File, val catalogDef: CatalogDef, isCreat
                             }
                             newAction.parameters = parameterList
                         }
-                        actionList.add(newAction)
 
+                        if (newAction.scope == "global") {
+                            globalActions.add(newAction)
+                        } else {
+                            actionList.add(newAction)
+                        }
                     }
                 }
             }
@@ -316,7 +321,7 @@ class ProjectEditor(projectEditorFile: File, val catalogDef: CatalogDef, isCreat
         val scopedActions: Map<String?, List<Action>> = actionList.groupBy { it.scope }
         val currentRecordActions = formatMap(scopedActions, "currentRecord")
         val tableActions = formatMap(scopedActions, "table")
-        return Actions(table = tableActions, currentRecord = currentRecordActions)
+        return Actions(table = tableActions, currentRecord = currentRecordActions, global = globalActions)
     }
 
     private fun getDefaultFieldForAlias(tableNumber: Int?, parameterName: String): String? {

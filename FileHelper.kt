@@ -1,4 +1,5 @@
 import FileHelperConstants.kotlinProjectDirs
+import PathHelperConstants.ACTION_FROM_NAV_BAR_KEY
 import PathHelperConstants.TEMPLATE_PLACEHOLDER
 import PathHelperConstants.XML_TXT_EXT
 import org.json.JSONObject
@@ -84,6 +85,8 @@ fun getDataPath(assetsPath: String, tableName: String, index: Int? = null): Stri
 }
 
 fun File.isWithTemplateName() = this.name.contains(TEMPLATE_PLACEHOLDER)
+
+fun File.isActionFromNavBarTemplate() = this.name.contains("$ACTION_FROM_NAV_BAR_KEY$TEMPLATE_PLACEHOLDER")
 
 fun File.readFile(): String {
     return this.bufferedReader().use {

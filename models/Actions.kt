@@ -1,6 +1,7 @@
 data class Actions(
     val table: Map<String, List<Action>>,
-    val currentRecord: Map<String, List<Action>>
+    val currentRecord: Map<String, List<Action>>,
+    val global: List<Action>
 )
 
 data class Action(
@@ -31,6 +32,12 @@ data class ActionParameter(
     var defaultField: String? = null,
     var rules: List<Any>? = null
 )
+
+fun Action.getLabel(): String {
+    shortLabel?.let { if (it.isNotEmpty()) return it }
+    label?.let { if (it.isNotEmpty()) return it }
+    return this.name
+}
 
 object InputControl {
 

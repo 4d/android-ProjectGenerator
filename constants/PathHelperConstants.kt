@@ -32,6 +32,7 @@ object PathHelperConstants {
     const val HOST_INPUT_CONTROLS_KEY = "inputControls"
     const val HOST_LOGIN_FORM_KEY = "login"
     const val FORMATTERS_FORMATTER_KEY = "Formatters"
+    const val ACTION_FROM_NAV_BAR_KEY = "action_from_nav_bar_"
 
     /**
      * FILE EXTENSIONS

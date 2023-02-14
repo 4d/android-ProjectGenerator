@@ -323,16 +323,35 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                     shouldUseIcon = true
                     return@forEach
                 }
+            } ?: run {
+                actions.global.find { it.name == dataModelId }?.let { action ->
+                    if (!action.icon.isNullOrEmpty()) {
+                        shouldUseIcon = true
+                        return@forEach
+                    }
+                }
             }
         }
 
-        projectEditor.navigationTableList.forEach { dataModelId ->
-            projectEditor.dataModelList.find { it.id == dataModelId }?.let { dataModel ->
+        projectEditor.navigationTableList.forEach { key ->
+            Log.d("navigationTableList : ${projectEditor.navigationTableList}")
+            projectEditor.dataModelList.find { it.id == key }?.let { dataModel ->
                 Log.w("Adding [${dataModel.name}] in navigation table list for navbar")
                 if (shouldUseIcon && dataModel.iconPath.isNullOrEmpty()) {
                     dataModel.iconPath = "nav_icon_${dataModel.id}"
                 }
                 tableNamesForNavigationForNavBar.add(dataModel.getTemplateLayoutFillerForNavigation())
+            } ?: kotlin.run {
+                Log.d("kotlin run, actions.global ${actions.global}")
+                Log.d("kotlin run, actions $actions")
+                actions.global.find { it.name == key }?.let { action ->
+                    Log.w("Adding action [${action.name}] in navigation table list for navbar")
+                    if (shouldUseIcon && action.icon.isNullOrEmpty()) {
+
+                        action.icon = "nav_icon_${correctIconPath(action.name)}"
+                    }
+                    tableNamesForNavigationForNavBar.add(action.getTemplateLayoutFillerForNavigation())
+                }
             }
         }
 
@@ -484,47 +503,87 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         data[RELATIONS_ONE_TO_MANY_FOR_DETAIL] = oneToManyRelationFillerForEachDetailLayout
         data[RELATIONS_MANY_TO_ONE_FOR_DETAIL] = manyToOneRelationFillerForEachDetailLayout
 
-        if (currentFile.isWithTemplateName()) {
-            Log.d("currentFile isWithTemplateName")
-            Log.d("currentFile isWithTemplateName, tableNames: $tableNames")
+        when {
+            currentFile.isActionFromNavBarTemplate() -> {
+                Log.d("isActionFromNavBarTemplate")
+                Log.d("tableNamesForNavigationForNavBar: $tableNamesForNavigationForNavBar")
+                tableNamesForNavigationForNavBar.filter { it.isGlobalAction }
+                    .forEach { templateLayoutFiller: TemplateLayoutFiller ->
+                        Log.d("templateLayoutFiller: $templateLayoutFiller")
+                        actions.global.find { it.name.tableNameAdjustment() == templateLayoutFiller.name.tableNameAdjustment() }?.let { action ->
+                            Log.d("action: $action")
+                            data["actionName"] = action.name
+                            data["actionName_lowercase"] = templateLayoutFiller.name.toLowerCase().fieldAdjustment()
+                            data["action_nav_label"] = templateLayoutFiller.label
+                            data["action_label"] = action.label ?: ""
+                            data["action_shortLabel"] = action.shortLabel ?: ""
+                            data["action_path"] = action.description ?: ""
 
-            for (tableName in tableNames) { // file will be duplicated
+                            val replacedPath =
+                                newFilePath.replace(TEMPLATE_PLACEHOLDER, templateLayoutFiller.name.toLowerCase())
 
-                Log.d("currentFile isWithTemplateName, tableName: $tableName")
-
-
-                if (newFilePath.contains(fileHelper.pathHelper.navigationPath()) ||
-                    newFilePath.contains(fileHelper.pathHelper.formPath("list")) ||
-                    newFilePath.contains(fileHelper.pathHelper.formPath("detail"))) {
-                    if (tableNamesForNavigation.firstOrNull { it.name == tableName.name } == null)
-                        continue
-                }
-
-                fillFileWithTemplateName(tableName)
-
-                val replacedPath = if (newFilePath.contains(fileHelper.pathHelper.resPath()))
-                    newFilePath.replace(TEMPLATE_PLACEHOLDER, tableName.name.toLowerCase())
-                else
-                    newFilePath.replace(TEMPLATE_PLACEHOLDER, tableName.name)
-
-                applyTemplate(replacedPath)
-
-                //cleaning
-                data.remove(FIELDS)
-                data.remove(TABLE_HAS_DATE_FIELD)
-                data.remove(TABLE_HAS_TIME_FIELD)
-                data.remove(TABLE_HAS_ONE_TO_MANY_FIELD)
-                data.remove(RELATIONS_MANY_TO_ONE)
-                data.remove(FIRST_FIELD)
+                            applyTemplate(replacedPath)
+                            data.remove("actionName")
+                            data.remove("actionName_lowercase")
+                            data.remove("action_nav_label")
+                            data.remove("action_label")
+                            data.remove("action_shortLabel")
+                            data.remove("action_path")
+                        }
+                    }
             }
+            currentFile.isWithTemplateName() -> {
+                Log.d("currentFile isWithTemplateName")
+                Log.d("currentFile isWithTemplateName, tableNames: $tableNames")
 
-        } else {
-            Log.d("currentFile applying default templating")
-            applyTemplate(newFilePath)
+                for (tableName in tableNames) { // file will be duplicated
+
+                    Log.d("currentFile isWithTemplateName, tableName: $tableName")
+
+                    Log.d("newFilePath = $newFilePath")
+
+                    if (newFilePath.contains(fileHelper.pathHelper.navigationPath()) ||
+                        newFilePath.contains(fileHelper.pathHelper.formPath("list")) ||
+                        newFilePath.contains(fileHelper.pathHelper.formPath("detail"))
+                    ) {
+                        Log.d("in If")
+                        if (tableNamesForNavigation.firstOrNull { it.name == tableName.name } == null) {
+                            Log.d("continue")
+                            continue
+                        } else {
+                            Log.d("not continue")
+                        }
+                    } else {
+                        Log.d("Not in if")
+                    }
+
+                    fillFileWithTemplateName(tableName)
+
+                    val replacedPath = if (newFilePath.contains(fileHelper.pathHelper.resPath()))
+                        newFilePath.replace(TEMPLATE_PLACEHOLDER, tableName.name.toLowerCase())
+                    else
+                        newFilePath.replace(TEMPLATE_PLACEHOLDER, tableName.name)
+
+                    applyTemplate(replacedPath)
+
+                    //cleaning
+                    data.remove(FIELDS)
+                    data.remove(TABLE_HAS_DATE_FIELD)
+                    data.remove(TABLE_HAS_TIME_FIELD)
+                    data.remove(TABLE_HAS_ONE_TO_MANY_FIELD)
+                    data.remove(RELATIONS_MANY_TO_ONE)
+                    data.remove(FIRST_FIELD)
+                }
+            }
+            else -> {
+                Log.d("currentFile applying default templating")
+                applyTemplate(newFilePath)
+            }
         }
     }
 
     private fun fillFileWithTemplateName(tableName: TemplateTableFiller) {
+        Log.d("fillFileWithTemplateName: ${tableName.name}")
 
         data[TABLENAME] = tableName.name.tableNameAdjustment()
 
