@@ -83,7 +83,7 @@ fun Field.getShortLabel(): String {
 }
 
 fun getIcon(dataModelList: List<DataModel>, form: Form, formField: Field): String {
-    val fieldFromDataModel: Field = getDataModelField(dataModelList, form, formField) ?: return ""
+    val fieldFromDataModel: Field = getDataModelField(dataModelList, form.dataModel, formField) ?: return ""
     Log.d("getIcon, formField $formField")
     Log.d("getIcon, fieldFromDataModel $fieldFromDataModel")
     if (fieldFromDataModel.icon.isNullOrEmpty()) {
@@ -139,7 +139,7 @@ fun correctIconPath(iconPath: String): String {
 }
 
 fun getFormatNameForType(pathHelper: PathHelper, dataModelList: List<DataModel>, form: Form, formField: Field): String {
-    val fieldFromDataModel: Field = getDataModelField(dataModelList, form, formField) ?: return ""
+    val fieldFromDataModel: Field = getDataModelField(dataModelList, form.dataModel, formField) ?: return ""
     Log.d("getFormatNameForType, [${fieldFromDataModel.name}] field: $fieldFromDataModel")
     val format = fieldFromDataModel.format
     if (format.equals("integer")) {
@@ -182,10 +182,10 @@ fun getFormatNameForType(pathHelper: PathHelper, dataModelList: List<DataModel>,
     }
 }
 
-fun getDataModelField(dataModelList: List<DataModel>, form: Form, field: Field): Field? {
+fun getDataModelField(dataModelList: List<DataModel>, dataModel: DataModel, field: Field): Field? {
     Log.d("getDataModelField [${field.name}], field: $field")
     val partCount = field.name.count { it == '.'}
-    val dataModel = dataModelList.find { it.id == form.dataModel.id }
+    val dataModel = dataModelList.find { it.id == dataModel.id }
     if (field.name.contains(".")) {
         Log.d("getDataModelField field.name contains '.'")
         dataModel?.relations?.find { it.name == field.name.split(".")[0] }?.let { fieldInRelationList ->
@@ -334,29 +334,29 @@ fun getDataModelFieldFromPath(dataModelList: List<DataModel>, fieldFromDataModel
  * Returns true if it has %length% placeholder AND it is a 1-N relation
  */
 
-fun hasLabelPercentPlaceholder(dataModelList: List<DataModel>, form: Form, field: Field): Boolean {
+fun hasLabelPercentPlaceholder(dataModelList: List<DataModel>, dataModel: DataModel, field: Field): Boolean {
     Log.d("hasLabelPercentPlaceholder field [${field.name}] ////")
-    val fieldFromDataModel: Field = getDataModelField(dataModelList, form, field) ?: return false
+    val fieldFromDataModel: Field = getDataModelField(dataModelList, dataModel, field) ?: return false
     Log.d("fieldFromDataModel: $fieldFromDataModel")
-    val hasPercentPlaceholder = hasPercentPlaceholder(fieldFromDataModel.getLabel(), dataModelList, form, field, fieldFromDataModel)
+    val hasPercentPlaceholder = hasPercentPlaceholder(fieldFromDataModel.getLabel(), dataModelList, dataModel, field, fieldFromDataModel)
     Log.d("hasPercentPlaceholder : $hasPercentPlaceholder")
     return hasPercentPlaceholder
 }
 
-fun hasShortLabelPercentPlaceholder(dataModelList: List<DataModel>, form: Form, field: Field): Boolean {
+fun hasShortLabelPercentPlaceholder(dataModelList: List<DataModel>, dataModel: DataModel, field: Field): Boolean {
     Log.d("hasShortLabelPercentPlaceholder field [${field.name}] ////")
-    val fieldFromDataModel: Field = getDataModelField(dataModelList, form, field) ?: return false
+    val fieldFromDataModel: Field = getDataModelField(dataModelList, dataModel, field) ?: return false
     Log.d("fieldFromDataModel: $fieldFromDataModel")
-    val hasPercentPlaceholder = hasPercentPlaceholder(fieldFromDataModel.getShortLabel(), dataModelList, form, field, fieldFromDataModel)
+    val hasPercentPlaceholder = hasPercentPlaceholder(fieldFromDataModel.getShortLabel(), dataModelList, dataModel, field, fieldFromDataModel)
     Log.d("hasPercentPlaceholder : $hasPercentPlaceholder")
     return hasPercentPlaceholder
 }
 
-private fun hasPercentPlaceholder(label: String, dataModelList: List<DataModel>, form: Form, formField: Field, fieldFromDataModel: Field): Boolean {
+private fun hasPercentPlaceholder(label: String, dataModelList: List<DataModel>, dataModel: DataModel, formField: Field, fieldFromDataModel: Field): Boolean {
     Log.d("hasPercentPlaceholder field [${fieldFromDataModel.name}] label [$label] ////")
     val hasLengthPlaceholder = hasLengthPlaceholder(label, dataModelList, fieldFromDataModel)
     Log.d("hasLengthPlaceholder $hasLengthPlaceholder")
-    val hasFieldPlaceholder = hasFieldPlaceholder(label, dataModelList, form, formField)
+    val hasFieldPlaceholder = hasFieldPlaceholder(label, dataModelList, dataModel, formField)
     Log.d("hasFieldPlaceholder $hasFieldPlaceholder")
     return hasLengthPlaceholder || hasFieldPlaceholder
 }
@@ -372,9 +372,9 @@ private fun hasLengthPlaceholder(label: String, dataModelList: List<DataModel>, 
     return label.contains("%length%")
 }
 
-fun hasFieldPlaceholder(label: String, dataModelList: List<DataModel>, form: Form, formField: Field): Boolean {
+fun hasFieldPlaceholder(label: String, dataModelList: List<DataModel>, dataModel: DataModel, formField: Field): Boolean {
     Log.d("hasFieldPlaceholder field [${formField.name}] label [$label] ////")
-    val fieldFromDataModel: Field = getDataModelField(dataModelList, form, formField) ?: return false
+    val fieldFromDataModel: Field = getDataModelField(dataModelList, dataModel, formField) ?: return false
     Log.d("fieldFromDataModel : $fieldFromDataModel")
     val isRelation = fieldFromDataModel.isRelation(dataModelList)
     Log.d("isRelation: $isRelation")
@@ -396,14 +396,14 @@ fun hasFieldPlaceholder(label: String, dataModelList: List<DataModel>, form: For
 
 fun getLabelWithPercentPlaceholder(dataModelList: List<DataModel>, form: Form, field: Field, catalogDef: CatalogDef): String {
     Log.d("getLabelWithPercentPlaceholder field [${field.name}] ////")
-    val fieldFromDataModel: Field = getDataModelField(dataModelList, form, field) ?: return ""
+    val fieldFromDataModel: Field = getDataModelField(dataModelList, form.dataModel, field) ?: return ""
     Log.d("fieldFromDataModel: $fieldFromDataModel")
     return replacePercentPlaceholder(fieldFromDataModel.getLabel(), dataModelList, form, field, catalogDef)
 }
 
 fun getShortLabelWithPercentPlaceholder(dataModelList: List<DataModel>, form: Form, field: Field, catalogDef: CatalogDef): String {
     Log.d("getShortLabelWithPercentPlaceholder field [${field.name}] ////")
-    val fieldFromDataModel: Field = getDataModelField(dataModelList, form, field) ?: return ""
+    val fieldFromDataModel: Field = getDataModelField(dataModelList, form.dataModel, field) ?: return ""
     Log.d("fieldFromDataModel: $fieldFromDataModel")
     return replacePercentPlaceholder(fieldFromDataModel.getShortLabel(), dataModelList, form, field, catalogDef)
 }
@@ -424,7 +424,7 @@ fun getEntryRelation(dataModelList: List<DataModel>, source: String, formField: 
 
 private fun replacePercentPlaceholder(label: String, dataModelList: List<DataModel>, form: Form, field: Field, catalogDef: CatalogDef): String {
     Log.d("replacePercentPlaceholder field [${field.name}] label [$label] ////")
-    val fieldFromDataModel: Field = getDataModelField(dataModelList, form, field) ?: return ""
+    val fieldFromDataModel: Field = getDataModelField(dataModelList, form.dataModel, field) ?: return ""
     val hasLengthPlaceholder = hasLengthPlaceholder(label, dataModelList, fieldFromDataModel)
     val labelWithLength = if (hasLengthPlaceholder) {
 
@@ -443,7 +443,7 @@ private fun replacePercentPlaceholder(label: String, dataModelList: List<DataMod
     } else {
         label
     }
-    val hasFieldPlaceholder = hasFieldPlaceholder(label, dataModelList, form, field)
+    val hasFieldPlaceholder = hasFieldPlaceholder(label, dataModelList, form.dataModel, field)
     return if (hasFieldPlaceholder) {
         replaceFieldPlaceholder(labelWithLength, dataModelList, fieldFromDataModel)
     } else {
@@ -474,8 +474,12 @@ fun cleanPrefixSuffix(label: String): String {
 }
 
 fun getNavbarTitle(dataModelList: List<DataModel>, form: Form, formField: Field, catalogDef: CatalogDef): String {
+    return getNavbarTitle(dataModelList, form.dataModel, formField, catalogDef)
+}
+
+fun getNavbarTitle(dataModelList: List<DataModel>, dataModel: DataModel, formField: Field, catalogDef: CatalogDef): String {
     Log.d("getNavbarTitle - getNavbarTitle field [${formField.name}] ////")
-    val fieldFromDataModel: Field = getDataModelField(dataModelList, form, formField) ?: return ""
+    val fieldFromDataModel: Field = getDataModelField(dataModelList, dataModel, formField) ?: return ""
     Log.d("getNavbarTitle - fieldFromDataModel: $fieldFromDataModel")
 
     fieldFromDataModel.format?.let { format ->
@@ -487,10 +491,10 @@ fun getNavbarTitle(dataModelList: List<DataModel>, form: Form, formField: Field,
             val fieldName = matchResult.destructured.component1().removePrefix("%").removeSuffix("%")
             // Verify that fieldName exists in source dataModel
             Log.d("Regexed fieldName: $fieldName")
-            val path = unAliasPath(fieldName, form.dataModel.name, catalogDef)
+            val path = unAliasPath(fieldName, dataModel.name, catalogDef)
             Log.d("path = $path")
             val endFieldName = path.substringAfterLast(".").fieldAdjustment()
-            val destBeforeField = destBeforeField(catalogDef, form.dataModel.name, path)
+            val destBeforeField = destBeforeField(catalogDef, dataModel.name, path)
             val endField = dataModelList.find { it.name.tableNameAdjustment() == destBeforeField.tableNameAdjustment() }?.fields?.find { it.name.fieldAdjustment() == endFieldName }
 
             Log.d("endField: $endField")
@@ -502,22 +506,23 @@ fun getNavbarTitle(dataModelList: List<DataModel>, form: Form, formField: Field,
 
                 when {
                     path.contains(".") -> {
-                        val relation = findRelationFromPath(dataModelList, form.dataModel.name, path.substringBeforeLast("."))
+                        val relation = findRelationFromPath(dataModelList, dataModel.name, path.substringBeforeLast("."))
                         if (relation != null) {
                             Log.d("Found relation with same path with path $relation")
 
                             val pathToOneWithoutFirst = getPathToOneWithoutFirst(relation, catalogDef)
                             if (pathToOneWithoutFirst.isNotEmpty())
-                                "\${(roomEntity as ${form.dataModel.name.tableNameAdjustment()}RoomEntity?)?.${relation.name.relationNameAdjustment()}?.${pathToOneWithoutFirst}?.$fieldAliasName.toString()}"
+                                "\${(roomEntity as ${dataModel.name.tableNameAdjustment()}RoomEntity?)?.${relation.name.relationNameAdjustment()}?.${pathToOneWithoutFirst}?.$fieldAliasName.toString()}"
                             else
-                                "\${(roomEntity as ${form.dataModel.name.tableNameAdjustment()}RoomEntity?)?.${relation.name.relationNameAdjustment()}?.$fieldAliasName.toString()}"
+                                "\${(roomEntity as ${dataModel.name.tableNameAdjustment()}RoomEntity?)?.${relation.name.relationNameAdjustment()}?.$fieldAliasName.toString()}"
                         } else {
                             Log.d("No relation found with path : ${path.substringBeforeLast(".")}")
                             fieldName
                         }
                     }
+
                     else -> {
-                        "\${(roomEntity as ${form.dataModel.name.tableNameAdjustment()}RoomEntity?)?.__entity?.${fieldAliasName.fieldAdjustment()}.toString()}"
+                        "\${(roomEntity as ${dataModel.name.tableNameAdjustment()}RoomEntity?)?.__entity?.${fieldAliasName.fieldAdjustment()}.toString()}"
                     }
                 }
             } else {
@@ -530,8 +535,8 @@ fun getNavbarTitle(dataModelList: List<DataModel>, form: Form, formField: Field,
 
     Log.d("fieldFromDataModel.format = null")
     return dataModelList.find { it.name == fieldFromDataModel.relatedEntities }?.label
-        ?: dataModelList.find { it.name == fieldFromDataModel.relatedDataClass }?.label
-        ?: ""
+            ?: dataModelList.find { it.name == fieldFromDataModel.relatedDataClass }?.label
+            ?: ""
 }
 
 /**
@@ -540,16 +545,16 @@ fun getNavbarTitle(dataModelList: List<DataModel>, form: Form, formField: Field,
 */
 
 fun getShortLabelWithFixes(dataModelList: List<DataModel>, form: Form, field: Field): String {
-    val fieldFromDataModel: Field? = getDataModelField(dataModelList, form, field)
+    val fieldFromDataModel: Field? = getDataModelField(dataModelList, form.dataModel, field)
     return fieldFromDataModel?.getShortLabel() ?: ""
 }
 
 fun getLabelWithFixes(dataModelList: List<DataModel>, form: Form, field: Field): String {
-    val fieldFromDataModel: Field? = getDataModelField(dataModelList, form, field)
+    val fieldFromDataModel: Field? = getDataModelField(dataModelList, form.dataModel, field)
     return fieldFromDataModel?.getLabel() ?: ""
 }
 
 fun isRelationWithFixes(dataModelList: List<DataModel>, form: Form, field: Field): Boolean {
-    val fieldFromDataModel: Field? = getDataModelField(dataModelList, form, field)
+    val fieldFromDataModel: Field? = getDataModelField(dataModelList, form.dataModel, field)
     return fieldFromDataModel?.isRelation(dataModelList) ?: false
 }

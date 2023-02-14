@@ -62,12 +62,12 @@ fun Field.getTemplateFormFieldFiller(
         imageHeight = imageHeight,
         hasIcon = wholeFormHasIcons,
         iconPath = getIcon(dataModelList, form, this),
-        labelHasPercentPlaceholder = hasLabelPercentPlaceholder(dataModelList, form, this),
+        labelHasPercentPlaceholder = hasLabelPercentPlaceholder(dataModelList, form.dataModel, this),
         labelWithPercentPlaceholder = getLabelWithPercentPlaceholder(dataModelList, form, this, catalogDef),
-        shortLabelHasPercentPlaceholder = hasShortLabelPercentPlaceholder(dataModelList, form, this),
+        shortLabelHasPercentPlaceholder = hasShortLabelPercentPlaceholder(dataModelList, form.dataModel, this),
         shortLabelWithPercentPlaceholder = getShortLabelWithPercentPlaceholder(dataModelList, form, this, catalogDef),
         entryRelation = getEntryRelation(dataModelList, form.dataModel.name, this, catalogDef),
-        altButtonText = if (hasFieldPlaceholder(getShortLabelWithFixes(dataModelList, form, this), dataModelList, form, this)) "" else getShortLabelWithFixes(dataModelList, form, this),
+        altButtonText = if (hasFieldPlaceholder(getShortLabelWithFixes(dataModelList, form, this), dataModelList, form.dataModel, this)) "" else getShortLabelWithFixes(dataModelList, form, this),
         isKotlinCustomFormat = !pathHelper.isValidFormatter(formatType) && pathHelper.isValidKotlinCustomFormatter(formatType),
         kotlinCustomFormatBinding = if (!pathHelper.isValidFormatter(formatType) && pathHelper.isValidKotlinCustomFormatter(formatType)) pathHelper.getKotlinCustomFormatterBinding(formatType) else ""
     )
