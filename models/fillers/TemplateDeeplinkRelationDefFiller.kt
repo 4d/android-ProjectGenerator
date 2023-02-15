@@ -11,14 +11,14 @@ data class TemplateRelationDefFillerDeepLink(
         val pathToOneWithoutFirst: String
 )
 
-fun TemplateRelationFiller.getTemplateRelationDefFillerDeepLink(relationType: RelationType, catalogDef: CatalogDef): TemplateRelationDefFillerDeepLink =
+fun TemplateRelationFiller.getTemplateRelationDefFillerDeepLink(relationType: RelationType, navbarTitle: String?): TemplateRelationDefFillerDeepLink =
         TemplateRelationDefFillerDeepLink(
                 relation_source = if (relationType == RelationType.ONE_TO_MANY && this.isSubRelation) this.relation_source else this.relation_source,
                 relation_name = if (relationType == RelationType.ONE_TO_MANY && this.isSubRelation) this.originalSubRelationName else this.relation_name,
                 inverse_name = this.inverse_name,
                 path = path.relationPathAdjustment().ifEmpty { this.relation_name.fieldAdjustment() },
                 isAlias = this.path.contains("."),
-                navbarTitle = this.relation_embedded_return_type, 
+                navbarTitle = navbarTitle ?: this.relation_embedded_return_type,
                 pathToManyWithoutFirst = this.pathToManyWithoutFirst,
                 relation_source_camelCase = this.relation_source_camelCase,
                 relation_target = this.relation_target,

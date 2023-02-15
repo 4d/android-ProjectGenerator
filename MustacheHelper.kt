@@ -281,7 +281,16 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
             Log.d("relation filler : $relationDefFiller")
             relations.add(relationDefFiller)
 
-            relationsDeepLinkManyToOne.add(it.getTemplateRelationDefFillerDeepLink(RelationType.MANY_TO_ONE, projectEditor.catalogDef))
+            var navbarTitle: String? = null
+            projectEditor.dataModelList.forEach { dataModel ->
+                dataModel.fields?.forEach { field ->
+                    if ((field.isManyToOneRelation(projectEditor.dataModelList)) &&
+                            (it.inverse_name_cap == field.inverseName && it.relation_name_cap == field.name)) {
+                        navbarTitle = getNavbarTitle(projectEditor.dataModelList, dataModel, field, projectEditor.catalogDef)
+                    }
+                }
+            }
+            relationsDeepLinkManyToOne.add(it.getTemplateRelationDefFillerDeepLink(RelationType.MANY_TO_ONE, navbarTitle))
 
             if (!it.isAlias)
                 relationsId.add(it.getTemplateRelationDefFillerForRelationId())
@@ -291,7 +300,17 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
             Log.d("filler: $it")
             Log.d("relation filler : ${it.getTemplateRelationDefFiller(RelationType.ONE_TO_MANY)}")
             relations.add(it.getTemplateRelationDefFiller(RelationType.ONE_TO_MANY))
-            relationsDeepLinkOneToMany.add(it.getTemplateRelationDefFillerDeepLink(RelationType.ONE_TO_MANY, projectEditor.catalogDef))
+
+            var navbarTitle: String? = null
+            projectEditor.dataModelList.forEach { dataModel ->
+                dataModel.fields?.forEach { field ->
+                    if ((field.isOneToManyRelation(projectEditor.dataModelList)) &&
+                            (it.inverse_name_cap == field.inverseName && it.relation_name_cap == field.name)) {
+                        navbarTitle = getNavbarTitle(projectEditor.dataModelList, dataModel, field, projectEditor.catalogDef)
+                    }
+                }
+            }
+            relationsDeepLinkOneToMany.add(it.getTemplateRelationDefFillerDeepLink(RelationType.ONE_TO_MANY, navbarTitle))
         }
         data[RELATIONS] = relations.distinctBy { it.relation_source to it.relation_target to it.relation_name }
 
@@ -692,7 +711,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                 var wholeFormHasIcons = false
 
                                 listForm.fields?.forEach { field ->
-                                    val fieldFromDataModel: Field? = getDataModelField(projectEditor.dataModelList, listForm, field)
+                                    val fieldFromDataModel: Field? = getDataModelField(projectEditor.dataModelList, listForm.dataModel, field)
                                     if (!fieldFromDataModel?.icon.isNullOrEmpty())
                                         wholeFormHasIcons = true
                                 }
@@ -788,7 +807,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                     var wholeFormHasIcons = false
 
                                     detailForm.fields?.forEach { field ->
-                                        val fieldFromDataModel: Field? = getDataModelField(projectEditor.dataModelList, detailForm, field)
+                                        val fieldFromDataModel: Field? = getDataModelField(projectEditor.dataModelList, detailForm.dataModel, field)
                                         if (!fieldFromDataModel?.icon.isNullOrEmpty())
                                             wholeFormHasIcons = true
                                     }
@@ -1007,13 +1026,13 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         Log.d("field ${field.name}, isRelation ? : $isRelation")
         if (isRelation) {
             data["field_${i}_is_relation"] = true
-            val labelHasPercentPlaceholder = hasLabelPercentPlaceholder(projectEditor.dataModelList, form, field)
+            val labelHasPercentPlaceholder = hasLabelPercentPlaceholder(projectEditor.dataModelList, form.dataModel, field)
             if (labelHasPercentPlaceholder) {
                 data["field_${i}_label_has_percent_placeholder"] = true
                 data["field_${i}_label_with_percent_placeholder"] = getLabelWithPercentPlaceholder(projectEditor.dataModelList, form, field, projectEditor.catalogDef)
             }
 
-            val shortLabelHasPercentPlaceholder = hasShortLabelPercentPlaceholder(projectEditor.dataModelList, form, field)
+            val shortLabelHasPercentPlaceholder = hasShortLabelPercentPlaceholder(projectEditor.dataModelList, form.dataModel, field)
             if (shortLabelHasPercentPlaceholder) {
                 data["field_${i}_shortLabel_has_percent_placeholder"] = true
                 data["field_${i}_shortLabel_with_percent_placeholder"] = getShortLabelWithPercentPlaceholder(projectEditor.dataModelList, form, field, projectEditor.catalogDef)
@@ -1335,7 +1354,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         Log.d("form for ${form.dataModel.name}")
         form.fields?.forEach { field ->
             Log.d("field = $field")
-            getDataModelField(projectEditor.dataModelList, form, field)?.let { fieldFromDataModel ->
+            getDataModelField(projectEditor.dataModelList, form.dataModel, field)?.let { fieldFromDataModel ->
                 Log.d("fieldFromDataModel = $fieldFromDataModel")
                 val map: MutableMap<String, FieldMappingFormatter> = customFormattersFields[form.dataModel.name.tableNameAdjustment()] ?: mutableMapOf()
                 if (map[field.name] == null) {
