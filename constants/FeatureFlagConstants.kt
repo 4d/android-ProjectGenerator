@@ -12,4 +12,5 @@ object FeatureFlagConstants {
     const val HAS_BUILD_WITH_CMD_KEY = "hasBuildWithCmd"
     const val HAS_NO_DATA_KEY = "hasNoData"
     const val HAS_NO_SDK_KEY = "hasNoSDK"
+    const val HAS_OPEN_FROM_TAB_BAR = "hasOpenFromTabBar"
 }
