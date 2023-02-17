@@ -343,11 +343,15 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                     return@forEach
                 }
             } ?: run {
-                actions.global.find { it.name == dataModelId }?.let { action ->
-                    if (!action.icon.isNullOrEmpty()) {
-                        shouldUseIcon = true
-                        return@forEach
+                if (projectEditor.findJsonBoolean(FeatureFlagConstants.HAS_OPEN_URL_ACTION_KEY) == true) {
+                    actions.global.find { it.name == dataModelId }?.let { action ->
+                        if (!action.icon.isNullOrEmpty()) {
+                            shouldUseIcon = true
+                            return@forEach
+                        }
                     }
+                } else {
+                    Log.d("Don't have feature flag for open url action from tab bar")
                 }
             }
         }
@@ -361,15 +365,19 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                 }
                 tableNamesForNavigationForNavBar.add(dataModel.getTemplateLayoutFillerForNavigation())
             } ?: kotlin.run {
-                Log.d("kotlin run, actions.global ${actions.global}")
-                Log.d("kotlin run, actions $actions")
-                actions.global.find { it.name == key }?.let { action ->
-                    Log.w("Adding action [${action.name}] in navigation table list for navbar")
-                    if (shouldUseIcon && action.icon.isNullOrEmpty()) {
+                if (projectEditor.findJsonBoolean(FeatureFlagConstants.HAS_OPEN_URL_ACTION_KEY) == true) {
+                    Log.d("kotlin run, actions.global ${actions.global}")
+                    Log.d("kotlin run, actions $actions")
+                    actions.global.find { it.name == key }?.let { action ->
+                        Log.w("Adding action [${action.name}] in navigation table list for navbar")
+                        if (shouldUseIcon && action.icon.isNullOrEmpty()) {
 
-                        action.icon = "nav_icon_${correctIconPath(action.name)}"
+                            action.icon = "nav_icon_${correctIconPath(action.name)}"
+                        }
+                        tableNamesForNavigationForNavBar.add(action.getTemplateLayoutFillerForNavigation())
                     }
-                    tableNamesForNavigationForNavBar.add(action.getTemplateLayoutFillerForNavigation())
+                } else {
+                    Log.d("Don't have feature flag for open url action from tab bar")
                 }
             }
         }
@@ -524,32 +532,36 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
         when {
             currentFile.isActionFromNavBarTemplate() -> {
-                Log.d("isActionFromNavBarTemplate")
-                Log.d("tableNamesForNavigationForNavBar: $tableNamesForNavigationForNavBar")
-                tableNamesForNavigationForNavBar.filter { it.isGlobalAction }
-                    .forEach { templateLayoutFiller: TemplateLayoutFiller ->
-                        Log.d("templateLayoutFiller: $templateLayoutFiller")
-                        actions.global.find { it.name.tableNameAdjustment() == templateLayoutFiller.name.tableNameAdjustment() }?.let { action ->
-                            Log.d("action: $action")
-                            data["actionName"] = action.name
-                            data["actionName_lowercase"] = templateLayoutFiller.name.toLowerCase().fieldAdjustment()
-                            data["action_nav_label"] = templateLayoutFiller.label
-                            data["action_label"] = action.label ?: ""
-                            data["action_shortLabel"] = action.shortLabel ?: ""
-                            data["action_path"] = action.description ?: ""
+                if (projectEditor.findJsonBoolean(FeatureFlagConstants.HAS_OPEN_URL_ACTION_KEY) == true) {
+                    Log.d("isActionFromNavBarTemplate")
+                    Log.d("tableNamesForNavigationForNavBar: $tableNamesForNavigationForNavBar")
+                    tableNamesForNavigationForNavBar.filter { it.isGlobalAction }
+                        .forEach { templateLayoutFiller: TemplateLayoutFiller ->
+                            Log.d("templateLayoutFiller: $templateLayoutFiller")
+                            actions.global.find { it.name.tableNameAdjustment() == templateLayoutFiller.name.tableNameAdjustment() }?.let { action ->
+                                Log.d("action: $action")
+                                data["actionName"] = action.name
+                                data["actionName_lowercase"] = templateLayoutFiller.name.toLowerCase().fieldAdjustment()
+                                data["action_nav_label"] = templateLayoutFiller.label
+                                data["action_label"] = action.label ?: ""
+                                data["action_shortLabel"] = action.shortLabel ?: ""
+                                data["action_path"] = action.description ?: ""
 
-                            val replacedPath =
-                                newFilePath.replace(TEMPLATE_PLACEHOLDER, templateLayoutFiller.name.toLowerCase())
+                                val replacedPath =
+                                    newFilePath.replace(TEMPLATE_PLACEHOLDER, templateLayoutFiller.name.toLowerCase())
 
-                            applyTemplate(replacedPath)
-                            data.remove("actionName")
-                            data.remove("actionName_lowercase")
-                            data.remove("action_nav_label")
-                            data.remove("action_label")
-                            data.remove("action_shortLabel")
-                            data.remove("action_path")
+                                applyTemplate(replacedPath)
+                                data.remove("actionName")
+                                data.remove("actionName_lowercase")
+                                data.remove("action_nav_label")
+                                data.remove("action_label")
+                                data.remove("action_shortLabel")
+                                data.remove("action_path")
+                            }
                         }
-                    }
+                } else {
+                    Log.d("Don't have feature flag for open url action from tab bar")
+                }
             }
             currentFile.isWithTemplateName() -> {
                 Log.d("currentFile isWithTemplateName")
