@@ -243,7 +243,7 @@ class ProjectEditor(projectEditorFile: File, val catalogDef: CatalogDef, isCreat
                     query = query,
                     fields = fieldsConcat,
                     searchFields = searchFields.joinToString(),
-                    searchableWithBarcode = false // set to searchableWithBarcode
+                    searchableWithBarcode = searchableWithBarcode
             )
             map[tableName] = queryAndFields
         }
