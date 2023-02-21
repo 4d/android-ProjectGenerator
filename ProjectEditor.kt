@@ -223,6 +223,8 @@ class ProjectEditor(projectEditorFile: File, val catalogDef: CatalogDef, isCreat
 
             val tableName = originalTableName.tableNameAdjustment()
 
+            val label = dataModelList.find { it.name == tableName }?.getLabel()?.encode() ?: originalTableName.encode()
+
             val query = dataModelList.find { it.name == tableName }?.query ?: ""
             val fieldsConcat: LinkedHashMap <String, String> = linkedMapOf()
 
@@ -237,6 +239,7 @@ class ProjectEditor(projectEditorFile: File, val catalogDef: CatalogDef, isCreat
 
             val queryAndFields = TableInfo(
                     originalName = originalTableName,
+                    label = label,
                     query = query,
                     fields = fieldsConcat,
                     searchFields = searchFields.joinToString(),
