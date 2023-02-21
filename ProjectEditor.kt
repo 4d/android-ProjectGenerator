@@ -58,6 +58,7 @@ class ProjectEditor(projectEditorFile: File, val catalogDef: CatalogDef, isCreat
 
     lateinit var sectionFields: MutableList<QueryField>
     lateinit var deepLink: DeepLink
+    lateinit var universalLink: UniversalLink
     lateinit var defaultSortFields: MutableList<QueryField>
     private lateinit var jsonObj: JSONObject
 
@@ -110,6 +111,7 @@ class ProjectEditor(projectEditorFile: File, val catalogDef: CatalogDef, isCreat
                 }.toMutableList()
                 
                 deepLink = jsonObj.getDeepLinkScheme()
+                universalLink = jsonObj.getUniversalLink(findJsonString("bundleIdentifier"))
             }
 
         } ?: kotlin.run {

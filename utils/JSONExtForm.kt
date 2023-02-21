@@ -308,3 +308,17 @@ fun JSONObject.getDeepLinkScheme(): DeepLink {
             enabled = deeplinkObject?.getSafeBoolean("enabled") ?: false)
 
 }
+
+fun JSONObject.getUniversalLink(bundleIdentifier: String?): UniversalLink {
+    val deeplinkObject = this.getSafeObject(PROJECT_KEY)?.getSafeObject("deepLinking")
+
+    val associatedDomain = deeplinkObject?.getSafeString("associatedDomain")
+    val host = associatedDomain?.substringAfter("://", associatedDomain)?.substringBefore("/") ?: ""
+    val scheme = associatedDomain?.substringBefore("://", "https") ?: ""
+    val pathPrefix = associatedDomain?.substringAfter(host, "dddd") ?: "lolo"
+    val pathPattern = "$pathPrefix/.*$bundleIdentifier/show"      // ex: /.*com.test.Tasks/show
+    val enabled = deeplinkObject?.getSafeBoolean("enabled") ?: false
+
+    return UniversalLink(host = host, scheme = scheme, pathPattern = pathPattern, enabled = enabled)
+}
+
