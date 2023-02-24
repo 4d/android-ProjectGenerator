@@ -110,8 +110,13 @@ class ProjectEditor(projectEditorFile: File, val catalogDef: CatalogDef, isCreat
 
                 }.toMutableList()
                 
-                deepLink = jsonObj.getDeepLinkScheme()
-                universalLink = jsonObj.getUniversalLink(findJsonString("bundleIdentifier"))
+                val hasDeepLinkingFeatureFlag = findJsonBoolean(FeatureFlagConstants.HAS_DEEP_LINKING) ?: true
+                Log.d("hasDeepLinkingFeatureFlag = $hasDeepLinkingFeatureFlag")
+                if (hasDeepLinkingFeatureFlag) {
+                    deepLink = jsonObj.getDeepLinkScheme()
+                    universalLink = jsonObj.getUniversalLink(findJsonString("bundleIdentifier"))
+                }
+
             }
 
         } ?: kotlin.run {
@@ -176,6 +181,7 @@ class ProjectEditor(projectEditorFile: File, val catalogDef: CatalogDef, isCreat
             FeatureFlagConstants.HAS_BUILD_WITH_CMD_KEY -> jsonObj.getSafeBoolean(FeatureFlagConstants.HAS_BUILD_WITH_CMD_KEY)
             FeatureFlagConstants.HAS_NO_DATA_KEY -> jsonObj.getSafeBoolean(FeatureFlagConstants.HAS_NO_DATA_KEY)
             FeatureFlagConstants.HAS_NO_SDK_KEY -> jsonObj.getSafeBoolean(FeatureFlagConstants.HAS_NO_SDK_KEY)
+            FeatureFlagConstants.HAS_DEEP_LINKING -> jsonObj.getSafeBoolean(FeatureFlagConstants.HAS_DEEP_LINKING)
             "debugMode" -> jsonObj.getSafeBoolean(DEBUG_MODE_KEY)
             "canUseLocalSource" -> jsonObj.getSafeBoolean(LOCAL_SOURCE)
             "pushNotification" -> jsonObj.getSafeObject(PROJECT_KEY)?.getSafeObject(SERVER_KEY)?.getSafeBoolean(PUSH_NOTIFICATION)

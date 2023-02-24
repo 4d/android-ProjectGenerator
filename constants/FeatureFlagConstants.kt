@@ -13,4 +13,5 @@ object FeatureFlagConstants {
     const val HAS_NO_DATA_KEY = "hasNoData"
     const val HAS_NO_SDK_KEY = "hasNoSDK"
     const val HAS_OPEN_FROM_TAB_BAR = "hasOpenFromTabBar"
+    const val HAS_DEEP_LINKING = "hasAndroidDeepLinking"
 }
