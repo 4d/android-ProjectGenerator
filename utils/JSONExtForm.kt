@@ -315,7 +315,7 @@ fun JSONObject.getUniversalLink(bundleIdentifier: String?): UniversalLink {
     val associatedDomain = deeplinkObject?.getSafeString("associatedDomain")
     val host = associatedDomain?.substringAfter("://", associatedDomain)?.substringBefore("/") ?: ""
     val scheme = associatedDomain?.substringBefore("://", "https") ?: ""
-    val pathPrefix = associatedDomain?.substringAfter(host, "dddd") ?: "lolo"
+    val pathPrefix = associatedDomain?.substringAfter(host, "") ?: ""
     val pathPattern = "$pathPrefix/.*$bundleIdentifier/show"      // ex: /.*com.test.Tasks/show
     val enabled = deeplinkObject?.getSafeBoolean("enabled") ?: false
 
