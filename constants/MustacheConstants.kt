@@ -63,6 +63,7 @@ object MustacheConstants {
     const val DEBUG_MODE = "debug_mode"
     const val SECTION_FIELDS = "section_fields"
     const val DEEPLINK = "deep_link"
+    const val UNIVERSAL_LINK = "universal_link"
     const val DEFAULT_SORT_FIELDS = "default_sort_fields"
     const val IS_GOOGLE_MAPS_PLATFORM_USED = "isGoogleMapsPlatformUsed"
     const val IS_GOOGLE_MAPS_PLATFORM_USED_FOR_TABLE = "isGoogleMapsPlatformUsedForTable"

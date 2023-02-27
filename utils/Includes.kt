@@ -25,6 +25,7 @@
 //INCLUDE models/InputControlDataSource.kt
 //INCLUDE models/QueryField.kt
 //INCLUDE models/DeepLink.kt
+//INCLUDE models/UniversalLink.kt
 
 //INCLUDE models/fillers/TemplateFieldFiller.kt
 //INCLUDE models/fillers/TemplateFormatterFiller.kt
