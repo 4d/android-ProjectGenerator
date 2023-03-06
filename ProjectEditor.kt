@@ -58,7 +58,8 @@ class ProjectEditor(projectEditorFile: File, val catalogDef: CatalogDef, isCreat
 
     lateinit var sectionFields: MutableList<QueryField>
     lateinit var deepLink: DeepLink
-    lateinit var universalLink: UniversalLink
+    lateinit var universalLinkWithBundleId: UniversalLink
+    lateinit var universalLinkWithoutBundleId: UniversalLink
     lateinit var defaultSortFields: MutableList<QueryField>
     private lateinit var jsonObj: JSONObject
 
@@ -114,7 +115,8 @@ class ProjectEditor(projectEditorFile: File, val catalogDef: CatalogDef, isCreat
                 Log.d("hasDeepLinkingFeatureFlag = $hasDeepLinkingFeatureFlag")
                 if (hasDeepLinkingFeatureFlag) {
                     deepLink = jsonObj.getDeepLinkScheme()
-                    universalLink = jsonObj.getUniversalLink(findJsonString("bundleIdentifier"))
+                    universalLinkWithBundleId = jsonObj.getUniversalLink(findJsonString("bundleIdentifier"))
+                    universalLinkWithoutBundleId = jsonObj.getUniversalLink("")
                 }
 
             }
