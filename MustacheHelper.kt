@@ -73,7 +73,8 @@ import MustacheConstants.TABLE_HAS_ONE_TO_MANY_FIELD
 import MustacheConstants.TABLE_HAS_TIME_FIELD
 import MustacheConstants.TABLE_LABEL
 import MustacheConstants.TYPES_AND_TABLES
-import MustacheConstants.UNIVERSAL_LINK
+import MustacheConstants.UNIVERSAL_LINK_WITHOUT_BUNDLE_ID
+import MustacheConstants.UNIVERSAL_LINK_WITH_BUNDLE_ID
 import PathHelperConstants.TEMPLATE_PLACEHOLDER
 import ProjectEditorConstants.LOCAL_SOURCE
 import com.google.gson.Gson
@@ -451,7 +452,8 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         data[SECTION_FIELDS] = projectEditor.sectionFields
         data[DEFAULT_SORT_FIELDS] = projectEditor.defaultSortFields
         data[DEEPLINK] = projectEditor.deepLink
-        data[UNIVERSAL_LINK] = projectEditor.universalLink
+        data[UNIVERSAL_LINK_WITH_BUNDLE_ID] = projectEditor.universalLinkWithBundleId
+        data[UNIVERSAL_LINK_WITHOUT_BUNDLE_ID] = projectEditor.universalLinkWithoutBundleId
     }
 
     /**
