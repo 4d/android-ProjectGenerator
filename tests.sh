@@ -39,10 +39,31 @@ fi
 
 finalStatus=0
 
+## get python bin and version
+has_python3=$(which python3)
+if [ "$has_python3" == "" ]; then
+  python_bin="python"
+  python_version=$( $python_bin --version)
+  if [[ $python_version = Python\ 3* ]]; then
+     has_python3=1
+  else
+     has_python3=0
+  fi
+else
+  python_bin="python3"
+  has_python3=1
+fi
+
+
 while read line; do
     echo "📦 Processing file '$line' start..."
-    shortPath=$(python -c "import os.path; print os.path.relpath('$line', '$currentDir')")
-  
+
+    if [ $has_python3 -eq 1 ]; then
+      shortPath=$($python_bin -c "import os.path; print(os.path.relpath('$line', '$currentDir'))")
+    else
+      shortPath=$($python_bin -c "import os.path; print os.path.relpath('$line', '$currentDir')")
+    fi
+
     # echo "##teamcity[testStarted name='$shortPath']"
 	  ./test.sh "$line"
     status=$?
