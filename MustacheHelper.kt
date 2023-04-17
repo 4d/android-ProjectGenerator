@@ -14,6 +14,7 @@ import MustacheConstants.ANDROID_SDK_PATH
 import MustacheConstants.APP_NAME_WITH_CAPS
 import MustacheConstants.APP_VERSION
 import MustacheConstants.AUTHOR
+import MustacheConstants.BRANCH_VERSION
 import MustacheConstants.CACHE_4D_SDK_PATH
 import MustacheConstants.COMPANY_HEADER
 import MustacheConstants.CUSTOM_FORMATTER_IMAGES
@@ -149,6 +150,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
         data[DEBUG_MODE] = projectEditor.findJsonBoolean("debugMode") ?: false
         data[LOCAL_SOURCE] = projectEditor.findJsonBoolean("canUseLocalSource") ?: false
+        data[BRANCH_VERSION] = projectEditor.findJsonString("branchVersion") ?: "main"
 
         // for network_security_config.xml
         // whitelist production host address if defined, else, server host address, else localhost
