@@ -1,6 +1,7 @@
 import DefaultValues.DEBUG_LOG_LEVEL
 import DefaultValues.DEFAULT_LOG_LEVEL
 import DefaultValues.DEFAULT_REMOTE_URL
+import MustacheConstants.BRANCH_VERSION
 import ProjectEditorConstants.ACTIONS_KEY
 import ProjectEditorConstants.AUTHENTICATION_KEY
 import ProjectEditorConstants.BOOLEAN_TYPE
@@ -151,6 +152,7 @@ class ProjectEditor(projectEditorFile: File, val catalogDef: CatalogDef, isCreat
             "componentBuild" -> jsonObj.getSafeString(COMPONENT_BUILD_KEY)
             "ideBuildVersion" -> jsonObj.getSafeString(IDE_BUILD_VERSION_KEY)
             "ideVersion" -> jsonObj.getSafeString(IDE_VERSION_KEY)
+            "branchVersion" -> jsonObj.getSafeString(BRANCH_VERSION)
             else -> null
         }
     }
