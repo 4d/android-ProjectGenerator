@@ -50,8 +50,17 @@ then if you do not provide the database it will try to use the `4D Mobile App.4d
 ## Build
 
 ```shell
-kscript --package main.kt
+./build.sh
 ```
+
+### Requirements
+
+- java 11
+- kscript v3.x
+
+could be installed using `setup.sh`
+
+### for deployement only
 
 or use `compiler.sh` which copy it to the component script directory.
 
