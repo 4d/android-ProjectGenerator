@@ -1,6 +1,6 @@
 # ProjectGenerator
 
-## Requierements
+## Requirements
 
 - [kscript](https://github.com/holgerbrandl/kscript), installed for instance with sdkman or homebrew
 - gradle to package
