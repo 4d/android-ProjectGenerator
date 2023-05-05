@@ -1,5 +1,7 @@
 # ProjectGenerator
 
+This project create android project using inputs from [4D Mobile App](https://github.com/4d/4D-Mobile-App/).
+
 ## Requirements
 
 - [kscript](https://github.com/holgerbrandl/kscript), installed for instance with sdkman or homebrew
