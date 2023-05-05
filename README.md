@@ -45,28 +45,13 @@ To inject a custom build you must place a compiled `androidprojectgenerator.jar`
 
 could be installed using `setup.sh`
 
-### for deployement only
-
-or use `compiler.sh` which copy it to the component script directory.
-
-Destination path is defined by:
-
-- first argument passed to `compiler.sh` 
-  - ex: `compiler.sh "/Applications/4D.app/Contents/Resources/Internal User Components/4D Mobile App.4dbase/Resources/scripts/"`
-- or `PJGEN_PATH` env variable: absolute path to a script dir where the jar must be moved 
-  - ex: `export PJGEN_PATH="/Applications/4D.app/Contents/Resources/Internal User Components/4D Mobile App.4dbase/Resources/scripts/"`
-- or `PERFORCE_PATH` env variable: to copy it to a specific perforce repo (must provide root path, path before `4eDimension`)
-- or if not env variable defined, expect that you are in perforce code, and script will use the relative path
-
-> ⚠️ Do not commit androidprojectgenerator.jar if it's not the one builded from perforce sources
-
 ## Test using command line
 
 You could use `test.sh`
 
 ### configure
 
-This test script need the `4D Mobile App` component. You must defined the env var `MOBILE_COMPONENT_PATH`.
+This test script need the `4D Mobile App` component to get some [templates files](https://github.com/4d/4D-Mobile-App/tree/main/Resources/templates/android/project). You must defined the env var `MOBILE_COMPONENT_PATH`.
 
 ### use it
 
