@@ -4,8 +4,9 @@ This project create android project using inputs from [4D Mobile App](https://gi
 
 ## Requirements
 
-- [kscript](https://github.com/holgerbrandl/kscript), installed for instance with sdkman or homebrew
-- gradle to package
+- [kscript](https://github.com/holgerbrandl/kscript), installed for instance with sdkman or homebrew (version 3)
+- [gradle](https://gradle.org/) to package (version 6.8)
+- java 11
 
 ## Usage
 
@@ -19,7 +20,7 @@ kscript main.kt \
     --template-files "<path_to_template_files>" \
     --template-forms "<path_to_template_forms>" \
     --host-db "<path_to_host_database>" \
-	--catalog "<catalog-file-path"
+	  --catalog "<catalog-file-path"
 ```
 
 with compiled jar replace `kscript main.kt` by `java -jar androidprojectgenerator.jar`
@@ -37,13 +38,6 @@ To inject a custom build you must place a compiled `androidprojectgenerator.jar`
 ```shell
 ./build.sh
 ```
-
-### Requirements
-
-- java 11
-- kscript v3.x
-
-could be installed using `setup.sh`
 
 ## Test using command line
 

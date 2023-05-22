@@ -31,14 +31,39 @@ fi
 version=$(kotlin -version)
 # TODO: check kotlin version for installed kscript?
 
+if [ -z "$JAVA_HOME" ]; then
+  if [ -d "/Applications/Android Studio.app/Contents/jbr/Contents/Home" ]; then
+    export JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home"
+  fi
+fi
+
 has=$(which java)
 if [ "$?" -ne "0" ]; then
   echo "❌ no java, install it"
-  exit 1
+  exit 2
 fi
 version=$(java -version)
-
+echo "ℹ️ java 11 required"
 # TODO: check java version for installed kscript?
 
-kscript --package main.kt
-mv main $BINARY_NAME
+version=$(gradle -v 2>&1 | grep "Gradle " | sed 's/.* //')
+
+if [[ "$version" = "6.8"* ]]
+then
+	echo "✅ gradle $version"
+else
+	echo "❌ gradle $version. Need v6.8.3"
+  echo "with sdkman: sdk install gradle 6.8.3"
+  echo "or brew ..."
+  
+  #exit 1
+fi
+
+kscript --clear-cache
+kscript  --package main.kt
+if [ -f "main" ]; then
+  mv main "$BINARY_NAME"
+else
+  echo "❌ no binary produced"
+  exit 3
+fi

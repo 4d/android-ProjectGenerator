@@ -31,3 +31,14 @@ java=$(sdk list java | grep 11.0 | grep "open" | sed 's/.*| //')
 echo "java $java"
 sdk install java $java
 sdk use java $java
+
+
+version=$(gradle -v 2>&1 | grep "Gradle " | sed 's/.* //')
+if [[ "$version" = "6.8"* ]]
+then
+	echo "✅ gradle $version"
+else
+	echo "❌ gradle $version. Need v3"
+  sdk install gradle 6.8.3
+  sdk use gradle 6.8.3
+fi

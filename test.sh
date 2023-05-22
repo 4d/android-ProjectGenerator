@@ -15,7 +15,7 @@ fi
 export JAVA_HOME=`/usr/libexec/java_home -v 1.8`
 if [ -z "$JAVA_HOME" ]; then
     # use android studio by default
-    export JAVA_HOME="/Applications/Android Studio.app/Contents/jre/Contents/Home"
+    export JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home"
 fi
 
 # if no project file, use the cached one
