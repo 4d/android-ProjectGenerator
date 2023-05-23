@@ -1,4 +1,4 @@
-object Log {
+//object Log {
     private const val TEXT_ERROR = "\u001B[31m"
     private const val TEXT_DEBUG = "\u001b[34m"
     private const val TEXT_INFO = "\u001b[35m"
@@ -13,7 +13,7 @@ object Log {
 
     fun logData(data: Map<String, Any>) {
         for ((key, value) in data) {
-            Log.d("[$key] [$value]")
+            d("[$key] [$value]")
         }
     }
-}
+//}

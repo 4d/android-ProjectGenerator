@@ -1,4 +1,4 @@
-object ProjectEditorConstants {
+//object ProjectEditorConstants {
 
     /**
      * PROJECT EDITOR JSON KEYS
@@ -75,4 +75,4 @@ object ProjectEditorConstants {
     const val TIME_TYPE = "Time"
     const val EMPTY_TYPE = ""
     const val OBJECT_TYPE = "Map<String, Any>"
-}
+//}

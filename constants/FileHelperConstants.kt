@@ -1,4 +1,4 @@
-object FileHelperConstants {
+//object FileHelperConstants {
 
     val kotlinProjectDirs = listOf("main", "test", "androidTest")
 
@@ -10,4 +10,4 @@ object FileHelperConstants {
     const val DS_STORE = ".DS_Store"
     const val TEMPORARY_UNZIPPED_TEMPLATE_PREFIX = "android_temporary_"
     const val LAYOUT_FILE = "layout.xml"
-}
+//}

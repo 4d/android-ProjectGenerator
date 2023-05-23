@@ -1,4 +1,4 @@
-object MustacheConstants {
+//object MustacheConstants {
 
     /**
      * TEMPLATING
@@ -56,7 +56,7 @@ object MustacheConstants {
     const val RELATIONS_MANY_TO_ONE_FOR_DETAIL = "relations_many_to_one_for_detail"
     const val HAS_DATASET = "hasDataSet"
     const val PERMISSIONS = "permissions"
-    const val HAS_KOTLIN_INPUT_CONTROLS = "has_kotlin_input_controls"
+    const val HAS_KOTLIN_INPUT_CONTROLS_TEMPLATE = "has_kotlin_input_controls"
     const val KOTLIN_INPUT_CONTROLS = "kotlin_input_controls"
     const val HAS_CUSTOM_LOGIN = "has_custom_login"
     const val LOGIN_CLASS_NAME = "login_class_name"
@@ -70,4 +70,4 @@ object MustacheConstants {
     const val IS_GOOGLE_MAPS_PLATFORM_USED_FOR_TABLE = "isGoogleMapsPlatformUsedForTable"
     const val HAS_PUSH_NOTIFICATIONS = "hasPushNotifications"
     const val BRANCH_VERSION = "branch_version"
-}
+//}

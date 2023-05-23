@@ -1,48 +1,3 @@
-import DefaultValues.DEBUG_LOG_LEVEL
-import DefaultValues.DEFAULT_LOG_LEVEL
-import DefaultValues.DEFAULT_REMOTE_URL
-import MustacheConstants.BRANCH_VERSION
-import ProjectEditorConstants.ACTIONS_KEY
-import ProjectEditorConstants.AUTHENTICATION_KEY
-import ProjectEditorConstants.BOOLEAN_TYPE
-import ProjectEditorConstants.BUNDLE_IDENTIFIER
-import ProjectEditorConstants.CACHE_4D_SDK_KEY
-import ProjectEditorConstants.COMPONENT_BUILD_KEY
-import ProjectEditorConstants.DATASOURCE_KEY
-import ProjectEditorConstants.DATE_TYPE
-import ProjectEditorConstants.DEBUG_MODE_KEY
-import ProjectEditorConstants.DEVELOPER_KEY
-import ProjectEditorConstants.DOMINANT_COLOR_KEY
-import ProjectEditorConstants.DUMPED_STAMP_KEY
-import ProjectEditorConstants.DUMPED_TABLES_KEY
-import ProjectEditorConstants.EMAIL_KEY
-import ProjectEditorConstants.EMPTY_TYPE
-import ProjectEditorConstants.FLOAT_TYPE
-import ProjectEditorConstants.IDE_BUILD_VERSION_KEY
-import ProjectEditorConstants.IDE_VERSION_KEY
-import ProjectEditorConstants.INT_TYPE
-import ProjectEditorConstants.LOCAL_SOURCE
-import ProjectEditorConstants.LOGIN_KEY
-import ProjectEditorConstants.NAME_KEY
-import ProjectEditorConstants.OBJECT_TYPE
-import ProjectEditorConstants.ORGANIZATION_KEY
-import ProjectEditorConstants.PACKAGE_KEY
-import ProjectEditorConstants.PATH_KEY
-import ProjectEditorConstants.PHOTO_TYPE
-import ProjectEditorConstants.PRODUCTION_KEY
-import ProjectEditorConstants.PRODUCT_KEY
-import ProjectEditorConstants.PROJECT_KEY
-import ProjectEditorConstants.PUSH_NOTIFICATION
-import ProjectEditorConstants.REMOTE_URL_KEY
-import ProjectEditorConstants.SDK_KEY
-import ProjectEditorConstants.SERVER_KEY
-import ProjectEditorConstants.SOURCE_KEY
-import ProjectEditorConstants.STRING_TYPE
-import ProjectEditorConstants.TEAMID_KEY
-import ProjectEditorConstants.TIME_TYPE
-import ProjectEditorConstants.UI_KEY
-import ProjectEditorConstants.URLS_KEY
-import ProjectEditorConstants.VERSION
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
@@ -66,7 +21,7 @@ class ProjectEditor(projectEditorFile: File, val catalogDef: CatalogDef, isCreat
 
     init {
         val jsonString = projectEditorFile.readFile()
-        Log.d("==================================\n" +
+        println("==================================\n" +
                 "ProjectEditor init\n" +
                 "==================================\n")
 
@@ -79,24 +34,24 @@ class ProjectEditor(projectEditorFile: File, val catalogDef: CatalogDef, isCreat
 
             if (isCreateDatabaseCommand) {
                 dataModelList = jsonObj.getDataModelList(catalogDef, isCreateDatabaseCommand = true)
-                Log.d("> DataModels list successfully read.")
+                println("> DataModels list successfully read.")
 
             } else {
 
                 navigationTableList = jsonObj.getNavigationTableList()
-                Log.d("> Navigation tables list successfully read.")
+                println("> Navigation tables list successfully read.")
 
                 dataModelList = jsonObj.getDataModelList(catalogDef)
-                Log.d("> DataModels list successfully read.")
+                println("> DataModels list successfully read.")
 
                 searchableFields = jsonObj.getSearchFields(dataModelList, catalogDef)
-                Log.d("> Searchable fields successfully read.")
+                println("> Searchable fields successfully read.")
 
                 listFormList = jsonObj.getFormList(dataModelList, FormType.LIST, navigationTableList, catalogDef)
-                Log.d("> List forms list successfully read.")
+                println("> List forms list successfully read.")
 
                 detailFormList = jsonObj.getFormList(dataModelList, FormType.DETAIL, navigationTableList, catalogDef)
-                Log.d("> Detail forms list successfully read.")
+                println("> Detail forms list successfully read.")
 
                 defaultSortFields = jsonObj.getDefaultSortFields(dataModelList)
 
@@ -112,8 +67,8 @@ class ProjectEditor(projectEditorFile: File, val catalogDef: CatalogDef, isCreat
 
                 }.toMutableList()
                 
-                val hasDeepLinkingFeatureFlag = findJsonBoolean(FeatureFlagConstants.HAS_DEEP_LINKING) ?: true
-                Log.d("hasDeepLinkingFeatureFlag = $hasDeepLinkingFeatureFlag")
+                val hasDeepLinkingFeatureFlag = findJsonBoolean(HAS_DEEP_LINKING) ?: true
+                println("hasDeepLinkingFeatureFlag = $hasDeepLinkingFeatureFlag")
                 if (hasDeepLinkingFeatureFlag) {
                     deepLink = jsonObj.getDeepLinkScheme()
                     universalLinkWithBundleId = jsonObj.getUniversalLink(findJsonString("bundleIdentifier"))
@@ -123,7 +78,7 @@ class ProjectEditor(projectEditorFile: File, val catalogDef: CatalogDef, isCreat
             }
 
         } ?: kotlin.run {
-            Log.e("Could not read global json object from file ${projectEditorFile.name}")
+            println("Could not read global json object from file ${projectEditorFile.name}")
         }
     }
 
@@ -175,17 +130,17 @@ class ProjectEditor(projectEditorFile: File, val catalogDef: CatalogDef, isCreat
         return when (key) {
             "mailAuth" -> jsonObj.getSafeObject(PROJECT_KEY)?.getSafeObject(SERVER_KEY)
                     ?.getSafeObject(AUTHENTICATION_KEY)?.getSafeBoolean(EMAIL_KEY)
-            FeatureFlagConstants.HAS_RELATIONS_KEY -> jsonObj.getSafeBoolean(FeatureFlagConstants.HAS_RELATIONS_KEY)
-            FeatureFlagConstants.HAS_ACTIONS_KEY -> jsonObj.getSafeBoolean(FeatureFlagConstants.HAS_ACTIONS_KEY)
-            FeatureFlagConstants.HAS_DATASET_KEY -> jsonObj.getSafeBoolean(FeatureFlagConstants.HAS_DATASET_KEY)
-            FeatureFlagConstants.HAS_KOTLIN_INPUT_CONTROLS -> jsonObj.getSafeBoolean(FeatureFlagConstants.HAS_KOTLIN_INPUT_CONTROLS)
-            FeatureFlagConstants.HAS_OPEN_URL_ACTION_KEY -> jsonObj.getSafeBoolean(FeatureFlagConstants.HAS_OPEN_URL_ACTION_KEY)
-            FeatureFlagConstants.HAS_OPEN_FROM_TAB_BAR -> jsonObj.getSafeBoolean(FeatureFlagConstants.HAS_OPEN_FROM_TAB_BAR)
-            FeatureFlagConstants.HAS_CUSTOM_LOGIN_FORMS -> jsonObj.getSafeBoolean(FeatureFlagConstants.HAS_CUSTOM_LOGIN_FORMS)
-            FeatureFlagConstants.HAS_BUILD_WITH_CMD_KEY -> jsonObj.getSafeBoolean(FeatureFlagConstants.HAS_BUILD_WITH_CMD_KEY)
-            FeatureFlagConstants.HAS_NO_DATA_KEY -> jsonObj.getSafeBoolean(FeatureFlagConstants.HAS_NO_DATA_KEY)
-            FeatureFlagConstants.HAS_NO_SDK_KEY -> jsonObj.getSafeBoolean(FeatureFlagConstants.HAS_NO_SDK_KEY)
-            FeatureFlagConstants.HAS_DEEP_LINKING -> jsonObj.getSafeBoolean(FeatureFlagConstants.HAS_DEEP_LINKING)
+            HAS_RELATIONS_KEY -> jsonObj.getSafeBoolean(HAS_RELATIONS_KEY)
+            HAS_ACTIONS_KEY -> jsonObj.getSafeBoolean(HAS_ACTIONS_KEY)
+            HAS_DATASET_KEY -> jsonObj.getSafeBoolean(HAS_DATASET_KEY)
+            HAS_KOTLIN_INPUT_CONTROLS -> jsonObj.getSafeBoolean(HAS_KOTLIN_INPUT_CONTROLS)
+            HAS_OPEN_URL_ACTION_KEY -> jsonObj.getSafeBoolean(HAS_OPEN_URL_ACTION_KEY)
+            HAS_OPEN_FROM_TAB_BAR -> jsonObj.getSafeBoolean(HAS_OPEN_FROM_TAB_BAR)
+            HAS_CUSTOM_LOGIN_FORMS -> jsonObj.getSafeBoolean(HAS_CUSTOM_LOGIN_FORMS)
+            HAS_BUILD_WITH_CMD_KEY -> jsonObj.getSafeBoolean(HAS_BUILD_WITH_CMD_KEY)
+            HAS_NO_DATA_KEY -> jsonObj.getSafeBoolean(HAS_NO_DATA_KEY)
+            HAS_NO_SDK_KEY -> jsonObj.getSafeBoolean(HAS_NO_SDK_KEY)
+            HAS_DEEP_LINKING -> jsonObj.getSafeBoolean(HAS_DEEP_LINKING)
             "debugMode" -> jsonObj.getSafeBoolean(DEBUG_MODE_KEY)
             "canUseLocalSource" -> jsonObj.getSafeBoolean(LOCAL_SOURCE)
             "pushNotification" -> jsonObj.getSafeObject(PROJECT_KEY)?.getSafeObject(SERVER_KEY)?.getSafeBoolean(PUSH_NOTIFICATION)
@@ -217,21 +172,21 @@ class ProjectEditor(projectEditorFile: File, val catalogDef: CatalogDef, isCreat
             put("initialGlobalStamp", if (debugMode) 0 else findJsonInt("dumpedStamp") ?: 0)
             put("dumpedTables", findJsonArray("dumpedTables")?.getStringList() ?: JSONArray())
             put("logLevel", if (debugMode) DEBUG_LOG_LEVEL else DEFAULT_LOG_LEVEL)
-            put("relations", findJsonBoolean(FeatureFlagConstants.HAS_RELATIONS_KEY) ?: true)
+            put("relations", findJsonBoolean(HAS_RELATIONS_KEY) ?: true)
             put("crash.manage", true)
-            put("crash.server.url", DefaultValues.DEFAULT_LOG_SERVER)
+            put("crash.server.url", DEFAULT_LOG_SERVER)
             put("buildInfo", buildInfo)
             put("pushNotification", findJsonBoolean("pushNotification") ?: false)
         }
     }
 
     fun buildTableInfo(tableFieldsMap: Map<String, List<Field>>): Map<String, TableInfo> {
-        Log.d("tableFieldsMap = $tableFieldsMap")
+        println("tableFieldsMap = $tableFieldsMap")
         val map = mutableMapOf<String, TableInfo>()
 
         for ((originalTableName, fields) in tableFieldsMap) {
-            Log.d("buildBodyJsonQueries, originalTableName: $originalTableName")
-            Log.d("buildBodyJsonQueries, fields names: ${fields.map { it.name }}")
+            println("buildBodyJsonQueries, originalTableName: $originalTableName")
+            println("buildBodyJsonQueries, fields names: ${fields.map { it.name }}")
 
             val tableName = originalTableName.tableNameAdjustment()
 
@@ -267,7 +222,7 @@ class ProjectEditor(projectEditorFile: File, val catalogDef: CatalogDef, isCreat
         val globalActions = mutableListOf<Action>()
         jsonObj.getSafeObject(PROJECT_KEY)?.getSafeArray(ACTIONS_KEY)?.let { actionsArray ->
 
-            val hasOpenUrlActionFeatureFlag = findJsonBoolean(FeatureFlagConstants.HAS_OPEN_URL_ACTION_KEY)
+            val hasOpenUrlActionFeatureFlag = findJsonBoolean(HAS_OPEN_URL_ACTION_KEY)
                     ?: true
             var actionObjects = IntStream.range(0, actionsArray.length()).mapToObj { actionsArray.getJSONObject(it) }.collect(Collectors.toList())
             if (!hasOpenUrlActionFeatureFlag) {

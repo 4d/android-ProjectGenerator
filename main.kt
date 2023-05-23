@@ -5,6 +5,7 @@
 @file:DependsOnMaven("org.codehaus.groovy:groovy-sql:3.0.9")
 @file:DependsOnMaven("org.xerial:sqlite-jdbc:3.36.0.3")
 @file:DependsOnMaven("org.json:json:20210307")
+@file:DependsOn("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.7.21")
 
 //@file:DependsOnMaven("com.google.android:android:4.1.1.4")
 //@file:DependsOnMaven("commons-io:commons-io:2.8.0")
@@ -13,18 +14,10 @@
 
 @file:KotlinOpts("-J-Xmx5g")
 @file:KotlinOpts("-J-server")
-@file:CompilerOpts("-jvm-target 1.8")
+//@file:CompilerOpts("-jvm-target 1.8")
 
-//INCLUDE utils/Includes.kt
+@file:Import("Includes.kt")
 
-import DefaultValues.DEFAULT_APPLICATION
-import DefaultValues.DEFAULT_COMPANY
-import DefaultValues.DEFAULT_PACKAGE
-import FileHelperConstants.ACTIONS_FILENAME
-import FileHelperConstants.APP_INFO_FILENAME
-import FileHelperConstants.CUSTOM_FORMATTERS_FILENAME
-import FileHelperConstants.INPUT_CONTROLS_FILENAME
-import FileHelperConstants.TABLE_INFO_FILENAME
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.subcommands
 import com.github.ajalt.clikt.parameters.options.option
@@ -41,54 +34,54 @@ class GenerateCommand : CliktCommand(name = "generate") {
     private lateinit var projectEditorJson: File
     private lateinit var catalogJson: File
 
-    val projectEditor: String by option(help = Clikt.projectEditorText).prompt(Clikt.projectEditorText).validate {
+    val projectEditor: String by option(help = projectEditorText).prompt(projectEditorText).validate {
         projectEditorJson = File(it)
         require(projectEditorJson.exists()) { "Can't find project editor json file ${projectEditorJson.name}" }
     }
-    val filesToCopy: String by option(help = Clikt.filesToCopyText).prompt(Clikt.filesToCopyText).validate {
+    val filesToCopy: String by option(help = filesToCopyText).prompt(filesToCopyText).validate {
         val filesToCopyDir = File(it)
         require(filesToCopyDir.exists() && filesToCopyDir.isDirectory) { "Can't find files to copy directory $it" }
         FILES_TO_COPY = filesToCopy.removeSuffix("/")
     }
-    val templateFiles: String by option(help = Clikt.templateFilesText).prompt(Clikt.templateFilesText).validate {
+    val templateFiles: String by option(help = templateFilesText).prompt(templateFilesText).validate {
         val templateFilesDir = File(it)
         require(templateFilesDir.exists() && templateFilesDir.isDirectory) { "Can't find template files directory $it" }
         TEMPLATE_FILES = templateFiles.removeSuffix("/")
     }
-    val templateForms: String by option(help = Clikt.templateFormsText).prompt(Clikt.templateFormsText).validate {
+    val templateForms: String by option(help = templateFormsText).prompt(templateFormsText).validate {
         val templateFormsDir = File(it)
         require(templateFormsDir.exists() && templateFormsDir.isDirectory) { "Can't find template forms directory $it" }
         TEMPLATE_FORMS = templateForms.removeSuffix("/")
     }
-    val hostDb: String by option(help = Clikt.hostDbText).prompt(Clikt.hostDbText).validate {
+    val hostDb: String by option(help = hostDbText).prompt(hostDbText).validate {
         HOST_DB = hostDb.removeSuffix("/")
     }
-    val catalog: String by option(help = Clikt.catalogText).prompt(Clikt.catalogText).validate {
+    val catalog: String by option(help = catalogText).prompt(catalogText).validate {
         catalogJson = File(it)
         require(catalogJson.exists()) { "Can't find catalog json file ${catalogJson.name}" }
     }
 
     override fun run() {
-        Log.i("Parameters checked.")
-        Log.i("Version: ${Version.VALUE}")
-        Log.i("Starting procedure...")
+        println("Parameters checked.")
+        println("Version: ${Version.VALUE}")
+        println("Starting procedure...")
         start()
-        Log.i("Procedure complete.")
+        println("Procedure complete.")
     }
 
     private fun start() {
 
-        Log.i("file: ${projectEditorJson.path}...")
+        println("file: ${projectEditorJson.path}...")
 
         val catalogDef = CatalogDef(catalogJson)
 
-        Log.i("Reading catalog json file done.")
-        Log.i("--------------------------------------")
+        println("Reading catalog json file done.")
+        println("--------------------------------------")
 
         val projectEditor = ProjectEditor(projectEditorFile = projectEditorJson, catalogDef = catalogDef)
 
-        Log.i("Reading project editor json file done.")
-        Log.i("--------------------------------------")
+        println("Reading project editor json file done.")
+        println("--------------------------------------")
 
         var targetDirPath = ""
         projectEditor.findJsonString("targetDirPath")?.let {
@@ -115,67 +108,67 @@ class GenerateCommand : CliktCommand(name = "generate") {
 
         val fileHelper = FileHelper(pathHelper)
 
-        Log.i("Start gathering Mustache templating data...")
+        println("Start gathering Mustache templating data...")
 
         val mustacheHelper = MustacheHelper(fileHelper, projectEditor)
 
-        Log.i("Gathering Mustache templating data done.")
-        Log.i("----------------------------------------")
+        println("Gathering Mustache templating data done.")
+        println("----------------------------------------")
 
         fileHelper.copyFiles()
 
-        Log.i("Files successfully copied.")
+        println("Files successfully copied.")
 
         fileHelper.createPathDirectories()
 
-        Log.i("Start applying Mustache templating...")
+        println("Start applying Mustache templating...")
 
         mustacheHelper.applyListFormTemplate()
 
-        Log.i("Applied List Form Templates")
+        println("Applied List Form Templates")
 
         mustacheHelper.applyDetailFormTemplate()
 
-        Log.i("Applied Detail Form Templates")
+        println("Applied Detail Form Templates")
 
         pathHelper.deleteTemporaryUnzippedDirectories()
 
-        Log.i("Deleted Temporary Unzipped Directories")
+        println("Deleted Temporary Unzipped Directories")
 
         mustacheHelper.processTemplates()
 
-        Log.i("Mustache templating done.")
+        println("Mustache templating done.")
 
         mustacheHelper.copyFilesAfterGlobalTemplating()
 
-        Log.i("Copied remaining files after templating")
+        println("Copied remaining files after templating")
 
-        Log.i("-------------------------")
+        println("-------------------------")
 
         mustacheHelper.makeTableInfo()
 
-        Log.i("\"$TABLE_INFO_FILENAME\" file successfully generated.")
+        println("\"$TABLE_INFO_FILENAME\" file successfully generated.")
 
         mustacheHelper.makeAppInfo()
 
-        Log.i("\"$APP_INFO_FILENAME\" file successfully generated.")
+        println("\"$APP_INFO_FILENAME\" file successfully generated.")
 
         mustacheHelper.makeCustomFormatters()
 
-        Log.i("\"$CUSTOM_FORMATTERS_FILENAME\" file successfully generated.")
+        println("\"$CUSTOM_FORMATTERS_FILENAME\" file successfully generated.")
 
         mustacheHelper.makeInputControls()
 
-        Log.i("\"$INPUT_CONTROLS_FILENAME\" file successfully generated.")
+        println("\"$INPUT_CONTROLS_FILENAME\" file successfully generated.")
 
         mustacheHelper.makeActions()
 
-        Log.i("\"$ACTIONS_FILENAME\" file successfully generated.")
-        
-        Log.d("Output: ${projectEditor.findJsonString("targetDirPath")}")
+        println("\"$ACTIONS_FILENAME\" file successfully generated.")
 
-        Log.d("data:")
-        Log.logData(mustacheHelper.data)
+        println("Output: ${projectEditor.findJsonString("targetDirPath")}")
+
+        println("data:")
+        logData(mustacheHelper.data)
     }
 }
 
@@ -186,51 +179,51 @@ class CreateDatabaseCommand : CliktCommand(name = "createDatabase") {
     private lateinit var projectEditorJson: File
     private lateinit var catalogJson: File
 
-    val projectEditor: String by option(help = Clikt.projectEditorText).prompt(Clikt.projectEditorText).validate {
+    val projectEditor: String by option(help = projectEditorText).prompt(projectEditorText).validate {
         projectEditorJson = File(it)
         require(projectEditorJson.exists()) { "Can't find project editor json file ${projectEditorJson.name}" }
     }
-    val assets: String by option(help = Clikt.assetsText).prompt(Clikt.assetsText).validate {
+    val assets: String by option(help = assetsText).prompt(assetsText).validate {
         val assetsDir = File(it)
         require(assetsDir.exists() && assetsDir.isDirectory) { "Can't find assets directory $it" }
         ASSETS = assets.removeSuffix("/")
     }
-    val dbFile: String by option(help = Clikt.dbText).prompt(Clikt.dbText).validate {
+    val dbFile: String by option(help = dbText).prompt(dbText).validate {
         val dbParentDir = File(it).parentFile
         dbParentDir.mkdirs()
         require(dbParentDir.exists() && dbParentDir.isDirectory) { "Can't find db's parent directory directory $dbParentDir" }
         DBFILEPATH = dbFile.removeSuffix("/")
     }
-    val catalog: String by option(help = Clikt.catalogText).prompt(Clikt.catalogText).validate {
+    val catalog: String by option(help = catalogText).prompt(catalogText).validate {
         catalogJson = File(it)
         require(catalogJson.exists()) { "Can't find catalog json file ${catalogJson.name}" }
     }
 
     override fun run() {
-        Log.i("Parameters checked.")
-        Log.i("Version: ${Version.VALUE}")
-        Log.i("Starting procedure...")
+        println("Parameters checked.")
+        println("Version: ${Version.VALUE}")
+        println("Starting procedure...")
         start()
-        Log.i("Procedure complete.")
+        println("Procedure complete.")
     }
 
     private fun start() {
 
-        Log.i("file: ${projectEditorJson.path}...")
+        println("file: ${projectEditorJson.path}...")
 
         val catalogDef = CatalogDef(catalogJson)
 
-        Log.i("Reading catalog json file done.")
-        Log.i("--------------------------------------")
+        println("Reading catalog json file done.")
+        println("--------------------------------------")
 
         val projectEditor = ProjectEditor(projectEditorFile = projectEditorJson, catalogDef = catalogDef, isCreateDatabaseCommand = true)
 
-        Log.i("Reading project editor json file done.")
-        Log.i("--------------------------------------")
+        println("Reading project editor json file done.")
+        println("--------------------------------------")
 
         CreateDatabaseTask(projectEditor.dataModelList, ASSETS, DBFILEPATH)
 
-        Log.i("Output: $DBFILEPATH}")
+        println("Output: $DBFILEPATH}")
     }
 }
 

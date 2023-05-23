@@ -1,4 +1,4 @@
-object PathHelperConstants {
+//object PathHelperConstants {
 
     /**
      * DIRECTORIES PLACEHOLDERS
@@ -40,4 +40,4 @@ object PathHelperConstants {
 
     const val XML_EXT = ".xml"
     const val XML_TXT_EXT = "_XML.txt" // because can't submit invalid .xml files on Perforce
-}
+//}

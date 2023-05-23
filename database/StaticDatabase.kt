@@ -30,7 +30,7 @@ class StaticDatabase private constructor(
 
     private fun logTableCount(name: String) {
         val count = sql.firstRow("SELECT count(*) FROM $name", arrayListOf()).toString()
-        Log.i("$name: $count")
+        println("$name: $count")
     }
 
     override fun close() {
@@ -51,9 +51,9 @@ class StaticDatabase private constructor(
 
                 for ((tableName, fields) in tableNameAndFieldsMap) {
                     val name = tableName.tableNameAdjustment()
-                    Log.d("Creating table $name")
+                    println("Creating table $name")
                     val sql = createSql(tableName, fields)
-                    Log.d("sql: $sql")
+                    println("sql: $sql")
                     execute(sql)
                 }
             }
