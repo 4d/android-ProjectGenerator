@@ -14,31 +14,33 @@ sdk version
 
 has=$(which kscript)
 if [ "$?" -ne "0" ]; then
-  sdk install kscript 3.0.2
+  sdk install kscript 4.2.2
 fi
 
 version=$(kscript  --version 2>&1 | grep "Version" | sed 's/.*: //')
-if [[ "$version" = v3* ]]
+if [[ "$version" = "4"* ]]
 then
 	echo "✅ kscript $version"
 else
-	echo "❌ kscript $version. Need v3"
-  sdk install kscript 3.0.2
-  sdk use kscript 3.0.2
+	echo "❌ kscript $version. Need v4"
+  sdk install kscript 4.2.2
+  sdk use kscript 4.2.2
 fi
 
-java=$(sdk list java | grep 11.0 | grep "open" | sed 's/.*| //')
+java=$(sdk list java | grep 17.0 | grep "open" | sed 's/.*| //')
 echo "java $java"
 sdk install java $java
 sdk use java $java
 
 
 version=$(gradle -v 2>&1 | grep "Gradle " | sed 's/.* //')
-if [[ "$version" = "6.8"* ]]
+if [[ "$version" = "8."* ]]
 then
 	echo "✅ gradle $version"
 else
-	echo "❌ gradle $version. Need v3"
-  sdk install gradle 6.8.3
-  sdk use gradle 6.8.3
+	echo "❌ gradle $version. Need v8"
+  sdk install gradle 8.1.1
+  sdk use gradle 8.1.1
 fi
+
+echo "if sdk installed do not forget to do source $HOME/.sdkman/bin/sdkman-init.sh"
