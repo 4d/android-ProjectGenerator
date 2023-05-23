@@ -2,7 +2,7 @@ import java.io.File
 
 class FeatureChecker(projectEditor: ProjectEditor) {
 
-    private val hasDataSet = projectEditor.findJsonBoolean(FeatureFlagConstants.HAS_DATASET_KEY) ?: true
+    private val hasDataSet = projectEditor.findJsonBoolean(HAS_DATASET_KEY) ?: true
     private val debugMode = projectEditor.findJsonBoolean("debugMode") ?: false
 
     private val filesPathToSkipIfDataSet = listOf<String>(
@@ -27,7 +27,7 @@ class FeatureChecker(projectEditor: ProjectEditor) {
     private fun shouldSkipIfDataSet(currentFile: File): Boolean {
         filesPathToSkipIfDataSet.forEach {
             if (currentFile.path.contains(it)) {
-                Log.d("Skipping because DataSet : $currentFile")
+                println("Skipping because DataSet : $currentFile")
                 return true
             }
         }
@@ -37,7 +37,7 @@ class FeatureChecker(projectEditor: ProjectEditor) {
     private fun shouldSkipIfNotDebug(currentFile: File): Boolean {
         filesPathToSkipIfNotDebug.forEach {
             if (currentFile.path.contains(it)) {
-                Log.d("Skipping because not debug : $currentFile")
+                println("Skipping because not debug : $currentFile")
                 return true
             }
         }

@@ -48,7 +48,7 @@ fun getFieldMappingDefaultInputControl(manifestContent: JSONObject): FieldMappin
     )
 
 fun getChoiceList(manifestContent: JSONObject): Any {
-    Log.d("getChoiceList, manifestContent = $manifestContent")
+    println("getChoiceList, manifestContent = $manifestContent")
     return if (manifestContent.getSafeObject("choiceList")?.getSafeObject("dataSource") != null) {
         mapOf("dataSource" to manifestContent.getSafeObject("choiceList")?.getSafeObject("dataSource")?.getDataSource())
     } else {
@@ -122,6 +122,6 @@ private fun isTargetOk(target: Any?): Boolean {
 }
 
 fun FieldMappingDefaultInputControl.isValidDefaultInputControl(): Boolean {
-    Log.d("isValidDefaultInputControl, this = $this")
+    println("isValidDefaultInputControl, this = $this")
     return this.name != null && "/" + this.format in InputControl.defaultInputControls && this.choiceList != null
 }

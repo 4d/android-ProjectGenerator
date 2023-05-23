@@ -1,4 +1,4 @@
-object DefaultValues {
+//object DefaultValues {
 
     /**
      * DEFAULT VALUES
@@ -26,4 +26,4 @@ object DefaultValues {
      */
     const val DEFAULT_LOG_LEVEL = 4
     const val DEBUG_LOG_LEVEL = 2
-}
+//}

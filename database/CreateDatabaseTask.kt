@@ -65,9 +65,9 @@ class CreateDatabaseTask(
 
         for ((tableName, tableNameOriginal) in originalTableNamesMap) {
             tableNameAndFieldsMap[tableName]?.let { fields ->
-                Log.d("tableName: $tableName, tableNameOriginal: $tableNameOriginal")
+                println("tableName: $tableName, tableNameOriginal: $tableNameOriginal")
 
-                Log.d("[$tableName] fields : ${fields.joinToString { it.name }}")
+                println("[$tableName] fields : ${fields.joinToString { it.name }}")
                 queryList.addAll(
                     getSqlQueriesForTable(
                         tableName,
@@ -133,17 +133,17 @@ class CreateDatabaseTask(
         val queryList = mutableListOf<SqlQuery>()
         val innerRelatedEntitiesMapList = mutableListOf<MutableMap<String, MutableList<JSONObject>>>()
         for ((originalTableName, jsonEntityList) in relatedEntitiesMap) {
-            Log.d("originalTableName $originalTableName")
-            Log.d("originalTableNamesMap $originalTableNamesMap")
+            println("originalTableName $originalTableName")
+            println("originalTableNamesMap $originalTableNamesMap")
             val tableName = originalTableNamesMap.filter { it.value == originalTableName }.keys.firstOrNull()
-            Log.d("tableName $tableName")
+            println("tableName $tableName")
             val relatedTableFields = tableNameAndFieldsMap[tableName]
-            Log.d("relatedTableFields: ${relatedTableFields?.joinToString { it.name }}")
+            println("relatedTableFields: ${relatedTableFields?.joinToString { it.name }}")
             if (tableName != null && relatedTableFields != null) {
 
                 jsonEntityList.forEach { jsonEntity ->
-                    Log.d("getSqlQueriesForRelatedTables\n")
-                    Log.d("jsonEntity = $jsonEntity")
+                    println("getSqlQueriesForRelatedTables\n")
+                    println("jsonEntity = $jsonEntity")
 
                     val sqlQueryBuilder = SqlQueryBuilder(jsonEntity, relatedTableFields)
 
@@ -191,7 +191,7 @@ class CreateDatabaseTask(
         val filePath = getDataPath(assetsPath, tableNameOriginal)
         val entitySqlQueriesFile = File(filePath)
 
-        Log.d("[$tableName] Reading data at path $filePath")
+        println("[$tableName] Reading data at path $filePath")
 
         if (entitySqlQueriesFile.exists()) {
             getSqlQueriesForTableFromFile(
@@ -203,7 +203,7 @@ class CreateDatabaseTask(
                 sqlQueryList.add(it)
             }
         } else {
-            Log.d("[$tableName] No data file found")
+            println("[$tableName] No data file found")
         }
 
         var i = 0
@@ -211,7 +211,7 @@ class CreateDatabaseTask(
             val pageFilePath = getDataPath(assetsPath, tableNameOriginal, ++i)
             val pageEntitySqlQueriesFile = File(pageFilePath)
 
-            Log.d("[$tableName] Reading data at path $pageFilePath")
+            println("[$tableName] Reading data at path $pageFilePath")
 
             if (pageEntitySqlQueriesFile.exists()) {
                 getSqlQueriesForTableFromFile(
@@ -223,7 +223,7 @@ class CreateDatabaseTask(
                     sqlQueryList.add(it)
                 }
             } else {
-                Log.i("[$tableName] No data file found")
+                println("[$tableName] No data file found")
             }
         } while (pageEntitySqlQueriesFile.exists())
 
@@ -254,8 +254,8 @@ class CreateDatabaseTask(
                     val sqlQueryBuilder = SqlQueryBuilder(it, fields)
 
                     relatedEntitiesMapList.add(sqlQueryBuilder.relatedEntitiesMap)
-                    Log.d("sqlQueryBuilder.relatedEntitiesMap.size = ${sqlQueryBuilder.relatedEntitiesMap.size}")
-                    Log.d("relatedEntitiesMapList.size = ${relatedEntitiesMapList.size}")
+                    println("sqlQueryBuilder.relatedEntitiesMap.size = ${sqlQueryBuilder.relatedEntitiesMap.size}")
+                    println("relatedEntitiesMapList.size = ${relatedEntitiesMapList.size}")
                     updateQueryHolderList.addAll(sqlQueryBuilder.updateQueryHolderList)
 
                     return getQueryFromSqlQueryBuilder(
@@ -266,10 +266,10 @@ class CreateDatabaseTask(
                 }
             }
 
-            Log.i("[$tableName] Couldn't find entities to extract")
+            println("[$tableName] Couldn't find entities to extract")
 
         } else {
-            Log.i("[$tableName] Empty data file")
+            println("[$tableName] Empty data file")
         }
 
         return null
@@ -284,7 +284,7 @@ class CreateDatabaseTask(
         val propertyList = sqlQueryBuilder.hashMap.toSortedMap().keys.toList()
         propertyListMap[tableName] = propertyList
 
-        Log.d("[$tableName] ${sqlQueryBuilder.outputEntities.size} entities extracted")
+        println("[$tableName] ${sqlQueryBuilder.outputEntities.size} entities extracted")
 
         return staticDataInitializer.getQuery(
             tableName,

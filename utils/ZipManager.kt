@@ -1,4 +1,3 @@
-import FileHelperConstants.TEMPORARY_UNZIPPED_TEMPLATE_PREFIX
 import java.util.zip.ZipEntry
 import java.io.FileInputStream
 import java.util.zip.ZipInputStream
@@ -12,23 +11,23 @@ object ZipManager {
 
         val destDir =
             File(fileZip.parent + File.separator + TEMPORARY_UNZIPPED_TEMPLATE_PREFIX + fileZip.nameWithoutExtension)
-        Log.d("unzip, destDir : $destDir")
+        println("unzip, destDir : $destDir")
         if (destDir.exists()) {
-            Log.d("Temporary unzipped template already exists : ${destDir.absolutePath}, will try to delete.")
+            println("Temporary unzipped template already exists : ${destDir.absolutePath}, will try to delete.")
             if (destDir.deleteRecursively()) {
-                Log.d("Old temporary unzipped template successfully deleted.")
+                println("Old temporary unzipped template successfully deleted.")
             } else {
-                Log.w("Could not delete old temporary unzipped template.")
+                println("Could not delete old temporary unzipped template.")
             }
         }
         val buffer = ByteArray(1024)
         val zis = ZipInputStream(FileInputStream(fileZip))
         var zipEntry = zis.nextEntry
         while (zipEntry != null) {
-            Log.d("zipEntry = $zipEntry")
+            println("zipEntry = $zipEntry")
 
             val newFile: File = newFile(destDir, zipEntry)
-            Log.d("newFile = ${newFile.absolutePath}")
+            println("newFile = ${newFile.absolutePath}")
 
             if (zipEntry.isDirectory) {
                 if (!newFile.isDirectory && !newFile.mkdirs()) {

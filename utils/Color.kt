@@ -1,9 +1,3 @@
-import Color.alpha
-import Color.argb
-import Color.blue
-import Color.green
-import Color.red
-import Color.rgb
 import java.util.*
 import kotlin.math.min
 
@@ -20,7 +14,7 @@ import kotlin.math.min
  * no contributions from red, green, or blue), and opaque-white would be
  * 0xFFFFFFFF
  */
-object Color {
+//object Color {
     const val BLACK = -0x1000000
     const val DKGRAY = -0xbbbbbc
     const val GRAY = -0x777778
@@ -358,34 +352,58 @@ object Color {
             }
     }*/
 
-    private var sColorNameMap: HashMap<String, Int> = HashMap()
-
-    init {
-        sColorNameMap["black"] = BLACK
-        sColorNameMap["darkgray"] = DKGRAY
-        sColorNameMap["gray"] = GRAY
-        sColorNameMap["lightgray"] = LTGRAY
-        sColorNameMap["white"] = WHITE
-        sColorNameMap["red"] = RED
-        sColorNameMap["green"] = GREEN
-        sColorNameMap["blue"] = BLUE
-        sColorNameMap["yellow"] = YELLOW
-        sColorNameMap["cyan"] = CYAN
-        sColorNameMap["magenta"] = MAGENTA
-        sColorNameMap["aqua"] = 0x00FFFF
-        sColorNameMap["fuchsia"] = 0xFF00FF
-        sColorNameMap["darkgrey"] = DKGRAY
-        sColorNameMap["grey"] = GRAY
-        sColorNameMap["lightgrey"] = LTGRAY
-        sColorNameMap["lime"] = 0x00FF00
-        sColorNameMap["maroon"] = 0x800000
-        sColorNameMap["navy"] = 0x000080
-        sColorNameMap["olive"] = 0x808000
-        sColorNameMap["purple"] = 0x800080
-        sColorNameMap["silver"] = 0xC0C0C0
-        sColorNameMap["teal"] = 0x008080
+    private var sColorNameMap: HashMap<String, Int> = HashMap<String, Int>().apply {
+        this["black"] = BLACK
+        this["darkgray"] = DKGRAY
+        this["gray"] = GRAY
+        this["lightgray"] = LTGRAY
+        this["white"] = WHITE
+        this["red"] = RED
+        this["green"] = GREEN
+        this["blue"] = BLUE
+        this["yellow"] = YELLOW
+        this["cyan"] = CYAN
+        this["magenta"] = MAGENTA
+        this["aqua"] = 0x00FFFF
+        this["fuchsia"] = 0xFF00FF
+        this["darkgrey"] = DKGRAY
+        this["grey"] = GRAY
+        this["lightgrey"] = LTGRAY
+        this["lime"] = 0x00FF00
+        this["maroon"] = 0x800000
+        this["navy"] = 0x000080
+        this["olive"] = 0x808000
+        this["purple"] = 0x800080
+        this["silver"] = 0xC0C0C0
+        this["teal"] = 0x008080
     }
-}
+
+//    init {
+//        sColorNameMap["black"] = BLACK
+//        sColorNameMap["darkgray"] = DKGRAY
+//        sColorNameMap["gray"] = GRAY
+//        sColorNameMap["lightgray"] = LTGRAY
+//        sColorNameMap["white"] = WHITE
+//        sColorNameMap["red"] = RED
+//        sColorNameMap["green"] = GREEN
+//        sColorNameMap["blue"] = BLUE
+//        sColorNameMap["yellow"] = YELLOW
+//        sColorNameMap["cyan"] = CYAN
+//        sColorNameMap["magenta"] = MAGENTA
+//        sColorNameMap["aqua"] = 0x00FFFF
+//        sColorNameMap["fuchsia"] = 0xFF00FF
+//        sColorNameMap["darkgrey"] = DKGRAY
+//        sColorNameMap["grey"] = GRAY
+//        sColorNameMap["lightgrey"] = LTGRAY
+//        sColorNameMap["lime"] = 0x00FF00
+//        sColorNameMap["maroon"] = 0x800000
+//        sColorNameMap["navy"] = 0x000080
+//        sColorNameMap["olive"] = 0x808000
+//        sColorNameMap["purple"] = 0x800080
+//        sColorNameMap["silver"] = 0xC0C0C0
+//        sColorNameMap["teal"] = 0x008080
+//    }
+//}
 
 /*fun manipulateColor(color: Int, factor: Float): Int {
     val a: Int = alpha(color)

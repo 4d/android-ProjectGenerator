@@ -1,83 +1,3 @@
-import DefaultValues.DEFAULT_ADDRESS
-import DefaultValues.DEFAULT_AUTHOR
-import DefaultValues.DEFAULT_LOGIN_FORM
-import DefaultValues.DEFAULT_REMOTE_URL
-import DefaultValues.DEFAULT_VERSION
-import FileHelperConstants.ACTIONS_FILENAME
-import FileHelperConstants.APP_INFO_FILENAME
-import FileHelperConstants.CUSTOM_FORMATTERS_FILENAME
-import FileHelperConstants.DS_STORE
-import FileHelperConstants.INPUT_CONTROLS_FILENAME
-import FileHelperConstants.LAYOUT_FILE
-import FileHelperConstants.TABLE_INFO_FILENAME
-import MustacheConstants.ANDROID_SDK_PATH
-import MustacheConstants.APP_NAME_WITH_CAPS
-import MustacheConstants.APP_VERSION
-import MustacheConstants.AUTHOR
-import MustacheConstants.BRANCH_VERSION
-import MustacheConstants.CACHE_4D_SDK_PATH
-import MustacheConstants.COMPANY_HEADER
-import MustacheConstants.CUSTOM_FORMATTER_IMAGES
-import MustacheConstants.DATE_DAY
-import MustacheConstants.DATE_MONTH
-import MustacheConstants.DATE_YEAR
-import MustacheConstants.DEBUG_MODE
-import MustacheConstants.DEEPLINK
-import MustacheConstants.DEFAULT_SORT_FIELDS
-import MustacheConstants.ENTITY_CLASSES
-import MustacheConstants.FIELDS
-import MustacheConstants.FIRST_FIELD
-import MustacheConstants.FORM_FIELDS
-import MustacheConstants.HAS_ANY_MANY_TO_ONE_RELATION
-import MustacheConstants.HAS_ANY_ONE_TO_MANY_RELATION
-import MustacheConstants.HAS_ANY_ONE_TO_MANY_RELATION_FOR_LAYOUT
-import MustacheConstants.HAS_CUSTOM_LOGIN
-import MustacheConstants.HAS_DATASET
-import MustacheConstants.HAS_KOTLIN_INPUT_CONTROLS
-import MustacheConstants.HAS_PUSH_NOTIFICATIONS
-import MustacheConstants.HAS_RELATION
-import MustacheConstants.HAS_REMOTE_ADDRESS
-import MustacheConstants.IS_GOOGLE_MAPS_PLATFORM_USED
-import MustacheConstants.IS_GOOGLE_MAPS_PLATFORM_USED_FOR_TABLE
-import MustacheConstants.KOTLIN_INPUT_CONTROLS
-import MustacheConstants.LOGIN_CLASS_NAME
-import MustacheConstants.PACKAGE
-import MustacheConstants.PERMISSIONS
-import MustacheConstants.RELATIONS
-import MustacheConstants.RELATIONS_DEEPLINK_MANY_TO_ONE
-import MustacheConstants.RELATIONS_DEEPLINK_ONE_TO_MANY
-import MustacheConstants.RELATIONS_EMBEDDED_RETURN_TYPE
-import MustacheConstants.RELATIONS_ID
-import MustacheConstants.RELATIONS_MANY_TO_ONE
-import MustacheConstants.RELATIONS_MANY_TO_ONE_FOR_DETAIL
-import MustacheConstants.RELATIONS_MANY_TO_ONE_FOR_LIST
-import MustacheConstants.RELATIONS_ONE_TO_MANY
-import MustacheConstants.RELATIONS_ONE_TO_MANY_FOR_DETAIL
-import MustacheConstants.RELATIONS_ONE_TO_MANY_FOR_LIST
-import MustacheConstants.RELATIONS_WITHOUT_ALIAS
-import MustacheConstants.REMOTE_ADDRESS
-import MustacheConstants.SECTION_FIELDS
-import MustacheConstants.TABLENAME
-import MustacheConstants.TABLENAMES
-import MustacheConstants.TABLENAMES_LAYOUT
-import MustacheConstants.TABLENAMES_LOWERCASE
-import MustacheConstants.TABLENAMES_NAVIGATION
-import MustacheConstants.TABLENAMES_WITHOUT_MANY_TO_ONE_RELATION
-import MustacheConstants.TABLENAMES_LAYOUT_RELATIONS
-import MustacheConstants.TABLENAMES_NAVIGATION_FOR_NAVBAR
-import MustacheConstants.TABLENAME_CAMELCASE
-import MustacheConstants.TABLENAME_LOWERCASE
-import MustacheConstants.TABLENAME_ORIGINAL
-import MustacheConstants.TABLE_HAS_ANY_RELATION
-import MustacheConstants.TABLE_HAS_DATE_FIELD
-import MustacheConstants.TABLE_HAS_ONE_TO_MANY_FIELD
-import MustacheConstants.TABLE_HAS_TIME_FIELD
-import MustacheConstants.TABLE_LABEL
-import MustacheConstants.TYPES_AND_TABLES
-import MustacheConstants.UNIVERSAL_LINK_WITHOUT_BUNDLE_ID
-import MustacheConstants.UNIVERSAL_LINK_WITH_BUNDLE_ID
-import PathHelperConstants.TEMPLATE_PLACEHOLDER
-import ProjectEditorConstants.LOCAL_SOURCE
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.samskivert.mustache.Mustache
@@ -135,7 +55,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
 
     init {
-        Log.d("==================================\n" +
+        println("==================================\n" +
                 "MustacheHelper init\n" +
                 "==================================\n")
 
@@ -155,7 +75,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         // for network_security_config.xml
         // whitelist production host address if defined, else, server host address, else localhost
         var remoteAddress = projectEditor.findJsonString("productionUrl")
-        Log.d("remoteAddress : $remoteAddress")
+        println("remoteAddress : $remoteAddress")
         if (remoteAddress.isNullOrEmpty())
             remoteAddress = projectEditor.findJsonString("remoteUrl")
         if (remoteAddress.isNullOrEmpty())
@@ -164,11 +84,11 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         if (cleanRemoteAddress != DEFAULT_ADDRESS) {
             data[HAS_REMOTE_ADDRESS] = true
             data[REMOTE_ADDRESS] = cleanRemoteAddress
-            Log.d("cleanRemoteAddress = $cleanRemoteAddress")
+            println("cleanRemoteAddress = $cleanRemoteAddress")
         } else {
             data[HAS_REMOTE_ADDRESS] = false
             data[REMOTE_ADDRESS] = ""
-            Log.d("\"$DEFAULT_ADDRESS\" is already added in network_security_config.xml")
+            println("\"$DEFAULT_ADDRESS\" is already added in network_security_config.xml")
         }
 
         projectEditor.findJsonString("androidSdk")?.let {
@@ -192,7 +112,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                 // already defined
             }
         }
-        Log.d("> Android SDK = ${data[ANDROID_SDK_PATH]}")
+        println("> Android SDK = ${data[ANDROID_SDK_PATH]}")
 
         projectEditor.findJsonString("cache4dSdk")?.let {
             data[CACHE_4D_SDK_PATH] = it
@@ -208,8 +128,8 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                 throw Exception("Missing 4D Mobile cache SDK path. Define `cache_4d_sdk` in json file or `QMOBILE_HOME` env variable")
             }
         }
-        Log.d("> Cache 4D SDK = ${data[CACHE_4D_SDK_PATH]}")
-        val hasNoSDK = projectEditor.findJsonBoolean(FeatureFlagConstants.HAS_NO_SDK_KEY) ?: false
+        println("> Cache 4D SDK = ${data[CACHE_4D_SDK_PATH]}")
+        val hasNoSDK = projectEditor.findJsonBoolean(HAS_NO_SDK_KEY) ?: false
         if (!hasNoSDK) {
             if (!File("${data[CACHE_4D_SDK_PATH]}").exists()) {
                 throw Exception("Cache 4D SDK path does not exist. Define it correctly.")
@@ -220,7 +140,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
         val seed = projectEditor.findJsonString("dominantColor") ?: defaultSeed
 
-        Log.i("seed = $seed")
+        println("seed = $seed")
 
         val rgbString = seed.removePrefix("rgb(").removeSuffix(")") // 103,80,164
         val red = rgbString.split(",")[0].toInt()
@@ -229,8 +149,8 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
         val primaryContrast = getContrast(red, green, blue)
         val hexStringSeedColor = getHexStringColor(red, green, blue)
-        val seedColor: Int = Color.parseColor(hexStringSeedColor)
-        Log.i("backgroundColor = $hexStringSeedColor")
+        val seedColor: Int = parseColor(hexStringSeedColor)
+        println("backgroundColor = $hexStringSeedColor")
         data["seed"] = hexStringSeedColor
 
         if (primaryContrast < 0.5) { // LIGHT COLOR
@@ -278,11 +198,11 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         val relationsDeepLinkManyToOne = mutableListOf<TemplateRelationDefFillerDeepLink>()
         val relationsId = mutableListOf<TemplateRelationDefFiller>()
 
-        Log.d("Hiya relations many to one")
+        println("Hiya relations many to one")
         relationsManyToOne.forEach {
-            Log.d("filler: $it")
+            println("filler: $it")
             val relationDefFiller = it.getTemplateRelationDefFiller(RelationType.MANY_TO_ONE)
-            Log.d("relation filler : $relationDefFiller")
+            println("relation filler : $relationDefFiller")
             relations.add(relationDefFiller)
 
             var navbarTitle: String? = null
@@ -299,10 +219,10 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
             if (!it.isAlias)
                 relationsId.add(it.getTemplateRelationDefFillerForRelationId())
         }
-        Log.d("Hiya relations one to many")
+        println("Hiya relations one to many")
         relationsOneToMany.forEach {
-            Log.d("filler: $it")
-            Log.d("relation filler : ${it.getTemplateRelationDefFiller(RelationType.ONE_TO_MANY)}")
+            println("filler: $it")
+            println("relation filler : ${it.getTemplateRelationDefFiller(RelationType.ONE_TO_MANY)}")
             relations.add(it.getTemplateRelationDefFiller(RelationType.ONE_TO_MANY))
 
             var navbarTitle: String? = null
@@ -347,7 +267,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                     return@forEach
                 }
             } ?: run {
-                if (projectEditor.findJsonBoolean(FeatureFlagConstants.HAS_OPEN_URL_ACTION_KEY) == true) {
+                if (projectEditor.findJsonBoolean(HAS_OPEN_URL_ACTION_KEY) == true) {
                     actions.global.find { it.name == dataModelId }?.let { action ->
                         if (!action.icon.isNullOrEmpty()) {
                             shouldUseIcon = true
@@ -355,25 +275,25 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                         }
                     }
                 } else {
-                    Log.d("Don't have feature flag for open url action from tab bar")
+                    println("Don't have feature flag for open url action from tab bar")
                 }
             }
         }
 
         projectEditor.navigationTableList.forEach { key ->
-            Log.d("navigationTableList : ${projectEditor.navigationTableList}")
+            println("navigationTableList : ${projectEditor.navigationTableList}")
             projectEditor.dataModelList.find { it.id == key }?.let { dataModel ->
-                Log.w("Adding [${dataModel.name}] in navigation table list for navbar")
+                println("Adding [${dataModel.name}] in navigation table list for navbar")
                 if (shouldUseIcon && dataModel.iconPath.isNullOrEmpty()) {
                     dataModel.iconPath = "nav_icon_${dataModel.id}"
                 }
                 tableNamesForNavigationForNavBar.add(dataModel.getTemplateLayoutFillerForNavigation())
             } ?: kotlin.run {
-                if (projectEditor.findJsonBoolean(FeatureFlagConstants.HAS_OPEN_URL_ACTION_KEY) == true) {
-                    Log.d("kotlin run, actions.global ${actions.global}")
-                    Log.d("kotlin run, actions $actions")
+                if (projectEditor.findJsonBoolean(HAS_OPEN_URL_ACTION_KEY) == true) {
+                    println("kotlin run, actions.global ${actions.global}")
+                    println("kotlin run, actions $actions")
                     actions.global.find { it.name == key }?.let { action ->
-                        Log.w("Adding action [${action.name}] in navigation table list for navbar")
+                        println("Adding action [${action.name}] in navigation table list for navbar")
                         if (shouldUseIcon && action.icon.isNullOrEmpty()) {
 
                             action.icon = "nav_icon_${correctIconPath(action.name)}"
@@ -381,13 +301,13 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                         tableNamesForNavigationForNavBar.add(action.getTemplateLayoutFillerForNavigation())
                     }
                 } else {
-                    Log.d("Don't have feature flag for open url action from tab bar")
+                    println("Don't have feature flag for open url action from tab bar")
                 }
             }
         }
 
         projectEditor.dataModelList.filter { it.isSlave == false }.forEach { dataModel ->
-            Log.w("Adding [${dataModel.name}] in navigation table list")
+            println("Adding [${dataModel.name}] in navigation table list")
 
             tableNamesForNavigation.add(dataModel.getTemplateLayoutFillerForNavigation())
 
@@ -431,9 +351,9 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         }
         data[CUSTOM_FORMATTER_IMAGES] = customFormatterImages
 
-        data[HAS_DATASET] = projectEditor.findJsonBoolean(FeatureFlagConstants.HAS_DATASET_KEY) ?: true
+        data[HAS_DATASET] = projectEditor.findJsonBoolean(HAS_DATASET_KEY) ?: true
 
-        val hasCustomLoginForms = projectEditor.findJsonBoolean(FeatureFlagConstants.HAS_CUSTOM_LOGIN_FORMS) ?: false
+        val hasCustomLoginForms = projectEditor.findJsonBoolean(HAS_CUSTOM_LOGIN_FORMS) ?: false
         val isAuthEnabled = projectEditor.findJsonBoolean("mailAuth") ?: false
         if (hasCustomLoginForms && isAuthEnabled) {
             val loginFormClass: String = getCustomLoginFormClassName() ?: DEFAULT_LOGIN_FORM
@@ -445,7 +365,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         }
 
         getAllInputControls()
-        data[HAS_KOTLIN_INPUT_CONTROLS] = kotlinInputControls.isNotEmpty()
+        data[HAS_KOTLIN_INPUT_CONTROLS_TEMPLATE] = kotlinInputControls.isNotEmpty()
         data[KOTLIN_INPUT_CONTROLS] = kotlinInputControls.distinct()
 
         getAllActionPermissions()
@@ -462,7 +382,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
      * TEMPLATING
      */
     fun processTemplates() {
-        Log.d("processTemplates")
+        println("processTemplates")
         File(fileHelper.pathHelper.templateFilesPath).walkTopDown()
             .filter { folder -> !folder.isHidden && folder.isDirectory }.forEach { currentFolder ->
                 processFolder(currentFolder)
@@ -483,7 +403,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
     }
 
     private fun processFile(currentFile: File) {
-        Log.d("processFile : $currentFile")
+        println("processFile : $currentFile")
 
         template = compiler.compile("{{>${currentFile.name}}}")
 
@@ -494,9 +414,9 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
         projectEditor.dataModelList.forEach { dataModel ->
             dataModel.relations?.forEach { relation ->
-                Log.d("HH: relation: $relation")
+                println("HH: relation: $relation")
                 val filler = relation.getTemplateRelationFiller(projectEditor.catalogDef)
-                Log.d("HH: filler: $filler")
+                println("HH: filler: $filler")
                 if (relation.type == RelationType.MANY_TO_ONE) {
                     if (relation.path.isEmpty())
                         relationsManyToOne.add(filler)
@@ -508,22 +428,22 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
         data[RELATIONS_MANY_TO_ONE] = relationsManyToOne.distinctBy { it.relation_source to it.relation_target to it.relation_name }
 
-        Log.d("RELATIONS_MANY_TO_ONE --------------------")
+        println("RELATIONS_MANY_TO_ONE --------------------")
         relationsManyToOne.distinctBy { it.relation_source to it.relation_target to it.relation_name to it.path }.forEach {
-            Log.d("Source [${it.relation_source}] Target [${it.relation_target}] Name [${it.relation_name}] Path [${it.path}]")
+            println("Source [${it.relation_source}] Target [${it.relation_target}] Name [${it.relation_name}] Path [${it.path}]")
         }
         data[RELATIONS_ONE_TO_MANY] = relationsOneToMany.distinctBy { it.relation_source to it.relation_target to it.relation_name }
 
-        Log.d("RELATIONS_ONE_TO_MANY --------------------")
+        println("RELATIONS_ONE_TO_MANY --------------------")
         relationsOneToMany.distinctBy { it.relation_source to it.relation_target to it.relation_name to it.path }.forEach {
-            Log.d("Source [${it.relation_source}] Target [${it.relation_target}] Name [${it.relation_name}] Path [${it.path}]")
+            println("Source [${it.relation_source}] Target [${it.relation_target}] Name [${it.relation_name}] Path [${it.path}]")
         }
 
         projectEditor.dataModelList.forEach { dataModel ->
             dataModel.relations?.filter { it.isNotNativeType(projectEditor.dataModelList) }?.forEach { relation ->
-                Log.d("relationsEmbeddedReturnType relation : $relation")
+                println("relationsEmbeddedReturnType relation : $relation")
                 relation.getTemplateRelationForRoomFiller(projectEditor.catalogDef)?.let { filler ->
-                    Log.d("relationsEmbeddedReturnType Add filler : $filler")
+                    println("relationsEmbeddedReturnType Add filler : $filler")
                     relationsEmbeddedReturnType.add(filler)
                 }
             }
@@ -538,14 +458,14 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
         when {
             currentFile.isActionFromNavBarTemplate() -> {
-                if (projectEditor.findJsonBoolean(FeatureFlagConstants.HAS_OPEN_URL_ACTION_KEY) == true) {
-                    Log.d("isActionFromNavBarTemplate")
-                    Log.d("tableNamesForNavigationForNavBar: $tableNamesForNavigationForNavBar")
+                if (projectEditor.findJsonBoolean(HAS_OPEN_URL_ACTION_KEY) == true) {
+                    println("isActionFromNavBarTemplate")
+                    println("tableNamesForNavigationForNavBar: $tableNamesForNavigationForNavBar")
                     tableNamesForNavigationForNavBar.filter { it.isGlobalAction }
                         .forEach { templateLayoutFiller: TemplateLayoutFiller ->
-                            Log.d("templateLayoutFiller: $templateLayoutFiller")
+                            println("templateLayoutFiller: $templateLayoutFiller")
                             actions.global.find { it.name.tableNameAdjustment() == templateLayoutFiller.name.tableNameAdjustment() }?.let { action ->
-                                Log.d("action: $action")
+                                println("action: $action")
                                 data["actionName"] = action.name
                                 data["actionName_lowercase"] = templateLayoutFiller.name.toLowerCase().fieldAdjustment()
                                 data["action_nav_label"] = templateLayoutFiller.label
@@ -566,32 +486,32 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                             }
                         }
                 } else {
-                    Log.d("Don't have feature flag for open url action from tab bar")
+                    println("Don't have feature flag for open url action from tab bar")
                 }
             }
             currentFile.isWithTemplateName() -> {
-                Log.d("currentFile isWithTemplateName")
-                Log.d("currentFile isWithTemplateName, tableNames: $tableNames")
+                println("currentFile isWithTemplateName")
+                println("currentFile isWithTemplateName, tableNames: $tableNames")
 
                 for (tableName in tableNames) { // file will be duplicated
 
-                    Log.d("currentFile isWithTemplateName, tableName: $tableName")
+                    println("currentFile isWithTemplateName, tableName: $tableName")
 
-                    Log.d("newFilePath = $newFilePath")
+                    println("newFilePath = $newFilePath")
 
                     if (newFilePath.contains(fileHelper.pathHelper.navigationPath()) ||
                         newFilePath.contains(fileHelper.pathHelper.formPath("list")) ||
                         newFilePath.contains(fileHelper.pathHelper.formPath("detail"))
                     ) {
-                        Log.d("in If")
+                        println("in If")
                         if (tableNamesForNavigation.firstOrNull { it.name == tableName.name } == null) {
-                            Log.d("continue")
+                            println("continue")
                             continue
                         } else {
-                            Log.d("not continue")
+                            println("not continue")
                         }
                     } else {
-                        Log.d("Not in if")
+                        println("Not in if")
                     }
 
                     fillFileWithTemplateName(tableName)
@@ -613,14 +533,14 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                 }
             }
             else -> {
-                Log.d("currentFile applying default templating")
+                println("currentFile applying default templating")
                 applyTemplate(newFilePath)
             }
         }
     }
 
     private fun fillFileWithTemplateName(tableName: TemplateTableFiller) {
-        Log.d("fillFileWithTemplateName: ${tableName.name}")
+        println("fillFileWithTemplateName: ${tableName.name}")
 
         data[TABLENAME] = tableName.name.tableNameAdjustment()
 
@@ -639,7 +559,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
             val fieldList = mutableListOf<TemplateFieldFiller>()
             fields.filter { it.kind != "alias" }.forEach { field ->
-                Log.d("> Field [${field.name}] : $field")
+                println("> Field [${field.name}] : $field")
                 field.fieldTypeString?.let { fieldTypeString ->
                     fieldList.add(field.getTemplateFieldFiller(fieldTypeString))
                 } ?: kotlin.run {
@@ -664,11 +584,11 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         projectEditor.dataModelList.find { it.name.tableNameAdjustment() == tableName.name.tableNameAdjustment() }?.relations?.filter { it.isNotNativeType(projectEditor.dataModelList) }?.forEach { relation ->
             val filler = relation.getTemplateRelationFiller(projectEditor.catalogDef)
             if (relation.type == RelationType.MANY_TO_ONE) {
-                Log.d("XXX Add Many to one filler = $filler")
-                Log.d("XXX Add Many to one, relation was $relation")
+                println("XXX Add Many to one filler = $filler")
+                println("XXX Add Many to one, relation was $relation")
                 relationsManyToOne.add(filler)
             } else {
-                Log.d("XXX Add One to many filler = $filler")
+                println("XXX Add One to many filler = $filler")
                 relationsOneToMany.add(filler)
 
             }
@@ -683,7 +603,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
     fun applyListFormTemplate() {
         projectEditor.listFormList.forEach { listForm ->
 
-            Log.d("applyListFormTemplate : listForm.name = ${listForm.name} for table ${listForm.dataModel.name}. FieldSize : ${listForm.fields?.size}")
+            println("applyListFormTemplate : listForm.name = ${listForm.name} for table ${listForm.dataModel.name}. FieldSize : ${listForm.fields?.size}")
 
             var formPath = fileHelper.pathHelper.getFormPath(listForm.name, FormType.LIST)
             formPath = fileHelper.pathHelper.verifyFormPath(formPath, FormType.LIST)
@@ -693,7 +613,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
             File(appFolderInTemplate).parentFile.walkTopDown().filter { folder -> !folder.isHidden && folder.isDirectory }
                 .forEach { currentFolder ->
 
-                    Log.i(" > Processed template folder : $currentFolder")
+                    println(" > Processed template folder : $currentFolder")
 
                     compiler = generateCompilerFolder(currentFolder.absolutePath)
 
@@ -701,7 +621,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                         .filter { file -> !file.isHidden && file.isFile && currentFolder.absolutePath.contains(file.parent) && file.name != DS_STORE }
                         .forEach { currentFile ->
 
-                            Log.i(" > Processed template file : $currentFile")
+                            println(" > Processed template file : $currentFile")
 
                             template = compiler.compile("{{>${currentFile.name}}}")
 
@@ -734,13 +654,13 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                         wholeFormHasIcons = true
                                 }
 
-                                Log.d("wholeFormHasIcons = $wholeFormHasIcons")
+                                println("wholeFormHasIcons = $wholeFormHasIcons")
 
                                 var i = 0
                                 listForm.fields?.forEach { field -> // Could also iterate over specificFieldsCount as Detail form
                                     i++
 
-                                    Log.d("[${listForm.dataModel.name}][${field.name}] - $field")
+                                    println("[${listForm.dataModel.name}][${field.name}] - $field")
 
                                     if (fileHelper.pathHelper.isDefaultTemplateListFormPath(formPath) && field.isImage()) { // is image in default template
                                         resetIndexedEntries(i)
@@ -773,7 +693,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
     fun applyDetailFormTemplate() {
         projectEditor.detailFormList.forEach { detailForm ->
 
-            Log.d("applyDetailFormTemplate : detailForm.name = ${detailForm.name} for table ${detailForm.dataModel.name}. FieldSize : ${detailForm.fields?.size}")
+            println("applyDetailFormTemplate : detailForm.name = ${detailForm.name} for table ${detailForm.dataModel.name}. FieldSize : ${detailForm.fields?.size}")
 
             var formPath = fileHelper.pathHelper.getFormPath(detailForm.name, FormType.DETAIL)
             formPath = fileHelper.pathHelper.verifyFormPath(formPath, FormType.DETAIL)
@@ -800,7 +720,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                         .filter { file -> !file.isHidden && file.isFile && currentFolder.absolutePath.contains(file.parent) && file.name != DS_STORE }
                         .forEach { currentFile ->
 
-                            Log.i(" > Processed template file : $currentFile")
+                            println(" > Processed template file : $currentFile")
 
                             template = compiler.compile("{{>${currentFile.name}}}")
 
@@ -817,9 +737,9 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
                                 detailForm.fields?.let { fieldList ->
 
-                                    Log.d("My detailForm field list :")
+                                    println("My detailForm field list :")
                                     fieldList.forEach {
-                                        Log.d(it.name)
+                                        println(it.name)
                                     }
 
                                     var wholeFormHasIcons = false
@@ -830,7 +750,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                             wholeFormHasIcons = true
                                     }
 
-                                    Log.d("wholeFormHasIcons = $wholeFormHasIcons")
+                                    println("wholeFormHasIcons = $wholeFormHasIcons")
 
                                     if (fieldList.isNotEmpty()) {
 
@@ -872,7 +792,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                                     fillRelationFillerForEachLayout(field, detailForm, FormType.DETAIL, i + 1)
 
                                                 } else {
-                                                    Log.d("Field list shorter than specific fields count")
+                                                    println("Field list shorter than specific fields count")
                                                     resetIndexedEntries(i + 1)
                                                 }
                                             }
@@ -882,12 +802,12 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                                 var k = specificFieldsCount // another counter to avoid null field
 
                                                 for (i in specificFieldsCount until maxFields) {
-                                                    Log.d("index i is $i, specificFieldsCount $specificFieldsCount, maxFields $maxFields")
+                                                    println("index i is $i, specificFieldsCount $specificFieldsCount, maxFields $maxFields")
                                                     val field = fieldList[i]
 
                                                     if (field.name.isNotEmpty()) {
 
-                                                        Log.d("Adding free Field in specific template ${field.name}")
+                                                        println("Adding free Field in specific template ${field.name}")
 
                                                         val format = getFormatNameForType(fileHelper.pathHelper, projectEditor.dataModelList, detailForm, field)
                                                         val formField = field.getTemplateFormFieldFiller(
@@ -938,7 +858,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
     }
 
     private fun fillRelationFillerForEachLayout(field: Field, form: Form, formType: FormType, index: Int) {
-        Log.d("XX: fillRelationFillerForEachLayout, $field")
+        println("XX: fillRelationFillerForEachLayout, $field")
         val source: String = form.dataModel.name
         val navbarTitle = getNavbarTitle(projectEditor.dataModelList, form, field, projectEditor.catalogDef)
 
@@ -948,7 +868,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
     }
 
     private fun fillRelationFillerForEachRelation(source: String, index: Int, formType: FormType, relation: Relation, navbarTitle: String) {
-        Log.d("AZfillRelationFillerForEachRelation, relationpat: ${relation.path}")
+        println("AZfillRelationFillerForEachRelation, relationpat: ${relation.path}")
         val filler = getTemplateRelationFillerForLayout(source, index, navbarTitle, relation, projectEditor.catalogDef)
         when {
             formType == FormType.LIST && relation.type == RelationType.ONE_TO_MANY ->
@@ -960,11 +880,11 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
             formType == FormType.DETAIL && relation.type == RelationType.MANY_TO_ONE ->
                 manyToOneRelationFillerForEachDetailLayout.add(filler)
         }
-        Log.d("Adding fillRelationFillerForEachRelation : $filler")
-        Log.d("oneToManyRelationFillerForEachListLayout.size : ${oneToManyRelationFillerForEachListLayout.size}")
-        Log.d("manyToOneRelationFillerForEachListLayout.size : ${manyToOneRelationFillerForEachListLayout.size}")
-        Log.d("oneToManyRelationFillerForEachDetailLayout.size : ${oneToManyRelationFillerForEachDetailLayout.size}")
-        Log.d("manyToOneRelationFillerForEachDetailLayout.size : ${manyToOneRelationFillerForEachDetailLayout.size}")
+        println("Adding fillRelationFillerForEachRelation : $filler")
+        println("oneToManyRelationFillerForEachListLayout.size : ${oneToManyRelationFillerForEachListLayout.size}")
+        println("manyToOneRelationFillerForEachListLayout.size : ${manyToOneRelationFillerForEachListLayout.size}")
+        println("oneToManyRelationFillerForEachDetailLayout.size : ${oneToManyRelationFillerForEachDetailLayout.size}")
+        println("manyToOneRelationFillerForEachDetailLayout.size : ${manyToOneRelationFillerForEachDetailLayout.size}")
     }
 
     private fun removeIndexedEntries(i: Int) {
@@ -1024,8 +944,8 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
     }
 
     private fun fillIndexedFormData(i: Int, field: Field, form: Form, wholeFormHasIcons: Boolean) {
-        Log.d("index is $i")
-        Log.d("fillIndexedFormData, field = $field")
+        println("index is $i")
+        println("fillIndexedFormData, field = $field")
         data["field_${i}_name"] = field.getFieldAliasName(projectEditor.dataModelList)
         data["field_${i}_defined"] = field.name.isNotEmpty()
         data["field_${i}_is_image"] = field.isImage()
@@ -1041,7 +961,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         data["field_${i}_image_source_table_name"] = destBeforeField(projectEditor.catalogDef, form.dataModel.name, field.path)
 
         val isRelation = isRelationWithFixes(projectEditor.dataModelList, form, field)
-        Log.d("field ${field.name}, isRelation ? : $isRelation")
+        println("field ${field.name}, isRelation ? : $isRelation")
         if (isRelation) {
             data["field_${i}_is_relation"] = true
             val labelHasPercentPlaceholder = hasLabelPercentPlaceholder(projectEditor.dataModelList, form.dataModel, field)
@@ -1068,28 +988,28 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         data["field_${i}_format_type"] = format
 
         if (fileHelper.pathHelper.isValidFormatter(format)) {
-            Log.d("isValidFormatter true")
+            println("isValidFormatter true")
             data["field_${i}_custom_formatted"] = true
             data["field_${i}_format_field_name"] = field.name
             data["field_${i}_field_table_name"] = form.dataModel.name
 
             if (isImageNamedBinding(form, field.name)) {
 
-                Log.d("Field : ${field.name}, table : ${form.dataModel.name}, is imageNamed binding")
+                println("Field : ${field.name}, table : ${form.dataModel.name}, is imageNamed binding")
 
                 data["field_${i}_custom_formatted_imageNamed"] = true
                 data["field_${i}_field_image_width"] = getImageSize(form, field.name, "width")
                 data["field_${i}_field_image_height"] = getImageSize(form, field.name, "height")
             } else {
-                Log.d("Field : ${field.name}, table : ${form.dataModel.name}, is not imageNamed binding")
+                println("Field : ${field.name}, table : ${form.dataModel.name}, is not imageNamed binding")
             }
 
         } else if (fileHelper.pathHelper.isValidKotlinCustomFormatter(format)) {
-            Log.d("isValidKotlinCustomFormatter true")
+            println("isValidKotlinCustomFormatter true")
             data["field_${i}_is_kotlin_custom_formatted"] = true
             data["field_${i}_kotlin_custom_format_binding"] = fileHelper.pathHelper.getKotlinCustomFormatterBinding(format)
         } else {
-            Log.d("Both kotlin and basic custom formatters false")
+            println("Both kotlin and basic custom formatters false")
         }
     }
 
@@ -1109,7 +1029,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
             }
         } else {
 
-            Log.i("File added to filesToCopyAfterGlobalTemplating : ${currentFile.absolutePath}; target : ${newFile.absolutePath}")
+            println("File added to filesToCopyAfterGlobalTemplating : ${currentFile.absolutePath}; target : ${newFile.absolutePath}")
             filesToCopyAfterGlobalTemplating[currentFile] = newFile
         }
     }
@@ -1121,25 +1041,25 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
     }
 
     private fun copyFile(editorFile: File, newFile: File) {
-        Log.i("File to copy : ${editorFile.absolutePath}; target : ${newFile.absolutePath}")
+        println("File to copy : ${editorFile.absolutePath}; target : ${newFile.absolutePath}")
 
         var shouldCopy = true
-        Log.d("newFile = $newFile")
-        Log.d("newFile exists() = ${newFile.exists()}")
-        Log.d("newFile name = ${newFile.name}")
-        Log.d("newFile ext = ${newFile.extension}")
-        Log.d("newFile.parentFile.name = ${newFile.parentFile.name}")
+        println("newFile = $newFile")
+        println("newFile exists() = ${newFile.exists()}")
+        println("newFile name = ${newFile.name}")
+        println("newFile ext = ${newFile.extension}")
+        println("newFile.parentFile.name = ${newFile.parentFile.name}")
         if (newFile.exists() && newFile.name == "local.properties") {
-            Log.d("concat localProperties")
+            println("concat localProperties")
             shouldCopy = false
             concatLocalProperties(editorFile, newFile)
         }
         if (newFile.exists() && newFile.extension == "xml" && newFile.parentFile.name == "values") {
-            Log.d("concat resource file")
+            println("concat resource file")
             shouldCopy = !concatResources(editorFile, newFile)
         }
         if (shouldCopy) {
-            Log.d("copy file recursively")
+            println("copy file recursively")
             if (!editorFile.copyRecursively(target = newFile, overwrite = true)) {
                 throw Exception("An error occurred while copying template files with target : ${newFile.absolutePath}")
             }
@@ -1214,8 +1134,8 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
     }
 
     fun makeActions() {
-        val hasActionsFeatureFlag = projectEditor.findJsonBoolean(FeatureFlagConstants.HAS_ACTIONS_KEY) ?: true
-        Log.d("hasActionsFeatureFlag = $hasActionsFeatureFlag")
+        val hasActionsFeatureFlag = projectEditor.findJsonBoolean(HAS_ACTIONS_KEY) ?: true
+        println("hasActionsFeatureFlag = $hasActionsFeatureFlag")
         if (hasActionsFeatureFlag) {
             makeJsonFile(ACTIONS_FILENAME, actions)
         }
@@ -1258,7 +1178,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
     }
 
     private fun getAllInputControls() {
-        val hasInputControlsFeatureFlag = projectEditor.findJsonBoolean(FeatureFlagConstants.HAS_KOTLIN_INPUT_CONTROLS) ?: true
+        val hasInputControlsFeatureFlag = projectEditor.findJsonBoolean(HAS_KOTLIN_INPUT_CONTROLS) ?: true
         if (hasInputControlsFeatureFlag) {
             getInputControls(actions.table.values)
             getInputControls(actions.currentRecord.values)
@@ -1271,7 +1191,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                 action.parameters?.forEach { actionParameter ->
                     actionParameter.format?.let { format ->
                         if (format.startsWith("/")) {
-                            Log.d("getInputControls, actionParameter : $actionParameter")
+                            println("getInputControls, actionParameter : $actionParameter")
                             if (format !in InputControl.defaultInputControls) {
                                 val inputControlPath = fileHelper.pathHelper.getInputControlPath(format)
                                 getManifestJSONContent(inputControlPath)?.let {
@@ -1287,7 +1207,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                         kotlinInputControls.add(templateInputControlFiller)
 
                                         val fieldMappingKotlinInputControl = getFieldMappingKotlinInputControl(it, format)
-                                        Log.d("fieldMappingKotlinInputControl for input control :  $fieldMappingKotlinInputControl")
+                                        println("fieldMappingKotlinInputControl for input control :  $fieldMappingKotlinInputControl")
 
                                         if (fieldMappingKotlinInputControl.isValidKotlinInputControl()) {
                                             // Saving any permission for input controls
@@ -1295,7 +1215,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                                 permissionFillerList.add(getTemplatePermissionFiller(permissionName))
                                             }
                                         }
-                                        Log.d("not a valid kotlin input control")
+                                        println("not a valid kotlin input control")
                                     }
                                 }
                             } else {
@@ -1304,7 +1224,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                     val inputControlPath = fileHelper.pathHelper.getInputControlPath(source)
                                     getManifestJSONContent(inputControlPath)?.let {
                                         val fieldMappingDefaultInputControl = getFieldMappingDefaultInputControl(it)
-                                        Log.d("fieldMappingDefaultInputControl for default input control :  $fieldMappingDefaultInputControl")
+                                        println("fieldMappingDefaultInputControl for default input control :  $fieldMappingDefaultInputControl")
 
                                         if (fieldMappingDefaultInputControl.format.isNullOrEmpty()) {
                                             fieldMappingDefaultInputControl.format = "push"
@@ -1313,7 +1233,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                                         if (fieldMappingDefaultInputControl.isValidDefaultInputControl()) {
                                             defaultInputControlList.add(fieldMappingDefaultInputControl)
                                         } else {
-                                            Log.d("not a valid default input control")
+                                            println("not a valid default input control")
                                         }
                                     }
                                 }
@@ -1327,7 +1247,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
 
     private fun getCustomLoginFormClassName(): String? {
         val loginForm = projectEditor.findJsonString("login")
-        Log.d("getLoginFormClassName, loginForm : $loginForm")
+        println("getLoginFormClassName, loginForm : $loginForm")
         if (loginForm?.startsWith("/") == true) {
             fileHelper.pathHelper.getTemplateLoginFormPath(loginForm)?.let { loginFormPath ->
                 getManifestJSONContent(loginFormPath)?.let {
@@ -1336,7 +1256,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                     if (kotlinLoginFormClass != null) {
 
                         val fieldMappingLoginForm = getFieldMappingLoginForm(it, loginForm)
-                        Log.d("fieldMappingLoginForm for login form :  $fieldMappingLoginForm")
+                        println("fieldMappingLoginForm for login form :  $fieldMappingLoginForm")
 
                         if (fieldMappingLoginForm.isValidLoginForm()) {
                             // Saving any permission for input controls
@@ -1345,7 +1265,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                             }
                             return kotlinLoginFormClass
                         }
-                        Log.d("not a valid login form")
+                        println("not a valid login form")
                     }
                 }
             }
@@ -1356,24 +1276,24 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
     // <tableName, <fieldName, fieldMapping>>
     private fun getCustomFormatterFields() {
 
-        Log.d("getCustomFormatterFields checking list forms")
+        println("getCustomFormatterFields checking list forms")
         projectEditor.listFormList.forEach { listForm ->
             getCustomFormatterField(listForm)
         }
-        Log.d("getCustomFormatterFields customFormatMap: $customFormattersFields")
+        println("getCustomFormatterFields customFormatMap: $customFormattersFields")
 
-        Log.d("\ngetCustomFormatterFields checking detail forms")
+        println("\ngetCustomFormatterFields checking detail forms")
         projectEditor.detailFormList.forEach { detailForm ->
             getCustomFormatterField(detailForm)
         }
     }
 
     private fun getCustomFormatterField(form: Form) {
-        Log.d("form for ${form.dataModel.name}")
+        println("form for ${form.dataModel.name}")
         form.fields?.forEach { field ->
-            Log.d("field = $field")
+            println("field = $field")
             getDataModelField(projectEditor.dataModelList, form.dataModel, field)?.let { fieldFromDataModel ->
-                Log.d("fieldFromDataModel = $fieldFromDataModel")
+                println("fieldFromDataModel = $fieldFromDataModel")
                 val map: MutableMap<String, FieldMappingFormatter> = customFormattersFields[form.dataModel.name.tableNameAdjustment()] ?: mutableMapOf()
                 if (map[field.name] == null) {
 
@@ -1386,7 +1306,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
                             getManifestJSONContent(formatPath)?.let {
 
                                 val fieldMapping = getFieldMappingFormatter(it, format)
-                                Log.d("fieldMapping :  $fieldMapping")
+                                println("fieldMapping :  $fieldMapping")
 
                                 if (fieldMapping.isValidFormatter()) {
                                     // Saving any permission for kotlin custom formatters
@@ -1444,7 +1364,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
             .toLowerCase()
             .replace("[^a-z0-9]+".toRegex(), "_")
 
-        Log.d("getResourceName, correctedFormatName : $correctedFormatName")
+        println("getResourceName, correctedFormatName : $correctedFormatName")
 
         val correctedImageName = correctIconPath(imageName)
 
@@ -1487,14 +1407,14 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
     private fun fillLightColorLightTheme(seedColor: Int) {
         val hexStringPrimaryColor = "#" + toHexString(manipulate(seedColor, 1.0f, 1.0, 0.33)).toUpperCase()
         data["theme_light_primary"] = hexStringPrimaryColor
-        val primaryColor: Int = Color.parseColor(hexStringPrimaryColor)
+        val primaryColor: Int = parseColor(hexStringPrimaryColor)
         data["theme_light_onPrimary"] = "@android:color/white"
         data["theme_light_primaryContainer"] = "#" + toHexString(manipulate(primaryColor, 1.0f, 1.0, 0.93)).toUpperCase()
         data["theme_light_onPrimaryContainer"] = "#" + toHexString(manipulate(primaryColor, 1.0f, 1.0, 0.12)).toUpperCase()
 
         val hexStringSecondaryColor = "#" + toHexString(manipulate(primaryColor, 1.0f, 0.19, 0.37)).toUpperCase()
         data["theme_light_secondary"] = hexStringSecondaryColor
-        val secondaryColor: Int = Color.parseColor(hexStringSecondaryColor)
+        val secondaryColor: Int = parseColor(hexStringSecondaryColor)
         data["theme_light_onSecondary"] = "@android:color/white"
         data["theme_light_secondaryContainer"] = "#" + toHexString(manipulate(secondaryColor, 1.0f, 1.0, 0.93)).toUpperCase()
         data["theme_light_onSecondaryContainer"] = "#" + toHexString(manipulate(secondaryColor, 1.0f, 1.0, 0.12)).toUpperCase()
@@ -1503,14 +1423,14 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         val analogousRightColor = analogousRightColor(blendColors, 50.0f)
         val hexStringTertiaryColor = "#" + toHexString(manipulate(analogousRightColor, l = 0.40)).toUpperCase()
         data["theme_light_tertiary"] = hexStringTertiaryColor
-        val tertiaryColor: Int = Color.parseColor(hexStringTertiaryColor)
+        val tertiaryColor: Int = parseColor(hexStringTertiaryColor)
         data["theme_light_onTertiary"] = "@android:color/white"
         data["theme_light_tertiaryContainer"] = "#" + toHexString(manipulate(tertiaryColor, 1.0f, 1.0, 0.93)).toUpperCase()
         data["theme_light_onTertiaryContainer"] = "#" + toHexString(manipulate(tertiaryColor, 1.0f, 1.0, 0.12)).toUpperCase()
 
         val hexStringErrorColor = "#BA1A1A"
         data["theme_light_error"] = hexStringErrorColor
-        val errorColor: Int = Color.parseColor(hexStringErrorColor)
+        val errorColor: Int = parseColor(hexStringErrorColor)
         data["theme_light_onError"] = "@android:color/white"
         data["theme_light_errorContainer"] = "#" + toHexString(manipulate(errorColor, 1.0f, 1.0, 0.93)).toUpperCase()
         data["theme_light_onErrorContainer"] = "#" + toHexString(manipulate(errorColor, 1.0f, 1.0, 0.12)).toUpperCase()
@@ -1525,9 +1445,9 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         data["theme_light_onSurfaceVariant"] = "#" + toHexString(manipulate(primaryColor, 1.0f, 0.09, 0.29)).toUpperCase()
         data["theme_light_outline"] = "#" + toHexString(manipulate(primaryColor, 1.0f, 0.07, 0.48)).toUpperCase()
 
-        val onSurfaceColor: Int = Color.parseColor(hexStringOnSurfaceColor)
+        val onSurfaceColor: Int = parseColor(hexStringOnSurfaceColor)
         data["theme_light_inverseOnSurface"] = "#" + toHexString(oppositeColor(onSurfaceColor)).toUpperCase()
-        val surfaceColor: Int = Color.parseColor(hexStringSurfaceColor)
+        val surfaceColor: Int = parseColor(hexStringSurfaceColor)
         data["theme_light_inverseSurface"] = "#" + toHexString(oppositeColor(surfaceColor)).toUpperCase()
         data["theme_light_inversePrimary"] = "#" + toHexString(manipulate(seedColor, 1.0f, 1.0, 0.85)).toUpperCase()
 
@@ -1539,14 +1459,14 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
     private fun fillLightColorDarkTheme(seedColor: Int) {
         val hexStringPrimaryColor = "#" + toHexString(manipulate(seedColor, 1.0f, 1.0, 0.68)).toUpperCase()
         data["theme_dark_primary"] = hexStringPrimaryColor
-        val primaryColor: Int = Color.parseColor(hexStringPrimaryColor)
+        val primaryColor: Int = parseColor(hexStringPrimaryColor)
         data["theme_dark_onPrimary"] = "#" + toHexString(manipulate(primaryColor, 1.0f, 1.0, 0.2)).toUpperCase()
         data["theme_dark_primaryContainer"] = "#" + toHexString(manipulate(primaryColor, 1.0f, 1.0, 0.27)).toUpperCase()
         data["theme_dark_onPrimaryContainer"] = "#" + toHexString(manipulate(primaryColor, 1.0f, 1.0, 0.93)).toUpperCase()
 
         val hexStringSecondaryColor = "#" + toHexString(manipulate(primaryColor, 1.0f, 0.35, 0.77)).toUpperCase()
         data["theme_dark_secondary"] = hexStringSecondaryColor
-        val secondaryColor: Int = Color.parseColor(hexStringSecondaryColor)
+        val secondaryColor: Int = parseColor(hexStringSecondaryColor)
         data["theme_dark_onSecondary"] = "#" + toHexString(manipulate(secondaryColor, 1.0f, 0.20, 0.21)).toUpperCase()
         data["theme_dark_secondaryContainer"] = "#" + toHexString(manipulate(secondaryColor, 1.0f, 0.13, 0.31)).toUpperCase()
         data["theme_dark_onSecondaryContainer"] = "#" + toHexString(manipulate(secondaryColor, 1.0f, 0.65, 0.92)).toUpperCase()
@@ -1555,7 +1475,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         val analogousRightColor = analogousRightColor(blendColors, 50.0f)
         val hexStringTertiaryColor = "#" + toHexString(manipulate(analogousRightColor, l = 0.80)).toUpperCase()
         data["theme_dark_tertiary"] = hexStringTertiaryColor
-        val tertiaryColor: Int = Color.parseColor(hexStringTertiaryColor)
+        val tertiaryColor: Int = parseColor(hexStringTertiaryColor)
         data["theme_dark_onTertiary"] = "#" + toHexString(manipulate(tertiaryColor, 1.0f, 0.3, 0.21)).toUpperCase()
         data["theme_dark_tertiaryContainer"] = "#" + toHexString(manipulate(tertiaryColor, 1.0f, 0.23, 0.3)).toUpperCase()
         data["theme_dark_onTertiaryContainer"] = "#" + toHexString(manipulate(tertiaryColor, 1.0f, 1.0, 0.92)).toUpperCase()
@@ -1588,14 +1508,14 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
     private fun fillDarkColorLightTheme(seedColor: Int) {
         val hexStringPrimaryColor = "#" + toHexString(manipulate(seedColor, 1.0f, 1.0, 0.33)).toUpperCase()
         data["theme_light_primary"] = hexStringPrimaryColor
-        val primaryColor: Int = Color.parseColor(hexStringPrimaryColor)
+        val primaryColor: Int = parseColor(hexStringPrimaryColor)
         data["theme_light_onPrimary"] = "@android:color/white"
         data["theme_light_primaryContainer"] = "#" + toHexString(manipulate(primaryColor, 1.0f, 1.0, 0.87)).toUpperCase()
         data["theme_light_onPrimaryContainer"] = "#" + toHexString(manipulate(primaryColor, 1.0f, 1.0, 0.09)).toUpperCase()
 
         val hexStringSecondaryColor = "#" + toHexString(manipulate(primaryColor, 1.0f, 0.19, 0.37)).toUpperCase()
         data["theme_light_secondary"] = hexStringSecondaryColor
-        val secondaryColor: Int = Color.parseColor(hexStringSecondaryColor)
+        val secondaryColor: Int = parseColor(hexStringSecondaryColor)
         data["theme_light_onSecondary"] = "@android:color/white"
         data["theme_light_secondaryContainer"] = "#" + toHexString(manipulate(secondaryColor, 1.0f, 0.65, 0.87)).toUpperCase()
         data["theme_light_onSecondaryContainer"] = "#" + toHexString(manipulate(secondaryColor, 1.0f, 0.56, 0.09)).toUpperCase()
@@ -1604,14 +1524,14 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         val analogousRightColor = analogousRightColor(blendColors, 50.0f)
         val hexStringTertiaryColor = "#" + toHexString(manipulate(analogousRightColor, l = 0.40)).toUpperCase()
         data["theme_light_tertiary"] = hexStringTertiaryColor
-        val tertiaryColor: Int = Color.parseColor(hexStringTertiaryColor)
+        val tertiaryColor: Int = parseColor(hexStringTertiaryColor)
         data["theme_light_onTertiary"] = "@android:color/white"
         data["theme_light_tertiaryContainer"] = "#" + toHexString(manipulate(tertiaryColor, 1.0f, 0.91, 0.87)).toUpperCase()
         data["theme_light_onTertiaryContainer"] = "#" + toHexString(manipulate(tertiaryColor, 1.0f, 1.0, 0.08)).toUpperCase()
 
         val hexStringErrorColor = "#BA1A1A"
         data["theme_light_error"] = hexStringErrorColor
-        val errorColor: Int = Color.parseColor(hexStringErrorColor)
+        val errorColor: Int = parseColor(hexStringErrorColor)
         data["theme_light_onError"] = "@android:color/white"
         data["theme_light_errorContainer"] = "#" + toHexString(manipulate(errorColor, 1.0f, 1.0, 0.93)).toUpperCase()
         data["theme_light_onErrorContainer"] = "#" + toHexString(manipulate(errorColor, 1.0f, 1.0, 0.12)).toUpperCase()
@@ -1626,9 +1546,9 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         data["theme_light_onSurfaceVariant"] = "#" + toHexString(manipulate(primaryColor, 1.0f, 0.09, 0.29)).toUpperCase()
         data["theme_light_outline"] = "#" + toHexString(manipulate(primaryColor, 1.0f, 0.07, 0.48)).toUpperCase()
 
-        val onSurfaceColor: Int = Color.parseColor(hexStringOnSurfaceColor)
+        val onSurfaceColor: Int = parseColor(hexStringOnSurfaceColor)
         data["theme_light_inverseOnSurface"] = "#" + toHexString(oppositeColor(onSurfaceColor)).toUpperCase()
-        val surfaceColor: Int = Color.parseColor(hexStringSurfaceColor)
+        val surfaceColor: Int = parseColor(hexStringSurfaceColor)
         data["theme_light_inverseSurface"] = "#" + toHexString(oppositeColor(surfaceColor)).toUpperCase()
         data["theme_light_inversePrimary"] = "#" + toHexString(manipulate(seedColor, 1.0f, 1.0, 0.73)).toUpperCase()
 
@@ -1640,14 +1560,14 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
     private fun fillDarkColorDarkTheme(seedColor: Int) {
         val hexStringPrimaryColor = "#" + toHexString(manipulate(seedColor, 1.0f, 1.0, 0.68)).toUpperCase()
         data["theme_dark_primary"] = hexStringPrimaryColor
-        val primaryColor: Int = Color.parseColor(hexStringPrimaryColor)
+        val primaryColor: Int = parseColor(hexStringPrimaryColor)
         data["theme_dark_onPrimary"] = "#" + toHexString(manipulate(primaryColor, 1.0f, 1.0, 0.15)).toUpperCase()
         data["theme_dark_primaryContainer"] = "#" + toHexString(manipulate(primaryColor, 1.0f, 1.0, 0.21)).toUpperCase()
         data["theme_dark_onPrimaryContainer"] = "#" + toHexString(manipulate(primaryColor, 1.0f, 1.0, 0.87)).toUpperCase()
 
         val hexStringSecondaryColor = "#" + toHexString(manipulate(primaryColor, 1.0f, 0.35, 0.77)).toUpperCase()
         data["theme_dark_secondary"] = hexStringSecondaryColor
-        val secondaryColor: Int = Color.parseColor(hexStringSecondaryColor)
+        val secondaryColor: Int = parseColor(hexStringSecondaryColor)
         data["theme_dark_onSecondary"] = "#" + toHexString(manipulate(secondaryColor, 1.0f, 0.26, 0.17)).toUpperCase()
         data["theme_dark_secondaryContainer"] = "#" + toHexString(manipulate(secondaryColor, 1.0f, 0.17, 0.26)).toUpperCase()
         data["theme_dark_onSecondaryContainer"] = "#" + toHexString(manipulate(secondaryColor, 1.0f, 0.65, 0.87)).toUpperCase()
@@ -1656,7 +1576,7 @@ class MustacheHelper(private val fileHelper: FileHelper, private val projectEdit
         val analogousRightColor = analogousRightColor(blendColors, 50.0f)
         val hexStringTertiaryColor = "#" + toHexString(manipulate(analogousRightColor, l = 0.80)).toUpperCase()
         data["theme_dark_tertiary"] = hexStringTertiaryColor
-        val tertiaryColor: Int = Color.parseColor(hexStringTertiaryColor)
+        val tertiaryColor: Int = parseColor(hexStringTertiaryColor)
         data["theme_dark_onTertiary"] = "#" + toHexString(manipulate(tertiaryColor, 1.0f, 0.55, 0.15)).toUpperCase()
         data["theme_dark_tertiaryContainer"] = "#" + toHexString(manipulate(tertiaryColor, 1.0f, 0.35, 0.25)).toUpperCase()
         data["theme_dark_onTertiaryContainer"] = "#" + toHexString(manipulate(tertiaryColor, 1.0f, 0.91, 0.87)).toUpperCase()

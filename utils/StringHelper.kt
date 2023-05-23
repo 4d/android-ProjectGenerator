@@ -1,5 +1,3 @@
-import PathHelperConstants.XML_EXT
-import PathHelperConstants.XML_TXT_EXT
 import java.text.Normalizer
 import java.util.*
 

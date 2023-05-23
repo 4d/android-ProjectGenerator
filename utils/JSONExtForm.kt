@@ -1,10 +1,3 @@
-import ProjectEditorConstants.DETAIL_KEY
-import ProjectEditorConstants.FIELDS_KEY
-import ProjectEditorConstants.FORM_KEY
-import ProjectEditorConstants.LIST_KEY
-import ProjectEditorConstants.PHOTO_TYPE
-import ProjectEditorConstants.PROJECT_KEY
-import ProjectEditorConstants.SEARCHABLE_WITH_BARCODE
 import org.json.JSONObject
 
 fun JSONObject.getFormList(dataModelList: List<DataModel>, formType: FormType, navigationTableList: List<String>, catalogDef: CatalogDef): List<Form> {
@@ -12,7 +5,7 @@ fun JSONObject.getFormList(dataModelList: List<DataModel>, formType: FormType, n
     val formTypeKey = if (formType == FormType.LIST) LIST_KEY else DETAIL_KEY
     val forms = this.getSafeObject(PROJECT_KEY)?.getSafeObject(formTypeKey)
 
-    Log.d("navigationTableList = ${navigationTableList.joinToString()}")
+    println("navigationTableList = ${navigationTableList.joinToString()}")
 
     forms?.keys()?.forEach { keyDataModel ->
         dataModelList.filter { it.isSlave == false }.find { it.id == keyDataModel }?.let { dataModel ->
@@ -46,9 +39,9 @@ fun JSONObject.getFormList(dataModelList: List<DataModel>, formType: FormType, n
                     // if Simple Table (default list form, avoid photo and relation)
                     if (formType == FormType.LIST && (it.fieldTypeString == PHOTO_TYPE || it.inverseName != null)) {
                         // don't add this field
-                        Log.d("Not adding field to default form = ${it.name}")
+                        println("Not adding field to default form = ${it.name}")
                     } else {
-                        Log.d("Adding field to default form = ${it.name}")
+                        println("Adding field to default form = ${it.name}")
                         fields.add(it)
                     }
                 }
@@ -59,10 +52,10 @@ fun JSONObject.getFormList(dataModelList: List<DataModel>, formType: FormType, n
         }
     }
 
-    Log.d("Form list extraction :")
+    println("Form list extraction :")
     formList.forEach { form ->
         form.fields?.forEach {
-            Log.d("XX: DM [${form.dataModel.name}], fieldName: ${it.name}, path: ${it.path}, field: $it")
+            println("XX: DM [${form.dataModel.name}], fieldName: ${it.name}, path: ${it.path}, field: $it")
         }
     }
 
@@ -86,12 +79,12 @@ fun JSONObject.getSearchFields(dataModelList: List<DataModel>, catalogDef: Catal
                                 if (kind == "alias") {
                                     jsonObject.getSafeString("path")?.let { path ->
                                         val unAliasedPath = unAliasPath(path, tableName ?: "", catalogDef)
-                                        Log.v("Adding searchField alias $unAliasedPath for table $tableName")
+                                        println("Adding searchField alias $unAliasedPath for table $tableName")
                                         tableSearchableFields.add(unAliasedPath)
                                     }
                                 } else {
                                     jsonObject.getSafeString("name")?.let { fieldName ->
-                                        Log.v("Adding searchField $fieldName for table $tableName")
+                                        println("Adding searchField $fieldName for table $tableName")
                                         tableSearchableFields.add(fieldName)
                                     }
                                 }
@@ -106,18 +99,18 @@ fun JSONObject.getSearchFields(dataModelList: List<DataModel>, catalogDef: Catal
                             if (kind == "alias") {
                                 searchableFieldAsObject.getSafeString("path")?.let { path ->
                                     val unAliasedPath = unAliasPath(path, tableName ?: "", catalogDef)
-                                    Log.v("Adding searchField alias $unAliasedPath for table $tableName")
+                                    println("Adding searchField alias $unAliasedPath for table $tableName")
                                     tableSearchableFields.add(unAliasedPath)
                                 }
                             } else {
                                 searchableFieldAsObject.getSafeString("name")?.let { fieldName ->
-                                    Log.v("Adding searchField $fieldName for table $tableName")
+                                    println("Adding searchField $fieldName for table $tableName")
                                     tableSearchableFields.add(fieldName)
                                 }
                             }
                         }
                     } else {
-                        Log.w("searchField definition error for table $tableName")
+                        println("searchField definition error for table $tableName")
                     }
                 }
             }
@@ -125,7 +118,7 @@ fun JSONObject.getSearchFields(dataModelList: List<DataModel>, catalogDef: Catal
                 if (tableName != null) {
                     searchFields[tableName.tableNameAdjustment()] = tableSearchableFields
                 } else {
-                    Log.e("Cannot get tableName for index $tableIndex when filling search fields")
+                    println("Cannot get tableName for index $tableIndex when filling search fields")
                 }
             }
         }

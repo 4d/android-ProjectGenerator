@@ -1,4 +1,4 @@
-object Clikt {
+//object Clikt {
     const val projectEditorText = "Project editor json file path"
     const val filesToCopyText = "Files to copy path"
     const val templateFilesText = "Template files path"
@@ -8,4 +8,4 @@ object Clikt {
 
     const val assetsText = "Assets path"
     const val dbText = "Db file path"
-}
+//}

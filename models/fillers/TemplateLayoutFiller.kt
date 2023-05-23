@@ -1,4 +1,3 @@
-import PathHelperConstants.ACTION_FROM_NAV_BAR_KEY
 
 data class TemplateLayoutFiller(
     val name: String,

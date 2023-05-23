@@ -1,10 +1,3 @@
-import ProjectEditorConstants.FIELDTYPE_KEY
-import ProjectEditorConstants.INVERSENAME_KEY
-import ProjectEditorConstants.KIND_KEY
-import ProjectEditorConstants.NAME_KEY
-import ProjectEditorConstants.RELATEDDATACLASS_KEY
-import ProjectEditorConstants.RELATEDENTITIES_KEY
-import ProjectEditorConstants.RELATEDTABLENUMBER_KEY
 import org.json.JSONObject
 
 fun getFormFields(fieldList: List<String>, dataModelName: String, catalogDef: CatalogDef): List<Field> {
@@ -49,15 +42,15 @@ fun JSONObject?.getFormField(dataModelName: String, catalogDef: CatalogDef): Fie
 
         val unAliasedPath = unAliasPath(path, dataModelName, catalogDef)
         field.path = unAliasedPath
-        Log.d("Form field creation, path : $path, unaliased path : $unAliasedPath")
-        Log.d("getFormField YY : json : $this")
+        println("Form field creation, path : $path, unaliased path : $unAliasedPath")
+        println("getFormField YY : json : $this")
         if (path == unAliasedPath && !unAliasedPath.contains(".")) { // path : FirstName, name : First
 
             // path doesn't contains "." so it can't be relation.object of type 38 Object
             // so if it's type 38 object, it's a relation
 
             val catalogRelation: Relation? = catalogDef.dataModelAliases.find { it.name == dataModelName }?.relations?.find { it.name == unAliasedPath }
-            Log.d("catalogRelation = $catalogRelation")
+            println("catalogRelation = $catalogRelation")
             catalogRelation?.let { relation ->
 
                 field.relatedDataClass = relation.target
@@ -87,11 +80,11 @@ fun JSONObject?.getFormField(dataModelName: String, catalogDef: CatalogDef): Fie
 
         // TODO: TO CHECK
         if (/*path != unAliasedPath &&*/ path.contains(".") && field.kind == "relatedEntities") {
-            Log.d("field has his name being changed to path value")
+            println("field has his name being changed to path value")
             field.name = path
         }
     }
-    Log.d("form field extracted: $field")
+    println("form field extracted: $field")
     return field
 }
 

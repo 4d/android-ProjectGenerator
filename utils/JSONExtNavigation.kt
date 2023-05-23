@@ -1,10 +1,7 @@
-import ProjectEditorConstants.MAIN_KEY
-import ProjectEditorConstants.ORDER_KEY
-import ProjectEditorConstants.PROJECT_KEY
 import org.json.JSONObject
 
 fun JSONObject.getNavigationTableList(): List<String> {
-    Log.d("this.getSafeObject(PROJECT_KEY)?.getSafeObject(MAIN_KEY) = ${this.getSafeObject(PROJECT_KEY)?.getSafeObject(MAIN_KEY)}")
+    println("this.getSafeObject(PROJECT_KEY)?.getSafeObject(MAIN_KEY) = ${this.getSafeObject(PROJECT_KEY)?.getSafeObject(MAIN_KEY)}")
     val array = this.getSafeObject(PROJECT_KEY)?.getSafeObject(MAIN_KEY)?.getSafeArray(ORDER_KEY)
     val list = mutableListOf<String>()
     array?.let {

@@ -1,28 +1,3 @@
-import DefaultValues.DEFAULT_DETAIL_FORM
-import DefaultValues.DEFAULT_LIST_FORM
-import FileHelperConstants.DS_STORE
-import FileHelperConstants.TEMPORARY_UNZIPPED_TEMPLATE_PREFIX
-import PathHelperConstants.ANDROID_PATH_KEY
-import PathHelperConstants.APP_PATH_KEY
-import PathHelperConstants.ASSETS_PATH_KEY
-import PathHelperConstants.DETAIL_FORMS_KEY
-import PathHelperConstants.DETAIL_FORM_PREFIX
-import PathHelperConstants.FORMATTERS_FORMATTER_KEY
-import PathHelperConstants.HOST_FORMATTERS_KEY
-import PathHelperConstants.HOST_FORMS
-import PathHelperConstants.HOST_INPUT_CONTROLS_KEY
-import PathHelperConstants.HOST_LOGIN_FORM_KEY
-import PathHelperConstants.JAVA_PATH_KEY
-import PathHelperConstants.LAYOUT_PATH_KEY
-import PathHelperConstants.LIST_FORMS_KEY
-import PathHelperConstants.LOGIN_FORMS_KEY
-import PathHelperConstants.MAIN_PATH_KEY
-import PathHelperConstants.NAVIGATION_PATH_KEY
-import PathHelperConstants.PACKAGE_JOINED_PH
-import PathHelperConstants.PACKAGE_PH
-import PathHelperConstants.RECYCLER_VIEW_ITEM_PREFIX
-import PathHelperConstants.RES_PATH_KEY
-import PathHelperConstants.SRC_PATH_KEY
 import java.io.File
 import java.lang.IllegalArgumentException
 
@@ -68,7 +43,7 @@ class PathHelper(
             throw Exception("Couldn't find target directory with path : $currentPath")
         }
         val subPath = paths[1].removePrefix("/").removeSuffix("\\").removePrefix(ANDROID_PATH_KEY)
-        Log.d("replaceLayoutTemplatePath, subPath = $subPath")
+        println("replaceLayoutTemplatePath, subPath = $subPath")
         return replaceDirectoriesPath(subPath)
     }
 
@@ -156,19 +131,19 @@ class PathHelper(
         if (File(formPath).exists()) {
             if (!appFolderExistsInTemplate(formPath)) {
                 return if (formType == FormType.LIST) {
-                    Log.w("WARNING : INCOMPATIBLE TEMPLATE WAS GIVEN FOR THE LIST FORM $formPath")
+                    println("WARNING : INCOMPATIBLE TEMPLATE WAS GIVEN FOR THE LIST FORM $formPath")
                     getDefaultTemplateListFormPath()
                 } else {
-                    Log.w("WARNING : INCOMPATIBLE TEMPLATE WAS GIVEN FOR THE DETAIL FORM $formPath")
+                    println("WARNING : INCOMPATIBLE TEMPLATE WAS GIVEN FOR THE DETAIL FORM $formPath")
                     getDefaultTemplateDetailFormPath()
                 }
             }
         } else {
             return if (formType == FormType.LIST) {
-                Log.w("WARNING : MISSING LIST FORM TEMPLATE $formPath")
+                println("WARNING : MISSING LIST FORM TEMPLATE $formPath")
                 getDefaultTemplateListFormPath()
             } else {
-                Log.w("WARNING : MISSING DETAIL FORM TEMPLATE $formPath")
+                println("WARNING : MISSING DETAIL FORM TEMPLATE $formPath")
                 getDefaultTemplateDetailFormPath()
             }
         }
@@ -237,7 +212,7 @@ class PathHelper(
     }
 
     fun getCustomFormatterPath(name: String): String {
-        Log.d("getCustomFormatterPath:name: $name")
+        println("getCustomFormatterPath:name: $name")
         if (name.startsWith("/")) {
             var formatterPath = ""
             formatterPath = hostFormattersPath
@@ -252,7 +227,7 @@ class PathHelper(
                     throw IllegalArgumentException("Zip file '$name' could not be found")
                 }
             }
-            Log.d("getCustomFormatterPath:return: ${hostFormattersPath + File.separator + newFormatterName.removePrefix(File.separator)}")
+            println("getCustomFormatterPath:return: ${hostFormattersPath + File.separator + newFormatterName.removePrefix(File.separator)}")
             return hostFormattersPath + File.separator + newFormatterName.removePrefix(File.separator)
         }
         throw IllegalArgumentException("Getting path of formatter $name that is not a host one ie. starting with '/'")
@@ -260,7 +235,7 @@ class PathHelper(
 
     // Need to browse all input controls and check their manifest name value
     fun getInputControlPath(name: String): String {
-        Log.d("getInputControlPath: name = $name")
+        println("getInputControlPath: name = $name")
         if (name.startsWith("/")) {
             findAppropriateFolder(hostInputControlsPath, name)?.let { inputControlFolder ->
                 return hostInputControlsPath + File.separator + inputControlFolder.name
@@ -277,9 +252,9 @@ class PathHelper(
         var templatePath = ""
         var newFormName = formName
         if (formName.startsWith("/")) {
-            Log.d("formName $formName")
+            println("formName $formName")
             templatePath = hostLoginFormTemplatesPath
-            Log.d("templatePath $templatePath")
+            println("templatePath $templatePath")
 
             if (formName.endsWith(".zip")) {
                 val zipFile = File(templatePath + File.separator + formName.removePrefix("/"))
@@ -287,20 +262,20 @@ class PathHelper(
                     val tmpDir = ZipManager.unzip(zipFile)
                     tmpUnzippedTemplateListToBeDeleted.add(tmpDir)
                     newFormName = TEMPORARY_UNZIPPED_TEMPLATE_PREFIX + formName.removePrefix("/").removeSuffix(".zip")
-                    Log.d("newFormName $newFormName")
+                    println("newFormName $newFormName")
                     return templatePath + File.separator + newFormName.removePrefix(File.separator)
                 }
             } else {
-                Log.d("newFormName $newFormName")
+                println("newFormName $newFormName")
                 return templatePath + File.separator + newFormName.removePrefix(File.separator)
             }
         }
-        Log.d("getTemplateLoginFormPath returns null")
+        println("getTemplateLoginFormPath returns null")
         return null
     }
 
     private fun findAppropriateFolder(basePath: String, nameInManifest: String): File? {
-        Log.d("findAppropriateFolder, basePath : $basePath, nameInManifest: $nameInManifest")
+        println("findAppropriateFolder, basePath : $basePath, nameInManifest: $nameInManifest")
         File(basePath).walkTopDown().filter { folder -> !folder.isHidden && folder.isDirectory }
             .forEach { currentFolder ->
                 getManifestJSONContent(currentFolder.absolutePath.replaceIfWindowsPath())?.let { jsonContent ->
@@ -313,10 +288,10 @@ class PathHelper(
     }
 
     private fun findAppropriateZip(basePath: String, nameInManifest: String): File? {
-        Log.d("findAppropriateZip, basePath : $basePath, nameInManifest: $nameInManifest")
+        println("findAppropriateZip, basePath : $basePath, nameInManifest: $nameInManifest")
         File(basePath).walkTopDown().filter { file -> !file.isHidden && file.isFile && file.extension == "zip" }
             .forEach { zipFile ->
-                Log.d("zipFile: $zipFile")
+                println("zipFile: $zipFile")
                 val tmpDir = ZipManager.unzip(zipFile)
                 tmpUnzippedTemplateListToBeDeleted.add(tmpDir)
                 tmpDir.walkTopDown().firstOrNull { zipContent -> zipContent.name == "manifest.json" }?.let { manifestFile ->
@@ -331,7 +306,7 @@ class PathHelper(
     }
 
     fun findMatchingKotlinClass(basePath: String, annotation: String): String? {
-        Log.d("findMatchingInputControlClass, basePath : $basePath")
+        println("findMatchingInputControlClass, basePath : $basePath")
         File(basePath).walkTopDown().filter { folder -> !folder.isHidden && folder.isDirectory }
             .forEach { currentFolder ->
                 currentFolder.walkTopDown()
@@ -348,11 +323,11 @@ class PathHelper(
 
     fun deleteTemporaryUnzippedDirectories() {
         tmpUnzippedTemplateListToBeDeleted.forEach { fileToBeDeleted ->
-            Log.d("Dir to be deleted : ${fileToBeDeleted.absolutePath}")
+            println("Dir to be deleted : ${fileToBeDeleted.absolutePath}")
             if (fileToBeDeleted.deleteRecursively()) {
-                Log.d("Temporary unzipped template directory successfully deleted.")
+                println("Temporary unzipped template directory successfully deleted.")
             } else {
-                Log.w("Could not delete temporary unzipped template directory.")
+                println("Could not delete temporary unzipped template directory.")
             }
         }
     }
