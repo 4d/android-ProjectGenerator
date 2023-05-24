@@ -41,3 +41,9 @@ jobs:
       run: |
           source $HOME/.sdkman/bin/sdkman-init.sh
           ./build.sh
+    - name: artefact
+      uses: actions/upload-artifact@v3
+      with:
+        name: androidprojectgenerator
+        path: androidprojectgenerator.jar
+        retention-days: 1
