@@ -62,26 +62,26 @@ class GenerateCommand : CliktCommand(name = "generate") {
     }
 
     override fun run() {
-        println("Parameters checked.")
-        println("Version: ${Version.VALUE}")
-        println("Starting procedure...")
+        Log.i("Parameters checked.")
+        Log.i("Version: ${Version.VALUE}")
+        Log.i("Starting procedure...")
         start()
-        println("Procedure complete.")
+        Log.i("Procedure complete.")
     }
 
     private fun start() {
 
-        println("file: ${projectEditorJson.path}...")
+        Log.i("file: ${projectEditorJson.path}...")
 
         val catalogDef = CatalogDef(catalogJson)
 
-        println("Reading catalog json file done.")
-        println("--------------------------------------")
+        Log.i("Reading catalog json file done.")
+        Log.i("--------------------------------------")
 
         val projectEditor = ProjectEditor(projectEditorFile = projectEditorJson, catalogDef = catalogDef)
 
-        println("Reading project editor json file done.")
-        println("--------------------------------------")
+        Log.i("Reading project editor json file done.")
+        Log.i("--------------------------------------")
 
         var targetDirPath = ""
         projectEditor.findJsonString("targetDirPath")?.let {
@@ -108,67 +108,67 @@ class GenerateCommand : CliktCommand(name = "generate") {
 
         val fileHelper = FileHelper(pathHelper)
 
-        println("Start gathering Mustache templating data...")
+        Log.i("Start gathering Mustache templating data...")
 
         val mustacheHelper = MustacheHelper(fileHelper, projectEditor)
 
-        println("Gathering Mustache templating data done.")
-        println("----------------------------------------")
+        Log.i("Gathering Mustache templating data done.")
+        Log.i("----------------------------------------")
 
         fileHelper.copyFiles()
 
-        println("Files successfully copied.")
+        Log.i("Files successfully copied.")
 
         fileHelper.createPathDirectories()
 
-        println("Start applying Mustache templating...")
+        Log.i("Start applying Mustache templating...")
 
         mustacheHelper.applyListFormTemplate()
 
-        println("Applied List Form Templates")
+        Log.i("Applied List Form Templates")
 
         mustacheHelper.applyDetailFormTemplate()
 
-        println("Applied Detail Form Templates")
+        Log.i("Applied Detail Form Templates")
 
         pathHelper.deleteTemporaryUnzippedDirectories()
 
-        println("Deleted Temporary Unzipped Directories")
+        Log.i("Deleted Temporary Unzipped Directories")
 
         mustacheHelper.processTemplates()
 
-        println("Mustache templating done.")
+        Log.i("Mustache templating done.")
 
         mustacheHelper.copyFilesAfterGlobalTemplating()
 
-        println("Copied remaining files after templating")
+        Log.i("Copied remaining files after templating")
 
-        println("-------------------------")
+        Log.i("-------------------------")
 
         mustacheHelper.makeTableInfo()
 
-        println("\"$TABLE_INFO_FILENAME\" file successfully generated.")
+        Log.i("\"$TABLE_INFO_FILENAME\" file successfully generated.")
 
         mustacheHelper.makeAppInfo()
 
-        println("\"$APP_INFO_FILENAME\" file successfully generated.")
+        Log.i("\"$APP_INFO_FILENAME\" file successfully generated.")
 
         mustacheHelper.makeCustomFormatters()
 
-        println("\"$CUSTOM_FORMATTERS_FILENAME\" file successfully generated.")
+        Log.i("\"$CUSTOM_FORMATTERS_FILENAME\" file successfully generated.")
 
         mustacheHelper.makeInputControls()
 
-        println("\"$INPUT_CONTROLS_FILENAME\" file successfully generated.")
+        Log.i("\"$INPUT_CONTROLS_FILENAME\" file successfully generated.")
 
         mustacheHelper.makeActions()
 
-        println("\"$ACTIONS_FILENAME\" file successfully generated.")
+        Log.i("\"$ACTIONS_FILENAME\" file successfully generated.")
 
-        println("Output: ${projectEditor.findJsonString("targetDirPath")}")
+        Log.i("Output: ${projectEditor.findJsonString("targetDirPath")}")
 
-        println("data:")
-        logData(mustacheHelper.data)
+        Log.i("data:")
+        Log.logData(mustacheHelper.data)
     }
 }
 
@@ -200,30 +200,30 @@ class CreateDatabaseCommand : CliktCommand(name = "createDatabase") {
     }
 
     override fun run() {
-        println("Parameters checked.")
-        println("Version: ${Version.VALUE}")
-        println("Starting procedure...")
+        Log.i("Parameters checked.")
+        Log.i("Version: ${Version.VALUE}")
+        Log.i("Starting procedure...")
         start()
-        println("Procedure complete.")
+        Log.i("Procedure complete.")
     }
 
     private fun start() {
 
-        println("file: ${projectEditorJson.path}...")
+        Log.i("file: ${projectEditorJson.path}...")
 
         val catalogDef = CatalogDef(catalogJson)
 
-        println("Reading catalog json file done.")
-        println("--------------------------------------")
+        Log.i("Reading catalog json file done.")
+        Log.i("--------------------------------------")
 
         val projectEditor = ProjectEditor(projectEditorFile = projectEditorJson, catalogDef = catalogDef, isCreateDatabaseCommand = true)
 
-        println("Reading project editor json file done.")
-        println("--------------------------------------")
+        Log.i("Reading project editor json file done.")
+        Log.i("--------------------------------------")
 
         CreateDatabaseTask(projectEditor.dataModelList, ASSETS, DBFILEPATH)
 
-        println("Output: $DBFILEPATH}")
+        Log.i("Output: $DBFILEPATH}")
     }
 }
 

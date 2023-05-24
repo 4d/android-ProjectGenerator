@@ -21,7 +21,7 @@ class ProjectEditor(projectEditorFile: File, val catalogDef: CatalogDef, isCreat
 
     init {
         val jsonString = projectEditorFile.readFile()
-        println("==================================\n" +
+        Log.d("==================================\n" +
                 "ProjectEditor init\n" +
                 "==================================\n")
 
@@ -34,24 +34,24 @@ class ProjectEditor(projectEditorFile: File, val catalogDef: CatalogDef, isCreat
 
             if (isCreateDatabaseCommand) {
                 dataModelList = jsonObj.getDataModelList(catalogDef, isCreateDatabaseCommand = true)
-                println("> DataModels list successfully read.")
+                Log.d("> DataModels list successfully read.")
 
             } else {
 
                 navigationTableList = jsonObj.getNavigationTableList()
-                println("> Navigation tables list successfully read.")
+                Log.d("> Navigation tables list successfully read.")
 
                 dataModelList = jsonObj.getDataModelList(catalogDef)
-                println("> DataModels list successfully read.")
+                Log.d("> DataModels list successfully read.")
 
                 searchableFields = jsonObj.getSearchFields(dataModelList, catalogDef)
-                println("> Searchable fields successfully read.")
+                Log.d("> Searchable fields successfully read.")
 
                 listFormList = jsonObj.getFormList(dataModelList, FormType.LIST, navigationTableList, catalogDef)
-                println("> List forms list successfully read.")
+                Log.d("> List forms list successfully read.")
 
                 detailFormList = jsonObj.getFormList(dataModelList, FormType.DETAIL, navigationTableList, catalogDef)
-                println("> Detail forms list successfully read.")
+                Log.d("> Detail forms list successfully read.")
 
                 defaultSortFields = jsonObj.getDefaultSortFields(dataModelList)
 
@@ -68,7 +68,7 @@ class ProjectEditor(projectEditorFile: File, val catalogDef: CatalogDef, isCreat
                 }.toMutableList()
                 
                 val hasDeepLinkingFeatureFlag = findJsonBoolean(HAS_DEEP_LINKING) ?: true
-                println("hasDeepLinkingFeatureFlag = $hasDeepLinkingFeatureFlag")
+                Log.d("hasDeepLinkingFeatureFlag = $hasDeepLinkingFeatureFlag")
                 if (hasDeepLinkingFeatureFlag) {
                     deepLink = jsonObj.getDeepLinkScheme()
                     universalLinkWithBundleId = jsonObj.getUniversalLink(findJsonString("bundleIdentifier"))
@@ -78,7 +78,7 @@ class ProjectEditor(projectEditorFile: File, val catalogDef: CatalogDef, isCreat
             }
 
         } ?: kotlin.run {
-            println("Could not read global json object from file ${projectEditorFile.name}")
+            Log.e("Could not read global json object from file ${projectEditorFile.name}")
         }
     }
 
@@ -181,12 +181,12 @@ class ProjectEditor(projectEditorFile: File, val catalogDef: CatalogDef, isCreat
     }
 
     fun buildTableInfo(tableFieldsMap: Map<String, List<Field>>): Map<String, TableInfo> {
-        println("tableFieldsMap = $tableFieldsMap")
+        Log.d("tableFieldsMap = $tableFieldsMap")
         val map = mutableMapOf<String, TableInfo>()
 
         for ((originalTableName, fields) in tableFieldsMap) {
-            println("buildBodyJsonQueries, originalTableName: $originalTableName")
-            println("buildBodyJsonQueries, fields names: ${fields.map { it.name }}")
+            Log.d("buildBodyJsonQueries, originalTableName: $originalTableName")
+            Log.d("buildBodyJsonQueries, fields names: ${fields.map { it.name }}")
 
             val tableName = originalTableName.tableNameAdjustment()
 

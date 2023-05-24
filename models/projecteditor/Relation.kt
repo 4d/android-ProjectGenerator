@@ -10,18 +10,18 @@ data class Relation(
 )
 
 fun destBeforeField(catalogDef: CatalogDef, source: String, path: String?): String {
-    println("destBeforeField, source: $source, path: $path")
+    Log.d("destBeforeField, source: $source, path: $path")
     var nextTableName = source
     path?.split(".")?.forEach eachPathPart@{
         val pair = checkPath(it, nextTableName, catalogDef)
-        println("destBeforeField, pair: $pair")
+        Log.d("destBeforeField, pair: $pair")
         nextTableName = pair.first ?: return@eachPathPart
     }
     return nextTableName
 }
 
 fun destWithField(catalogDef: CatalogDef, source: String, path: String): String {
-    println("destWithField, source: $source, path: $path")
+    Log.d("destWithField, source: $source, path: $path")
     var nextSource = source
     path.split(".").forEach { part ->
         val relation = catalogDef.relations.find { it.source == nextSource && it.name == part }
@@ -29,7 +29,7 @@ fun destWithField(catalogDef: CatalogDef, source: String, path: String): String 
             nextSource = relation.target
         } ?: run {
             val field = catalogDef.dataModelAliases.find { it.name == nextSource }?.fields?.find { it.name == path.substringAfterLast(".") }
-            println("destWithField, returns field : $field")
+            Log.d("destWithField, returns field : $field")
             return field?.fieldTypeString ?: ""
         }
     }
@@ -40,20 +40,20 @@ fun Relation.isNotNativeType(dataModelList: List<DataModel>): Boolean = dataMode
 
 fun findRelation(dataModelList: List<DataModel>, source: String, field: Field): Relation? {
     dataModelList.find { it.name == source }?.relations?.filter { it.isNotNativeType(dataModelList) }?.find { it.name == field.name }?.let { relation ->
-        println("Found relation from name $relation")
+        Log.d("Found relation from name $relation")
         return relation
     } ?: kotlin.run {
-        println("No relation found with same name")
+        Log.d("No relation found with same name")
 
         // If simple relation -> path will be null
         dataModelList.find { it.name == source }?.relations?.filter { it.isNotNativeType(dataModelList) }?.find { it.path == field.path }?.let { relation ->
-            println("Found relation from path $relation")
+            Log.d("Found relation from path $relation")
             return relation
         } ?: kotlin.run {
-            println("No relation found with same path")
+            Log.d("No relation found with same path")
 
             dataModelList.find { it.name == source }?.relations?.filter { it.isNotNativeType(dataModelList) }?.find { it.name == field.path }?.let { relation ->
-                println("Found relation from name with path $relation")
+                Log.d("Found relation from name with path $relation")
                 return relation
             }
         }
@@ -63,14 +63,14 @@ fun findRelation(dataModelList: List<DataModel>, source: String, field: Field): 
 
 fun findRelationFromPath(dataModelList: List<DataModel>, source: String, path: String): Relation? {
     dataModelList.find { it.name == source }?.relations?.filter { it.isNotNativeType(dataModelList) }?.find { it.name == path }?.let { relation ->
-        println("Found relation from name $relation")
+        Log.d("Found relation from name $relation")
         return relation
     } ?: kotlin.run {
-        println("No relation found with same name")
+        Log.d("No relation found with same name")
 
         // If simple relation -> path will be null
         dataModelList.find { it.name == source }?.relations?.filter { it.isNotNativeType(dataModelList) }?.find { it.path == path }?.let { relation ->
-            println("Found relation from path $relation")
+            Log.d("Found relation from path $relation")
             return relation
         }
     }
@@ -78,7 +78,7 @@ fun findRelationFromPath(dataModelList: List<DataModel>, source: String, path: S
 }
 
 fun getRelationType(catalogDef: CatalogDef, source: String, path: String): RelationType {
-    println("getRelationType, source: $source, path: $path")
+    Log.d("getRelationType, source: $source, path: $path")
     var nextSource = source
     path.split(".").forEach { part ->
         val relation = catalogDef.relations.find { it.source == nextSource && it.name == part }
@@ -91,10 +91,10 @@ fun getRelationType(catalogDef: CatalogDef, source: String, path: String): Relat
 
 // Pair<String, String> : source, path
 fun getFollowingTypeToCreate(catalogDef: CatalogDef, source: String, path: String): Pair<String, String>? {
-    println("getFollowingTypeToCreate, source = $source, path = $path")
+    Log.d("getFollowingTypeToCreate, source = $source, path = $path")
     val pathList = path.split(".")
     val firstTarget = catalogDef.dataModelAliases.find { it.name == source }?.relations?.find { it.name == pathList.first() }?.target ?: ""
-    println("getFollowingTypeToCreate, firstTarget: $firstTarget")
+    Log.d("getFollowingTypeToCreate, firstTarget: $firstTarget")
     if (pathList.size == 1) {
         return null
     }
@@ -102,17 +102,17 @@ fun getFollowingTypeToCreate(catalogDef: CatalogDef, source: String, path: Strin
 }
 
 fun getRelationsToCreate(catalogDef: CatalogDef, source: String, path: String): MutableList<Relation> {
-    println("getRelationsToCreate, source: $source, path: $path")
+    Log.d("getRelationsToCreate, source: $source, path: $path")
     val newRelationList = mutableListOf<Relation>()
 
     var nextSource = source
     var nextPath = path
-    println("going To enter While")
-    println("nextSource = $nextSource")
-    println("nextPath = $nextPath")
+    Log.d("going To enter While")
+    Log.d("nextSource = $nextSource")
+    Log.d("nextPath = $nextPath")
     while (nextPath.contains(".")) {
         val pair = getFollowingTypeToCreate(catalogDef, nextSource, nextPath) ?: break
-        println("pair = $pair")
+        Log.d("pair = $pair")
         val target = destBeforeField(catalogDef, nextSource, nextPath)
         val nextRelation = Relation(
             source = nextSource,
@@ -124,22 +124,22 @@ fun getRelationsToCreate(catalogDef: CatalogDef, source: String, path: String): 
             path = nextPath,
             relation_embedded_return_type = buildRelationEmbeddedReturnType(catalogDef, nextSource, nextPath)
         )
-        println("Adding nextRelation : $nextRelation")
+        Log.d("Adding nextRelation : $nextRelation")
         newRelationList.add(nextRelation)
         nextSource = pair.first
         nextPath = pair.second
     }
-    println("End of while")
+    Log.d("End of while")
     return newRelationList
 }
 
 fun buildRelationEmbeddedReturnType(catalogDef: CatalogDef, source: String, path: String?): String {
     if (path != null) {
-        println("buildRelationEmbeddedReturnType, source: $source, path: $path")
+        Log.d("buildRelationEmbeddedReturnType, source: $source, path: $path")
         val pathList = path.split(".")
         val firstTarget =
             catalogDef.dataModelAliases.find { it.name == source }?.relations?.find { it.name == pathList.first() }?.target ?: ""
-        println("buildRelationEmbeddedReturnType, firstTarget: $firstTarget")
+        Log.d("buildRelationEmbeddedReturnType, firstTarget: $firstTarget")
         if (pathList.size == 1) {
             return firstTarget
         }
@@ -158,16 +158,16 @@ fun getEmbeddedReturnTypeName(first: String, second: String): String {
  * Returns a Pair of <nextTableSource, path>
  */
 fun checkPath(pathPart: String, source: String, catalogDef: CatalogDef): Pair<String?, String> {
-    println("checkPath, source: $source, name: $pathPart")
+    Log.d("checkPath, source: $source, name: $pathPart")
 
     val relation = catalogDef.relations.firstOrNull { it.source == source && it.name == pathPart }
-    println("checkPath, relation: $relation")
+    Log.d("checkPath, relation: $relation")
 
     return when {
         relation == null -> {
             // check if it's a field alias
             val field = catalogDef.dataModelAliases.find { it.name == source }?.fields?.find { it.name == pathPart && it.kind == "alias" }
-            println("found field is = $field")
+            Log.d("found field is = $field")
             if (field != null) {
                 val nextTableName = catalogDef.dataModelAliases.find { it.tableNumber == field.relatedTableNumber }?.name
                 Pair(nextTableName, unAliasPath(field.path, source, catalogDef))
@@ -193,7 +193,7 @@ fun checkPath(pathPart: String, source: String, catalogDef: CatalogDef): Pair<St
 
 fun Field.getFieldAliasName(dataModelList: List<DataModel>): String {
     if (this.isFieldAlias(dataModelList)) {
-        println("getFieldAliasName, aliasField here, field is $this")
+        Log.d("getFieldAliasName, aliasField here, field is $this")
         val path = this.path ?: ""
         if (path.contains(".")) {
             var name = ""
@@ -201,19 +201,19 @@ fun Field.getFieldAliasName(dataModelList: List<DataModel>): String {
             while (nextPath.contains(".")) {
 
                 name += nextPath.relationNameAdjustment() + "."
-                println("building name = $name")
+                Log.d("building name = $name")
 
                 nextPath = nextPath.substringAfter(".")
             }
             val returnName = name + nextPath.relationNameAdjustment() + "." + path.substringAfterLast(".").fieldAdjustment()
-            println("getFieldAliasName returnName: $returnName")
+            Log.d("getFieldAliasName returnName: $returnName")
             return returnName
         } else {
             return path.fieldAdjustment()
         }
     } else {
-        println("getFieldAliasName kept name, ${this.name}")
-        println("field is $this")
+        Log.d("getFieldAliasName kept name, ${this.name}")
+        Log.d("field is $this")
         return this.name.fieldAdjustment()
     }
 }
@@ -235,12 +235,12 @@ fun unAliasPath(path: String?, source: String, catalogDef: CatalogDef): String {
 // REMINDER : kind == "alias" condition removed because alias.FirstName is not an alias kind
 fun Field.isFieldAlias(dataModelList: List<DataModel>): Boolean {
     val isFieldAlias = path?.isNotEmpty() == true /*&& kind == "alias"*/ && this.isNativeType(dataModelList)
-    println("isFieldAlias [${this.name}]: $isFieldAlias, field : $this")
+    Log.d("isFieldAlias [${this.name}]: $isFieldAlias, field : $this")
     return isFieldAlias
 }
 
 fun getRelation(field: Field, tableName: String, subFields: List<Field>): Relation? {
-    println("getRelation, field: $field")
+    Log.d("getRelation, field: $field")
     when (field.kind) {
         "relatedEntity" -> {
             field.relatedDataClass?.let {

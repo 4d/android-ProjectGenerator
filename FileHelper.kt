@@ -21,11 +21,11 @@ class FileHelper(val pathHelper: PathHelper) {
         val sourceFolder = File(pathHelper.filesToCopy)
         val targetFolder = File(pathHelper.targetDirPath)
         if (targetFolder.exists()) {
-            println("SDK files already exist in target path ${pathHelper.targetDirPath}, will try to delete previous build files.")
+            Log.d("SDK files already exist in target path ${pathHelper.targetDirPath}, will try to delete previous build files.")
             if (targetFolder.deleteRecursively()) {
-                println("Old project files successfully deleted.")
+                Log.d("Old project files successfully deleted.")
             } else {
-                println("Could not delete old project files.")
+                Log.w("Could not delete old project files.")
             }
         }
         targetFolder.mkdir()
@@ -95,7 +95,7 @@ fun getManifest(path: String): File = File(path + File.separator + "manifest.jso
 
 // Used for both custom templates and custom formatters
 fun getManifestJSONContent(path: String): JSONObject? {
-    println("getManifestJSONContent: $path")
+    Log.d("getManifestJSONContent: $path")
     val manifest = getManifest(path)
     return getManifestJSONContent(manifest)
 }

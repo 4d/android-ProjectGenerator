@@ -70,7 +70,7 @@ fun getEmbeddedReturnType(relation: Relation): String {
 }
 
 fun getKeyName(catalogDef: CatalogDef, relation: Relation): String {
-    println("getKeyName, relation: $relation")
+    Log.d("getKeyName, relation: $relation")
     var key = ""
 
     if (relation.path.isEmpty()) {
@@ -80,7 +80,7 @@ fun getKeyName(catalogDef: CatalogDef, relation: Relation): String {
             relation.name
     } else {
         if (relation.path.count { it == '.' } > 0) {
-            println("relation.path contains at least one '.'")
+            Log.d("relation.path contains at least one '.'")
             val firstRelationName = relation.path.split(".")[0]
             // la relation du premier element avant "."
             catalogDef.relations.find { it.source == relation.source && it.name == firstRelationName }?.let { firstRelation ->
@@ -89,7 +89,7 @@ fun getKeyName(catalogDef: CatalogDef, relation: Relation): String {
                     firstRelation.inverseName
                 else
                     firstRelation.name
-                println("key = $key")
+                Log.d("key = $key")
             }
         } else if (relation.path.count { it == '.' } == 0){ // serv
             key = relation.path.fieldAdjustment()
@@ -113,8 +113,8 @@ data class TemplateRelationForRoomFiller(
 )
 
 fun Relation.getTemplateRelationForRoomFiller(catalogDef: CatalogDef): TemplateRelationForRoomFiller? {
-    println("getTemplateRelationForRoomFiller")
-    println("relation: $this")
+    Log.d("getTemplateRelationForRoomFiller")
+    Log.d("relation: $this")
     if (this.path.isEmpty()) {
         val key = if (this.type == RelationType.ONE_TO_MANY)
             this.inverseName
@@ -134,19 +134,19 @@ fun Relation.getTemplateRelationForRoomFiller(catalogDef: CatalogDef): TemplateR
         )
     } else {
         if (this.path.count { it == '.' } > 0) {
-            println("path contains at least one '.'")
+            Log.d("path contains at least one '.'")
             val firstRelationName = this.path.split(".")[0]
-            println("firstRelationName = $firstRelationName")
+            Log.d("firstRelationName = $firstRelationName")
 
             // la relation du premier element avant "."
             catalogDef.relations.find { it.source == this.source && it.name == firstRelationName }?.let { firstRelation ->
-//                println("firstRelation: $firstRelation")
+//                Log.d("firstRelation: $firstRelation")
                 val key = if (firstRelation.type == RelationType.ONE_TO_MANY)
                     firstRelation.inverseName
                 else
                     firstRelation.name
 
-                println("key = $key")
+                Log.d("key = $key")
                 return TemplateRelationForRoomFiller(
                     className = getEmbeddedReturnTypeName(source, name),
                     relation_source = source.tableNameAdjustment(),
