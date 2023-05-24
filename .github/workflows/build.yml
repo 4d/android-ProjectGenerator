@@ -24,6 +24,7 @@ jobs:
         version: 17.0.7-amzn
     - name: Set up Kscript
       run: |
+          source $HOME/.sdkman/bin/sdkman-init.sh
           sdk install kscript 4.2.2
           sdk use kscript 4.2.2
 
