@@ -27,7 +27,7 @@ class FeatureChecker(projectEditor: ProjectEditor) {
     private fun shouldSkipIfDataSet(currentFile: File): Boolean {
         filesPathToSkipIfDataSet.forEach {
             if (currentFile.path.contains(it)) {
-                println("Skipping because DataSet : $currentFile")
+                Log.d("Skipping because DataSet : $currentFile")
                 return true
             }
         }
@@ -37,7 +37,7 @@ class FeatureChecker(projectEditor: ProjectEditor) {
     private fun shouldSkipIfNotDebug(currentFile: File): Boolean {
         filesPathToSkipIfNotDebug.forEach {
             if (currentFile.path.contains(it)) {
-                println("Skipping because not debug : $currentFile")
+                Log.d("Skipping because not debug : $currentFile")
                 return true
             }
         }

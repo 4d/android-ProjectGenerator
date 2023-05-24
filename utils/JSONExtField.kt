@@ -42,15 +42,15 @@ fun JSONObject?.getFormField(dataModelName: String, catalogDef: CatalogDef): Fie
 
         val unAliasedPath = unAliasPath(path, dataModelName, catalogDef)
         field.path = unAliasedPath
-        println("Form field creation, path : $path, unaliased path : $unAliasedPath")
-        println("getFormField YY : json : $this")
+        Log.d("Form field creation, path : $path, unaliased path : $unAliasedPath")
+        Log.d("getFormField YY : json : $this")
         if (path == unAliasedPath && !unAliasedPath.contains(".")) { // path : FirstName, name : First
 
             // path doesn't contains "." so it can't be relation.object of type 38 Object
             // so if it's type 38 object, it's a relation
 
             val catalogRelation: Relation? = catalogDef.dataModelAliases.find { it.name == dataModelName }?.relations?.find { it.name == unAliasedPath }
-            println("catalogRelation = $catalogRelation")
+            Log.d("catalogRelation = $catalogRelation")
             catalogRelation?.let { relation ->
 
                 field.relatedDataClass = relation.target
@@ -80,11 +80,11 @@ fun JSONObject?.getFormField(dataModelName: String, catalogDef: CatalogDef): Fie
 
         // TODO: TO CHECK
         if (/*path != unAliasedPath &&*/ path.contains(".") && field.kind == "relatedEntities") {
-            println("field has his name being changed to path value")
+            Log.d("field has his name being changed to path value")
             field.name = path
         }
     }
-    println("form field extracted: $field")
+    Log.d("form field extracted: $field")
     return field
 }
 

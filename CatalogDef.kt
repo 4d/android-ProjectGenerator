@@ -10,7 +10,7 @@ class CatalogDef(catalogFile: File) {
 
     init {
         val jsonString = catalogFile.readFile()
-        println(
+        Log.d(
             "==================================\n" +
                     "CatalogDef init\n" +
                     "==================================\n"
@@ -26,10 +26,10 @@ class CatalogDef(catalogFile: File) {
             baseCatalogDef = getCatalogDef(isBaseDef = true)
             dataModelAliases = getCatalogDef()
             relations = getCatalogRelations()
-            println("> DataModels list successfully read.")
+            Log.d("> DataModels list successfully read.")
 
         } ?: kotlin.run {
-            println("Could not read global json object from file ${catalogFile.name}")
+            Log.e("Could not read global json object from file ${catalogFile.name}")
         }
     }
 
@@ -48,15 +48,15 @@ class CatalogDef(catalogFile: File) {
 
     private fun getCatalogRelations(): List<Relation> {
         val tabNames = listOf("Emp", "Serv", "Off")
-        println(" ===== RELATIONS =====")
+        Log.d(" ===== RELATIONS =====")
         dataModelAliases.filter { it.name in tabNames }.forEach { dm ->
-            println("FIELDS --------")
+            Log.d("FIELDS --------")
             dm.fields.forEach { field ->
-                println("[${dm.name}] ${field.name}")
+                Log.d("[${dm.name}] ${field.name}")
             }
-            println("RELATIONS --------")
+            Log.d("RELATIONS --------")
             dm.relations.forEach { relation ->
-                println("[${dm.name}] ${relation.name} (${relation.path})")
+                Log.d("[${dm.name}] ${relation.name} (${relation.path})")
             }
         }
         return dataModelAliases.flatMap { it.relations }

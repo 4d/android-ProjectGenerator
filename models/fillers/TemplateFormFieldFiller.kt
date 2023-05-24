@@ -40,7 +40,7 @@ fun Field.getTemplateFormFieldFiller(
     pathHelper: PathHelper,
     catalogDef: CatalogDef
 ): TemplateFormFieldFiller {
-    println("createDetailFormField : field = $this")
+    Log.d("createDetailFormField : field = $this")
 
     val templateFormFieldFiller = TemplateFormFieldFiller(
         name = this.getFieldAliasName(dataModelList),
@@ -71,6 +71,6 @@ fun Field.getTemplateFormFieldFiller(
         isKotlinCustomFormat = !pathHelper.isValidFormatter(formatType) && pathHelper.isValidKotlinCustomFormatter(formatType),
         kotlinCustomFormatBinding = if (!pathHelper.isValidFormatter(formatType) && pathHelper.isValidKotlinCustomFormatter(formatType)) pathHelper.getKotlinCustomFormatterBinding(formatType) else ""
     )
-    println("createDetailFormField : templateFormFieldFiller = $templateFormFieldFiller")
+    Log.d("createDetailFormField : templateFormFieldFiller = $templateFormFieldFiller")
     return templateFormFieldFiller
 }

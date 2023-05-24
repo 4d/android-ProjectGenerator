@@ -1,7 +1,7 @@
 import org.json.JSONObject
 
 fun JSONObject.getNavigationTableList(): List<String> {
-    println("this.getSafeObject(PROJECT_KEY)?.getSafeObject(MAIN_KEY) = ${this.getSafeObject(PROJECT_KEY)?.getSafeObject(MAIN_KEY)}")
+    Log.d("this.getSafeObject(PROJECT_KEY)?.getSafeObject(MAIN_KEY) = ${this.getSafeObject(PROJECT_KEY)?.getSafeObject(MAIN_KEY)}")
     val array = this.getSafeObject(PROJECT_KEY)?.getSafeObject(MAIN_KEY)?.getSafeArray(ORDER_KEY)
     val list = mutableListOf<String>()
     array?.let {

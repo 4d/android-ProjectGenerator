@@ -33,7 +33,7 @@ fun Field.getImageFieldName() = this.path?.substringAfterLast(".") ?: ""
 
 fun Field.getFieldKeyAccessor(dataModelList: List<DataModel>): String {
     if (this.isFieldAlias(dataModelList)) {
-        println("getFieldKeyAccessor, aliasField here, field is $this")
+        Log.d("getFieldKeyAccessor, aliasField here, field is $this")
         val path = this.path ?: ""
         if (path.contains(".")) {
             var name = ""
@@ -41,12 +41,12 @@ fun Field.getFieldKeyAccessor(dataModelList: List<DataModel>): String {
             while (nextPath.contains(".")) {
 
                 name += nextPath.relationNameAdjustment() + "."
-                println("building name = $name")
+                Log.d("building name = $name")
 
                 nextPath = nextPath.substringAfter(".")
             }
             val returnName = name + nextPath.relationNameAdjustment() + "." + path.substringAfterLast(".").fieldAdjustment()
-            println("getFieldKeyAccessor returnName: $returnName")
+            Log.d("getFieldKeyAccessor returnName: $returnName")
             return returnName.substringBeforeLast(".") + ".__KEY"
         } else {
             return "__KEY"
@@ -57,7 +57,7 @@ fun Field.getFieldKeyAccessor(dataModelList: List<DataModel>): String {
 }
 
 fun Field.getLayoutVariableAccessor(): String {
-    println("getLayoutVariableAccessor: this = $this")
+    Log.d("getLayoutVariableAccessor: this = $this")
     return if (this.name.fieldAdjustment().contains(".") || (this.kind == "alias" && this.path?.contains(".") == true))
         "entityData."
     else
@@ -78,8 +78,8 @@ fun Field.getShortLabel(): String {
 
 fun getIcon(dataModelList: List<DataModel>, form: Form, formField: Field): String {
     val fieldFromDataModel: Field = getDataModelField(dataModelList, form.dataModel, formField) ?: return ""
-    println("getIcon, formField $formField")
-    println("getIcon, fieldFromDataModel $fieldFromDataModel")
+    Log.d("getIcon, formField $formField")
+    Log.d("getIcon, fieldFromDataModel $fieldFromDataModel")
     if (fieldFromDataModel.icon.isNullOrEmpty()) {
         fieldFromDataModel.id = when {
             fieldFromDataModel.isSlave == true -> formField.name
@@ -134,7 +134,7 @@ fun correctIconPath(iconPath: String): String {
 
 fun getFormatNameForType(pathHelper: PathHelper, dataModelList: List<DataModel>, form: Form, formField: Field): String {
     val fieldFromDataModel: Field = getDataModelField(dataModelList, form.dataModel, formField) ?: return ""
-    println("getFormatNameForType, [${fieldFromDataModel.name}] field: $fieldFromDataModel")
+    Log.d("getFormatNameForType, [${fieldFromDataModel.name}] field: $fieldFromDataModel")
     val format = fieldFromDataModel.format
     if (format.equals("integer")) {
         return when (fieldFromDataModel.fieldType) {
@@ -177,18 +177,18 @@ fun getFormatNameForType(pathHelper: PathHelper, dataModelList: List<DataModel>,
 }
 
 fun getDataModelField(dataModelList: List<DataModel>, dataModel: DataModel, field: Field): Field? {
-    println("getDataModelField [${field.name}], field: $field")
+    Log.d("getDataModelField [${field.name}], field: $field")
     val partCount = field.name.count { it == '.'}
     val dataModel = dataModelList.find { it.id == dataModel.id }
     if (field.name.contains(".")) {
-        println("getDataModelField field.name contains '.'")
+        Log.d("getDataModelField field.name contains '.'")
         dataModel?.relations?.find { it.name == field.name.split(".")[0] }?.let { fieldInRelationList ->
-            println("fieldInRelationList: $fieldInRelationList")
+            Log.d("fieldInRelationList: $fieldInRelationList")
              fieldInRelationList.subFields.find { it.name == field.name.split(".")[1] }?.let { son ->
-                 println("son: $son")
+                 Log.d("son: $son")
                  if (partCount > 1) {
                      son.subFieldsForAlias?.find { it.name == field.name.split(".")[2] }?.let { grandSon ->
-                         println("grandSon: $grandSon")
+                         Log.d("grandSon: $grandSon")
                          return grandSon
                      }
                  } else {
@@ -196,14 +196,14 @@ fun getDataModelField(dataModelList: List<DataModel>, dataModel: DataModel, fiel
                  }
              }
         }
-        println("getDataModelField [${field.name}] not found in relations, going to check in fields")
+        Log.d("getDataModelField [${field.name}] not found in relations, going to check in fields")
         dataModel?.fields?.find { it.name == field.name.split(".")[0] }?.let { fieldInFieldList ->
-            println("fieldInFieldList: $fieldInFieldList")
+            Log.d("fieldInFieldList: $fieldInFieldList")
             fieldInFieldList.subFieldsForAlias?.find { it.name == field.name.split(".")[1] }?.let { son ->
-                println("son: $son")
+                Log.d("son: $son")
                 if (partCount > 1) {
                     son.subFieldsForAlias?.find { it.name == field.name.split(".")[2] }?.let { grandSon ->
-                        println("grandSon: $grandSon")
+                        Log.d("grandSon: $grandSon")
                         return grandSon
                     }
                 } else {
@@ -211,31 +211,31 @@ fun getDataModelField(dataModelList: List<DataModel>, dataModel: DataModel, fiel
                 }
             }
         }
-        println("getDataModelField [${field.name}] not found in fields, going to check fieldAliases in fields")
+        Log.d("getDataModelField [${field.name}] not found in fields, going to check fieldAliases in fields")
         dataModel?.fields?.find { it.path == field.name && field.kind == "alias" }?.let { aliasFieldInFieldList ->
-            println("aliasFieldInFieldList: $aliasFieldInFieldList")
+            Log.d("aliasFieldInFieldList: $aliasFieldInFieldList")
             return aliasFieldInFieldList
         }
 
     } else {
-        println("getDataModelField field.name doesn't contain '.'")
+        Log.d("getDataModelField field.name doesn't contain '.'")
 
         dataModel?.fields?.find { it.name == field.name }?.let { field ->
-            println("Found field with this name: $field")
+            Log.d("Found field with this name: $field")
             return field
         }
 
         val fieldPath = field.path ?: ""
         val pathPartCount = fieldPath.count { it == '.'}
         if (fieldPath.contains(".")) {         // TODO: TO CHECK
-            println("getDataModelField fieldPath contains '.'")
+            Log.d("getDataModelField fieldPath contains '.'")
             dataModel?.fields?.find { it.name == fieldPath.split(".")[0] }?.let { fieldInFieldList ->
-                println("fieldInFieldList: $fieldInFieldList")
+                Log.d("fieldInFieldList: $fieldInFieldList")
                 fieldInFieldList.subFieldsForAlias?.find { it.name == field.name.split(".")[1] }?.let { son ->
-                    println("son: $son")
+                    Log.d("son: $son")
                     if (pathPartCount > 1) {
                         son.subFieldsForAlias?.find { it.name == field.name.split(".")[2] }?.let { grandSon ->
-                            println("grandSon: $grandSon")
+                            Log.d("grandSon: $grandSon")
                             return grandSon
                         }
                     } else {
@@ -246,23 +246,23 @@ fun getDataModelField(dataModelList: List<DataModel>, dataModel: DataModel, fiel
         }
     }
 
-    println("getDataModelField returns null")
+    Log.d("getDataModelField returns null")
     return null
 }
 
 fun getDataModelFieldFromPath(dataModelList: List<DataModel>, fieldFromDataModel: Field, fieldPath: String): Field? {
-    println("getDataModelFieldFromPath fieldPath [$fieldPath]")
+    Log.d("getDataModelFieldFromPath fieldPath [$fieldPath]")
     val partCount = fieldPath.count { it == '.'}
     val dataModel = dataModelList.find { it.id == fieldFromDataModel.relatedTableNumber.toString() }
     if (fieldPath.contains(".")) {
-        println("getDataModelFieldFromPath field.name contains '.'")
+        Log.d("getDataModelFieldFromPath field.name contains '.'")
         dataModel?.relations?.find { it.name == fieldPath.split(".")[0] }?.let { fieldInRelationList ->
-            println("fieldInRelationList: $fieldInRelationList")
+            Log.d("fieldInRelationList: $fieldInRelationList")
             fieldInRelationList.subFields.find { it.name == fieldPath.split(".")[1] }?.let { son ->
-                println("son: $son")
+                Log.d("son: $son")
                 if (partCount > 1) {
                     son.subFieldsForAlias?.find { it.name == fieldPath.split(".")[2] }?.let { grandSon ->
-                        println("grandSon: $grandSon")
+                        Log.d("grandSon: $grandSon")
                         return grandSon
                     }
                 } else {
@@ -270,14 +270,14 @@ fun getDataModelFieldFromPath(dataModelList: List<DataModel>, fieldFromDataModel
                 }
             }
         }
-        println("getDataModelFieldFromPath [$fieldPath] not found in relations, going to check in fields")
+        Log.d("getDataModelFieldFromPath [$fieldPath] not found in relations, going to check in fields")
         dataModel?.fields?.find { it.name == fieldPath.split(".")[0] }?.let { fieldInFieldList ->
-            println("fieldInFieldList: $fieldInFieldList")
+            Log.d("fieldInFieldList: $fieldInFieldList")
             fieldInFieldList.subFieldsForAlias?.find { it.name == fieldPath.split(".")[1] }?.let { son ->
-                println("son: $son")
+                Log.d("son: $son")
                 if (partCount > 1) {
                     son.subFieldsForAlias?.find { it.name == fieldPath.split(".")[2] }?.let { grandSon ->
-                        println("grandSon: $grandSon")
+                        Log.d("grandSon: $grandSon")
                         return grandSon
                     }
                 } else {
@@ -285,31 +285,31 @@ fun getDataModelFieldFromPath(dataModelList: List<DataModel>, fieldFromDataModel
                 }
             }
         }
-        println("getDataModelFieldFromPath [$fieldPath] not found in fields, going to check fieldAliases in fields")
+        Log.d("getDataModelFieldFromPath [$fieldPath] not found in fields, going to check fieldAliases in fields")
         dataModel?.fields?.find { it.path == fieldPath }?.let { aliasFieldInFieldList ->
-            println("aliasFieldInFieldList: $aliasFieldInFieldList")
+            Log.d("aliasFieldInFieldList: $aliasFieldInFieldList")
             return aliasFieldInFieldList
         }
 
     } else {
-        println("getDataModelField field.name doesn't contain '.'")
+        Log.d("getDataModelField field.name doesn't contain '.'")
 
         dataModel?.fields?.find { it.name == fieldPath }?.let { field ->
-            println("Found field with this name: $field")
+            Log.d("Found field with this name: $field")
             return field
         }
 //
 //        val fieldPath = field.path ?: ""
 //        val pathPartCount = fieldPath.count { it == '.'}
 //        if (fieldPath.contains(".")) {         // TODO: TO CHECK
-//            println("getDataModelField fieldPath contains '.'")
+//            Log.d("getDataModelField fieldPath contains '.'")
 //            dataModel?.fields?.find { it.name == fieldPath.split(".")[0] }?.let { fieldInFieldList ->
-//                println("fieldInFieldList: $fieldInFieldList")
+//                Log.d("fieldInFieldList: $fieldInFieldList")
 //                fieldInFieldList.subFieldsForAlias?.find { it.name == field.name.split(".")[1] }?.let { son ->
-//                    println("son: $son")
+//                    Log.d("son: $son")
 //                    if (pathPartCount > 1) {
 //                        son.subFieldsForAlias?.find { it.name == field.name.split(".")[2] }?.let { grandSon ->
-//                            println("grandSon: $grandSon")
+//                            Log.d("grandSon: $grandSon")
 //                            return grandSon
 //                        }
 //                    } else {
@@ -320,7 +320,7 @@ fun getDataModelFieldFromPath(dataModelList: List<DataModel>, fieldFromDataModel
 //        }
     }
 
-    println("getDataModelField returns null")
+    Log.d("getDataModelField returns null")
     return null
 }
 
@@ -329,84 +329,84 @@ fun getDataModelFieldFromPath(dataModelList: List<DataModel>, fieldFromDataModel
  */
 
 fun hasLabelPercentPlaceholder(dataModelList: List<DataModel>, dataModel: DataModel, field: Field): Boolean {
-    println("hasLabelPercentPlaceholder field [${field.name}] ////")
+    Log.d("hasLabelPercentPlaceholder field [${field.name}] ////")
     val fieldFromDataModel: Field = getDataModelField(dataModelList, dataModel, field) ?: return false
-    println("fieldFromDataModel: $fieldFromDataModel")
+    Log.d("fieldFromDataModel: $fieldFromDataModel")
     val hasPercentPlaceholder = hasPercentPlaceholder(fieldFromDataModel.getLabel(), dataModelList, dataModel, field, fieldFromDataModel)
-    println("hasPercentPlaceholder : $hasPercentPlaceholder")
+    Log.d("hasPercentPlaceholder : $hasPercentPlaceholder")
     return hasPercentPlaceholder
 }
 
 fun hasShortLabelPercentPlaceholder(dataModelList: List<DataModel>, dataModel: DataModel, field: Field): Boolean {
-    println("hasShortLabelPercentPlaceholder field [${field.name}] ////")
+    Log.d("hasShortLabelPercentPlaceholder field [${field.name}] ////")
     val fieldFromDataModel: Field = getDataModelField(dataModelList, dataModel, field) ?: return false
-    println("fieldFromDataModel: $fieldFromDataModel")
+    Log.d("fieldFromDataModel: $fieldFromDataModel")
     val hasPercentPlaceholder = hasPercentPlaceholder(fieldFromDataModel.getShortLabel(), dataModelList, dataModel, field, fieldFromDataModel)
-    println("hasPercentPlaceholder : $hasPercentPlaceholder")
+    Log.d("hasPercentPlaceholder : $hasPercentPlaceholder")
     return hasPercentPlaceholder
 }
 
 private fun hasPercentPlaceholder(label: String, dataModelList: List<DataModel>, dataModel: DataModel, formField: Field, fieldFromDataModel: Field): Boolean {
-    println("hasPercentPlaceholder field [${fieldFromDataModel.name}] label [$label] ////")
+    Log.d("hasPercentPlaceholder field [${fieldFromDataModel.name}] label [$label] ////")
     val hasLengthPlaceholder = hasLengthPlaceholder(label, dataModelList, fieldFromDataModel)
-    println("hasLengthPlaceholder $hasLengthPlaceholder")
+    Log.d("hasLengthPlaceholder $hasLengthPlaceholder")
     val hasFieldPlaceholder = hasFieldPlaceholder(label, dataModelList, dataModel, formField)
-    println("hasFieldPlaceholder $hasFieldPlaceholder")
+    Log.d("hasFieldPlaceholder $hasFieldPlaceholder")
     return hasLengthPlaceholder || hasFieldPlaceholder
 }
 
 private fun hasLengthPlaceholder(label: String, dataModelList: List<DataModel>, fieldFromDataModel: Field): Boolean {
-    println("hasLengthPlaceholder field [${fieldFromDataModel.name}] label [$label] ////")
+    Log.d("hasLengthPlaceholder field [${fieldFromDataModel.name}] label [$label] ////")
     val isRelation = fieldFromDataModel.isRelation(dataModelList)
-    println("isRelation: $isRelation")
+    Log.d("isRelation: $isRelation")
     if (!isRelation) return false
     val isOneToManyRelation = fieldFromDataModel.isOneToManyRelation(dataModelList)
-    println("isOneToManyRelation = $isOneToManyRelation")
+    Log.d("isOneToManyRelation = $isOneToManyRelation")
     if (!isOneToManyRelation) return false
     return label.contains("%length%")
 }
 
 fun hasFieldPlaceholder(label: String, dataModelList: List<DataModel>, dataModel: DataModel, formField: Field): Boolean {
-    println("hasFieldPlaceholder field [${formField.name}] label [$label] ////")
+    Log.d("hasFieldPlaceholder field [${formField.name}] label [$label] ////")
     val fieldFromDataModel: Field = getDataModelField(dataModelList, dataModel, formField) ?: return false
-    println("fieldFromDataModel : $fieldFromDataModel")
+    Log.d("fieldFromDataModel : $fieldFromDataModel")
     val isRelation = fieldFromDataModel.isRelation(dataModelList)
-    println("isRelation: $isRelation")
+    Log.d("isRelation: $isRelation")
     if (!isRelation) return false
     val isManyToOneRelation = fieldFromDataModel.isManyToOneRelation(dataModelList)
-    println("isManyToOneRelation = $isManyToOneRelation")
+    Log.d("isManyToOneRelation = $isManyToOneRelation")
     if (!isManyToOneRelation) return false
     val regex = ("((?:%[\\w|\\s|\\.]+%)+)").toRegex()
     regex.findAll(label).forEach { matchResult ->
         val fieldName = matchResult.destructured.component1().removePrefix("%").removeSuffix("%")
-        println("Regexed fieldName: $fieldName")
+        Log.d("Regexed fieldName: $fieldName")
         // Verify that fieldName exists in source dataModel
         val fieldExists = getDataModelFieldFromPath(dataModelList, fieldFromDataModel, fieldName) != null
-        println("fieldExists: $fieldExists")
+        Log.d("fieldExists: $fieldExists")
         return fieldExists
     }
     return false
 }
 
 fun getLabelWithPercentPlaceholder(dataModelList: List<DataModel>, form: Form, field: Field, catalogDef: CatalogDef): String {
-    println("getLabelWithPercentPlaceholder field [${field.name}] ////")
+    Log.d("getLabelWithPercentPlaceholder field [${field.name}] ////")
     val fieldFromDataModel: Field = getDataModelField(dataModelList, form.dataModel, field) ?: return ""
-    println("fieldFromDataModel: $fieldFromDataModel")
+    Log.d("fieldFromDataModel: $fieldFromDataModel")
     return replacePercentPlaceholder(fieldFromDataModel.getLabel(), dataModelList, form, field, catalogDef)
 }
 
 fun getShortLabelWithPercentPlaceholder(dataModelList: List<DataModel>, form: Form, field: Field, catalogDef: CatalogDef): String {
-    println("getShortLabelWithPercentPlaceholder field [${field.name}] ////")
+    Log.d("getShortLabelWithPercentPlaceholder field [${field.name}] ////")
     val fieldFromDataModel: Field = getDataModelField(dataModelList, form.dataModel, field) ?: return ""
-    println("fieldFromDataModel: $fieldFromDataModel")
+    Log.d("fieldFromDataModel: $fieldFromDataModel")
     return replacePercentPlaceholder(fieldFromDataModel.getShortLabel(), dataModelList, form, field, catalogDef)
 }
 
 fun getEntryRelation(dataModelList: List<DataModel>, source: String, formField: Field, catalogDef: CatalogDef): String {
-    println("getEntryRelation field [${formField.name}] ////")
+    Log.d("getEntryRelation field [${formField.name}] ////")
     return if (formField.name.contains(".")) {
         val relation: Relation? = findRelation(dataModelList, source, formField)
-        println("relation = $relation")
+        Log.d("relation = $relation")
         if (relation != null)
             "entityData." + relation.name.relationNameAdjustment() + "." + getPathToManyWithoutFirst(relation, catalogDef)
         else
@@ -417,14 +417,14 @@ fun getEntryRelation(dataModelList: List<DataModel>, source: String, formField: 
 }
 
 private fun replacePercentPlaceholder(label: String, dataModelList: List<DataModel>, form: Form, field: Field, catalogDef: CatalogDef): String {
-    println("replacePercentPlaceholder field [${field.name}] label [$label] ////")
+    Log.d("replacePercentPlaceholder field [${field.name}] label [$label] ////")
     val fieldFromDataModel: Field = getDataModelField(dataModelList, form.dataModel, field) ?: return ""
     val hasLengthPlaceholder = hasLengthPlaceholder(label, dataModelList, fieldFromDataModel)
     val labelWithLength = if (hasLengthPlaceholder) {
 
         val labelWithSize = if (field.name.contains(".")) {
             val relation: Relation? = findRelation(dataModelList, form.dataModel.name, field)
-            println("relation = $relation")
+            Log.d("relation = $relation")
             if (relation != null)
                 "entityData." + relation.name.relationNameAdjustment() + "." + getPathToManyWithoutFirst(relation, catalogDef) + ".size"
             else
@@ -446,14 +446,14 @@ private fun replacePercentPlaceholder(label: String, dataModelList: List<DataMod
 }
 
 private fun replaceFieldPlaceholder(label: String, dataModelList: List<DataModel>, fieldFromDataModel: Field): String {
-    println("replaceFieldPlaceholder field [${fieldFromDataModel.name}] label [$label] ////")
+    Log.d("replaceFieldPlaceholder field [${fieldFromDataModel.name}] label [$label] ////")
     val labelWithoutRemainingLength = label.replace("%length%", "")
     val regex = ("((?:%[\\w|\\s|\\.]+%)+)").toRegex()
     val newLabel = regex.replace(labelWithoutRemainingLength) { matchResult ->
         val fieldName = matchResult.destructured.component1().removePrefix("%").removeSuffix("%")
-        println("Regexed fieldName: $fieldName")
+        Log.d("Regexed fieldName: $fieldName")
         val fieldInLabel: Field? = getDataModelFieldFromPath(dataModelList, fieldFromDataModel, fieldName)
-        println("fieldInLabel: $fieldInLabel")
+        Log.d("fieldInLabel: $fieldInLabel")
         if (fieldInLabel != null)
             "\" + entityData.${fieldFromDataModel.name.fieldAdjustment()}.${fieldName.fieldAdjustment()}.toString() + \""
         else
@@ -472,37 +472,37 @@ fun getNavbarTitle(dataModelList: List<DataModel>, form: Form, formField: Field,
 }
 
 fun getNavbarTitle(dataModelList: List<DataModel>, dataModel: DataModel, formField: Field, catalogDef: CatalogDef): String {
-    println("getNavbarTitle - getNavbarTitle field [${formField.name}] ////")
+    Log.d("getNavbarTitle - getNavbarTitle field [${formField.name}] ////")
     val fieldFromDataModel: Field = getDataModelField(dataModelList, dataModel, formField) ?: return ""
-    println("getNavbarTitle - fieldFromDataModel: $fieldFromDataModel")
+    Log.d("getNavbarTitle - fieldFromDataModel: $fieldFromDataModel")
 
     fieldFromDataModel.format?.let { format ->
-        println("getNavbarTitle - format: $format")
+        Log.d("getNavbarTitle - format: $format")
 
         val regex = ("((?:%[\\w|\\s|\\.]+%)+)").toRegex()
         val formatWithoutRemainingLength = format.replace("%length%", "")
         val navbarTitle = regex.replace(formatWithoutRemainingLength) { matchResult ->
             val fieldName = matchResult.destructured.component1().removePrefix("%").removeSuffix("%")
             // Verify that fieldName exists in source dataModel
-            println("Regexed fieldName: $fieldName")
+            Log.d("Regexed fieldName: $fieldName")
             val path = unAliasPath(fieldName, dataModel.name, catalogDef)
-            println("path = $path")
+            Log.d("path = $path")
             val endFieldName = path.substringAfterLast(".").fieldAdjustment()
             val destBeforeField = destBeforeField(catalogDef, dataModel.name, path)
             val endField = dataModelList.find { it.name.tableNameAdjustment() == destBeforeField.tableNameAdjustment() }?.fields?.find { it.name.fieldAdjustment() == endFieldName }
 
-            println("endField: $endField")
+            Log.d("endField: $endField")
 
             if (endField?.isNativeType(dataModelList) == true) {
 
                 val fieldAliasName = endField.getFieldAliasName(dataModelList)
-                println("fieldAliasName = $fieldAliasName")
+                Log.d("fieldAliasName = $fieldAliasName")
 
                 when {
                     path.contains(".") -> {
                         val relation = findRelationFromPath(dataModelList, dataModel.name, path.substringBeforeLast("."))
                         if (relation != null) {
-                            println("Found relation with same path with path $relation")
+                            Log.d("Found relation with same path with path $relation")
 
                             val pathToOneWithoutFirst = getPathToOneWithoutFirst(relation, catalogDef)
                             if (pathToOneWithoutFirst.isNotEmpty())
@@ -510,7 +510,7 @@ fun getNavbarTitle(dataModelList: List<DataModel>, dataModel: DataModel, formFie
                             else
                                 "\${(roomEntity as ${dataModel.name.tableNameAdjustment()}RoomEntity?)?.${relation.name.relationNameAdjustment()}?.$fieldAliasName.toString()}"
                         } else {
-                            println("No relation found with path : ${path.substringBeforeLast(".")}")
+                            Log.d("No relation found with path : ${path.substringBeforeLast(".")}")
                             fieldName
                         }
                     }
@@ -523,11 +523,11 @@ fun getNavbarTitle(dataModelList: List<DataModel>, dataModel: DataModel, formFie
                 fieldName
             }
         }
-        println("navbarTitle: $navbarTitle")
+        Log.d("navbarTitle: $navbarTitle")
         return navbarTitle
     }
 
-    println("fieldFromDataModel.format = null")
+    Log.d("fieldFromDataModel.format = null")
     return dataModelList.find { it.name == fieldFromDataModel.relatedEntities }?.label
             ?: dataModelList.find { it.name == fieldFromDataModel.relatedDataClass }?.label
             ?: ""

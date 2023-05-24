@@ -14,7 +14,7 @@ fun getTemplateLayoutTypeFiller(tableName: String, formPath: String): TemplateLa
     )
 
 fun getLayoutManagerType(formPath: String): String {
-    println("getLayoutManagerType: $formPath")
+    Log.i("getLayoutManagerType: $formPath")
     var type = "Collection"
     getManifestJSONContent(formPath)?.let {
         type = it.getSafeObject("tags")?.getSafeString("___LISTFORMTYPE___") ?: "Collection"
