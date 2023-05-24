@@ -4,9 +4,9 @@ This project create android project using inputs from [4D Mobile App](https://gi
 
 ## Requirements
 
-- [kscript](https://github.com/holgerbrandl/kscript), installed for instance with sdkman or homebrew (version 3)
-- [gradle](https://gradle.org/) to package (version 6.8)
-- java 11
+- [kscript](https://github.com/holgerbrandl/kscript), installed for instance with sdkman or homebrew (version 4.2.2)
+- [gradle](https://gradle.org/) to package (version 8.1)
+- java 11 or 17
 
 ## Usage
 
