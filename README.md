@@ -1,5 +1,7 @@
 # ProjectGenerator
 
+[![Build](https://github.com/4d/android-ProjectGenerator/actions/workflows/build.yml/badge.svg)](https://github.com/4d/android-ProjectGenerator/actions/workflows/build.yml)
+
 This project create android project using inputs from [4D Mobile App](https://github.com/4d/4D-Mobile-App/).
 
 ## Requirements
