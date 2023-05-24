@@ -17,7 +17,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
-    - uses: sdkman/sdkman-action@v1-preview-2
+    - uses: sdkman/sdkman-action@main
       id: sdkman
       with:
         candidate: java
