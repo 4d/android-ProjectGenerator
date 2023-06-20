@@ -69,10 +69,14 @@ else
 fi
 
 export KSCRIPT_DIRECTORY=$(pwd) # to force cache path inside current directory
+
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+cd "$SCRIPT_DIR"
+
 kscript --clear-cache
 kscript --package main.kt 2>&1 | sed 's/\[nl\]/\n/g'
 
-jar_path=$(find cache -name "main.jar")
+jar_path=$(find "$KSCRIPT_DIRECTORY" -name "main.jar")
 
 if [ -f "$jar_path" ]; then
   mv "$jar_path" "$BINARY_PATH"
