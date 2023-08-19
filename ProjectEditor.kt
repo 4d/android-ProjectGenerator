@@ -73,8 +73,11 @@ class ProjectEditor(projectEditorFile: File, val catalogDef: CatalogDef, isCreat
                     deepLink = jsonObj.getDeepLinkScheme()
                     universalLinkWithBundleId = jsonObj.getUniversalLink(findJsonString("bundleIdentifier"))
                     universalLinkWithoutBundleId = jsonObj.getUniversalLink("")
+                } else  {
+                    deepLink = DeepLink(scheme = "", enabled = false)
+                    universalLinkWithBundleId = UniversalLink(host = "", scheme = "", pathPattern = "", enabled = false)
+                    universalLinkWithoutBundleId = UniversalLink(host = "", scheme = "", pathPattern = "", enabled = false)
                 }
-
             }
 
         } ?: kotlin.run {
