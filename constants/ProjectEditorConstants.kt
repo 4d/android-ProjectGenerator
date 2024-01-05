@@ -61,6 +61,7 @@
     const val DEBUG_MODE_KEY = "debugMode"
     const val LOCAL_SOURCE = "canUseLocalSource"
     const val PUSH_NOTIFICATION = "pushNotification"
+    const val EXTRA_KEY = "extra"
 
     /**
      * TYPE STRING PARSING
