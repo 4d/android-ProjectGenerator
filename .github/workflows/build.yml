@@ -21,7 +21,7 @@ jobs:
       id: sdkman
       with:
         candidate: java
-        version: 17.0.7-amzn
+        version: 17.0.9-amzn
     - name: Set up Kscript
       run: |
           source $HOME/.sdkman/bin/sdkman-init.sh
