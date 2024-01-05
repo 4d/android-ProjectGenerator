@@ -147,6 +147,7 @@ class ProjectEditor(projectEditorFile: File, val catalogDef: CatalogDef, isCreat
             "debugMode" -> jsonObj.getSafeBoolean(DEBUG_MODE_KEY)
             "canUseLocalSource" -> jsonObj.getSafeBoolean(LOCAL_SOURCE)
             "pushNotification" -> jsonObj.getSafeObject(PROJECT_KEY)?.getSafeObject(SERVER_KEY)?.getSafeBoolean(PUSH_NOTIFICATION)
+            "editActionHasUniqueTask" -> jsonObj.getSafeObject(EXTRA_KEY)?.getSafeBoolean("editActionHasUniqueTask")
             else -> null
         }
     }
@@ -180,6 +181,7 @@ class ProjectEditor(projectEditorFile: File, val catalogDef: CatalogDef, isCreat
             put("crash.server.url", DEFAULT_LOG_SERVER)
             put("buildInfo", buildInfo)
             put("pushNotification", findJsonBoolean("pushNotification") ?: false)
+            put("action.edit.hashUniqueTask", findJsonBoolean("editActionHasUniqueTask") ?: false)
         }
     }
 
