@@ -5,7 +5,7 @@
 @file:DependsOnMaven("org.codehaus.groovy:groovy-sql:3.0.9")
 @file:DependsOnMaven("org.xerial:sqlite-jdbc:3.36.0.3")
 @file:DependsOnMaven("org.json:json:20210307")
-@file:DependsOn("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.7.21")
+@file:DependsOn("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.10")
 
 //@file:DependsOnMaven("com.google.android:android:4.1.1.4")
 //@file:DependsOnMaven("commons-io:commons-io:2.8.0")
