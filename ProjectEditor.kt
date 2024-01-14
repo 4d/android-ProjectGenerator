@@ -147,7 +147,7 @@ class ProjectEditor(projectEditorFile: File, val catalogDef: CatalogDef, isCreat
             "debugMode" -> jsonObj.getSafeBoolean(DEBUG_MODE_KEY)
             "canUseLocalSource" -> jsonObj.getSafeBoolean(LOCAL_SOURCE)
             "pushNotification" -> jsonObj.getSafeObject(PROJECT_KEY)?.getSafeObject(SERVER_KEY)?.getSafeBoolean(PUSH_NOTIFICATION)
-            "editActionHasUniqueTask" -> jsonObj.getSafeObject(EXTRA_KEY)?.getSafeBoolean("editActionHasUniqueTask")
+            "editActionHasUniqueTask" -> jsonObj.getSafeObject(PROJECT_KEY)?.getSafeObject(EXTRA_KEY)?.getSafeBoolean("editActionHasUniqueTask")
             else -> null
         }
     }
