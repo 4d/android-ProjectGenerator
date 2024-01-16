@@ -2,6 +2,7 @@
 
 BINARY_NAME=androidprojectgenerator.jar
 BINARY_PATH="$(pwd)/$BINARY_NAME"
+nameCertificat="Developer ID Application"
 
 if [ -z "$JAVA_HOME" ]; then
   if [ -d "/Applications/Android Studio.app/Contents/jbr/Contents/Home" ]; then
@@ -81,6 +82,18 @@ jar_path=$(find "$KSCRIPT_DIRECTORY" -name "main.jar")
 if [ -f "$jar_path" ]; then
   mv "$jar_path" "$BINARY_PATH"
   echo "🎉 binary available at path $BINARY_PATH"
+
+
+  if [[ "$OSTYPE" == "darwin"* ]]; then
+    security find-certificate -c "$nameCertificat" > /dev/null 2>&1
+    retVal=$?
+    if [ "$retVal" -eq 0 ];then
+      ./sign.sh "$BINARY_PATH"
+    else
+      echo "ℹ️ Jar binaries are not signed. Do not found certificate for $nameCertificat"
+    fi
+  fi
+
 else
   echo "❌ no binary produced"
   exit 3
