@@ -7,7 +7,8 @@ data class FieldMappingFormatter(
     val imageHeight: Int?,
     val tintable: Boolean?,
     val target: Any?,
-    val capabilities : List<String>?
+    val capabilities : List<String>?,
+    val currentEntity: Boolean?
 ) {
     fun isImageNamed() = this.binding == "imageNamed"
 }
@@ -27,6 +28,7 @@ data class FieldMappingDefaultInputControl(
     var format: String?,
     val imageWidth: Int?,
     val imageHeight: Int?,
+    val currentEntity: Boolean?,
 )
 
 data class FieldMappingLoginForm(
