@@ -181,7 +181,7 @@ class ProjectEditor(projectEditorFile: File, val catalogDef: CatalogDef, isCreat
             put("crash.server.url", DEFAULT_LOG_SERVER)
             put("buildInfo", buildInfo)
             put("pushNotification", findJsonBoolean("pushNotification") ?: false)
-            put("action.edit.hashUniqueTask", findJsonBoolean("editActionHasUniqueTask") ?: false)
+            put("action.edit.hasUniqueTask", findJsonBoolean("editActionHasUniqueTask") ?: false)
         }
     }
 
