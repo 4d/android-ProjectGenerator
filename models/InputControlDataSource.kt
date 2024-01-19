@@ -4,5 +4,6 @@ data class InputControlDataSource(
     var entityFormat: String? = null,
     var search: Any? = null, // Bool, String, Array
     var order: String? = null,
-    var sort: Any? = null // String, Array (of String, Object (field, order) , Object (field, order)
+    var sort: Any? = null, // String, Array (of String, Object (field, order) , Object (field, order)
+    var currentEntity: Boolean? = null
 )

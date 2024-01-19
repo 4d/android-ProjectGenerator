@@ -12,8 +12,7 @@ fun getFieldMappingFormatter(manifestContent: JSONObject, format: String): Field
         tintable = manifestContent.getSafeObject("assets")?.getSafeBoolean("tintable"),
         target = manifestContent.getSafeString("target") ?: manifestContent.getSafeArray("target")
             .getStringList(), // target can be a String or a JSONArray,
-        capabilities = manifestContent.getSafeObject("capabilities")?.checkCapabilities(),
-        currentEntity = manifestContent.getSafeBoolean("currentEntity")
+        capabilities = manifestContent.getSafeObject("capabilities")?.checkCapabilities()
     )
 
 fun getFieldMappingKotlinInputControl(manifestContent: JSONObject, format: String): FieldMappingKotlinInputControl =
@@ -45,8 +44,7 @@ fun getFieldMappingDefaultInputControl(manifestContent: JSONObject): FieldMappin
         name = manifestContent.getSafeString("name"),
         format = manifestContent.getSafeString("format"),
         imageWidth = getSize(manifestContent, "width"),
-        imageHeight = getSize(manifestContent, "height"),
-        currentEntity = manifestContent.getSafeBoolean("currentEntity")
+        imageHeight = getSize(manifestContent, "height")
     )
 
 fun getChoiceList(manifestContent: JSONObject): Any {
@@ -65,6 +63,7 @@ private fun JSONObject.getDataSource(): Any {
     getSafeString("dataClass")?.let { dataSource.dataClass = it }
     getSafeString("field")?.let { dataSource.field = it }
     getSafeString("entityFormat")?.let { dataSource.entityFormat = it }
+    getSafeBoolean("currentEntity")?.let { dataSource.currentEntity = it }
 
     getSafeBoolean("search")?.let { dataSource.search = it }
     getSafeString("search")?.let { dataSource.search = it }
