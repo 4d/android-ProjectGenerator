@@ -119,7 +119,7 @@ class SqlQueryBuilder(entry: Any, private val fields: List<Field>) {
         val sortedMap = hashMap.toSortedMap()
         var k = 0
         for ((_, value) in sortedMap) {
-            outputEntity[k] = value
+            outputEntity[k] = if (value == JSONObject.NULL) null else value;
             k++
         }
         return outputEntity
